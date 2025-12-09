@@ -32,7 +32,6 @@ const CreateProduct = () => {
     brandId: "",
     categoryId: "",
     specs: {},
-    imageUrls: [],
   });
 
   const [formErrors, setFormErrors] = useState<{
@@ -46,8 +45,6 @@ const CreateProduct = () => {
   const [specKey, setSpecKey] = useState<string>("");
   const [specValue, setSpecValue] = useState<string>("");
 
-  // Image URL management
-  const [imageUrl, setImageUrl] = useState<string>("");
 
   // Debug: Log token
   useEffect(() => {
@@ -150,9 +147,6 @@ const CreateProduct = () => {
         brandId: formData.brandId.trim(),
         categoryId: formData.categoryId.trim(),
         specs: cleanedSpecs, // Only valid string specs
-        imageUrls: (formData.imageUrls || [])
-          .map(url => url?.trim())
-          .filter(url => url && url !== ''), // Filter out empty URLs
       };
 
       console.log("📤 Sending cleaned product data:", cleanedData);
@@ -214,22 +208,6 @@ const CreateProduct = () => {
     });
   };
 
-  const handleAddImageUrl = () => {
-    if (imageUrl.trim()) {
-      setFormData((prev) => ({
-        ...prev,
-        imageUrls: [...(prev.imageUrls || []), imageUrl.trim()],
-      }));
-      setImageUrl("");
-    }
-  };
-
-  const handleRemoveImageUrl = (index: number) => {
-    setFormData((prev) => ({
-      ...prev,
-      imageUrls: prev.imageUrls?.filter((_, i) => i !== index) || [],
-    }));
-  };
 
   const handleCancel = () => {
     router.back();
@@ -449,60 +427,6 @@ const CreateProduct = () => {
               </div>
             </div>
 
-            {/* Image URLs */}
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold text-gray-900">
-                  URL hình ảnh
-                </h2>
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                    placeholder="Nhập URL hình ảnh"
-                    value={imageUrl}
-                    onChange={(e) => setImageUrl(e.target.value)}
-                    onKeyPress={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        handleAddImageUrl();
-                      }
-                    }}
-                  />
-                  <button
-                    type="button"
-                    onClick={handleAddImageUrl}
-                    className="px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm transition-colors flex items-center gap-2"
-                  >
-                    <Plus size={16} />
-                    Thêm
-                  </button>
-                </div>
-
-                {formData.imageUrls && formData.imageUrls.length > 0 && (
-                  <div className="space-y-2 mt-4">
-                    {formData.imageUrls.map((url, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center gap-2 bg-gray-50 px-4 py-2 rounded-lg text-sm"
-                      >
-                        <span className="flex-1 truncate">{url}</span>
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveImageUrl(index)}
-                          className="text-red-600 hover:text-red-800"
-                        >
-                          <X size={14} />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
 
             {/* Actions */}
             <div className="flex gap-4 pt-6 border-t border-gray-200">
