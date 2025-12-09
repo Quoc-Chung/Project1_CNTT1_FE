@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import ProductItem from "@/components/client/Common/ProductItem";
 import { ProductService } from "@/services/ProductService";
-import { Product } from "@/types/product";
+import { Product } from "@/types/Client/Product/ProductItem";
 import { Product as APIProduct } from "@/types/Admin/ProductAPI";
 
 const NewArrival = () => {
@@ -50,7 +50,6 @@ const NewArrival = () => {
         setProducts(mappedProducts);
       } catch (error) {
         console.error("Error fetching latest products:", error);
-        // Fallback to empty array on error
         setProducts([]);
       } finally {
         setLoading(false);

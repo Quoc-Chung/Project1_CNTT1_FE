@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { Product } from "@/types/product";
+import { Product } from "@/types/Client/Product/ProductItem";
 import { useModalContext } from "@/app/context/QuickViewModalContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";

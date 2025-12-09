@@ -1,11 +1,10 @@
-import { Category } from "@/types/category";
+import { Category } from "@/types/Client/Category/CategoryType";
 import React from "react";
 
 const SingleItem = ({ item }: { item: Category }) => {
   const getImageSrc = () => {
     // Handle null or empty imageUrl
     if (!item.imageUrl || (typeof item.imageUrl === 'string' && item.imageUrl.trim() === "")) {
-      console.log('⚠️ Category imageUrl is null or empty for:', item.displayName);
       return "/images/categories/categories-01.png";
     }
     
@@ -18,7 +17,6 @@ const SingleItem = ({ item }: { item: Category }) => {
   
   // Debug: Log the final image source
   React.useEffect(() => {
-    console.log('🔍 SingleItem rendered for:', item.displayName, 'with imageSrc:', imageSrc);
   }, [item.displayName, imageSrc]);
 
   return (

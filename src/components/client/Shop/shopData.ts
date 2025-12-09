@@ -1,4 +1,4 @@
-import { Product } from "@/types/product";
+import { Product } from "@/types/Client/Product/ProductItem";
 const shopData: Product[] = [
   {
     title: "Havit HV-G69 USB Gamepad",
