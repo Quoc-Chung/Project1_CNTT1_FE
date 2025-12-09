@@ -26,7 +26,7 @@ const CreateProduct = () => {
   const [creating, setCreating] = useState<boolean>(false);
 
   // Form states
-  const [formData, setFormData] = useState<ProductCreateRequest>({
+  const [formData, setFormData] = useState<Omit<ProductCreateRequest, 'imageUrls'>>({
     name: "",
     description: "",
     brandId: "",
@@ -48,7 +48,6 @@ const CreateProduct = () => {
 
   // Debug: Log token
   useEffect(() => {
-    console.log("🔑 CreateProduct - Token:", token ? `${token.substring(0, 30)}...` : "NULL");
   }, [token]);
 
   // Load categories and brands on mount
@@ -146,7 +145,8 @@ const CreateProduct = () => {
         description: formData.description.trim(),
         brandId: formData.brandId.trim(),
         categoryId: formData.categoryId.trim(),
-        specs: cleanedSpecs, // Only valid string specs
+        specs: cleanedSpecs,
+        imageUrls: [], // Empty array - images are uploaded via files, not URLs
       };
 
       console.log("📤 Sending cleaned product data:", cleanedData);
