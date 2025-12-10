@@ -393,9 +393,9 @@ const ShopWithSidebar = () => {
     <>
       <Breadcrumb
         title={"Khám phá tất cả sản phẩm"}
-        pages={["shop", "/", "shop with sidebar"]}
+        pages={["shop", "shop with sidebar"]}
       />
-      <section className="overflow-hidden relative pb-20 pt-5 lg:pt-20 xl:pt-28 bg-[#f3f4f6]">
+      <section className="overflow-hidden relative pb-2 pt-5 lg:pt-3 xl:pt-5 bg-[#f3f4f6]">
         <div className="max-w-[1170px] w-full mx-auto px-4 sm:px-8 xl:px-0">
           <div className="flex gap-7.5">
             {/* <!-- Sidebar Start --> */}
@@ -473,10 +473,6 @@ const ShopWithSidebar = () => {
                     selectedBrand={selectedBrand}
                     onBrandChange={(brandId: string | null) => setSelectedBrand(brandId)}
                   />
-
-                  {/* // <!-- color box --> */}
-                  <ColorsDropdwon />
-
                   {/* // <!-- price range box --> */}
                   <PriceDropdown 
                     priceRange={priceRange}

@@ -6,15 +6,36 @@ import { useModalContext } from "@/app/context/QuickViewModalContext";
 import { useDispatch } from "react-redux";
 import Image from "next/image";
 import { usePreviewSlider } from "@/app/context/PreviewSliderContext";
+import { formatPrice } from "@/utils/helpers";
 
 const QuickViewModal = () => {
-  const { isModalOpen, closeModal } = useModalContext();
+  const { isModalOpen, closeModal, product } = useModalContext();
   const { openPreviewModal } = usePreviewSlider();
   const [quantity, setQuantity] = useState(1);
 
-  const product = []
-
   const [activePreview, setActivePreview] = useState(0);
+
+  // Reset activePreview when product changes
+  useEffect(() => {
+    if (product) {
+      setActivePreview(0);
+    }
+  }, [product]);
+
+  // Calculate discount percentage
+  const discountPercentage = product && product.price > 0 && product.discountedPrice > 0 && product.discountedPrice !== product.price
+    ? Math.round(((product.price - product.discountedPrice) / product.price) * 100)
+    : 0;
+
+  // Get product images
+  const productImages = product?.imgs?.previews || [];
+  const currentImage = productImages[activePreview] || productImages[0] || "/images/products/product-1.jpg";
+
+  // Calculate rating (assuming 5 stars max, based on reviews)
+  // Default to 4.5 if no reviews, or calculate based on review count
+  const rating = product?.reviews 
+    ? Math.min(5, Math.max(1, Math.round((product.reviews / 10) * 10) / 10)) 
+    : 4.5;
 
   const handlePreviewSlider = () => {
     openPreviewModal();
@@ -45,11 +66,14 @@ const QuickViewModal = () => {
     };
   }, [isModalOpen, closeModal]);
 
+  // Don't render if modal is closed or no product
+  if (!isModalOpen || !product) {
+    return null;
+  }
+
   return (
     <div
-      className={`${
-        isModalOpen ? "z-99999" : "hidden"
-      } fixed top-0 left-0 overflow-y-auto no-scrollbar w-full h-screen sm:py-20 xl:py-25 2xl:py-[230px] bg-dark/70 sm:px-8 px-4 py-5`}
+      className="z-99999 fixed top-0 left-0 overflow-y-auto no-scrollbar w-full h-screen sm:py-20 xl:py-25 2xl:py-[230px] bg-dark/70 sm:px-8 px-4 py-5"
     >
       <div className="flex items-center justify-center ">
         <div className="w-full max-w-[1100px] rounded-xl shadow-3 bg-white p-7.5 relative modal-content">
@@ -79,24 +103,26 @@ const QuickViewModal = () => {
             <div className="max-w-[526px] w-full">
               <div className="flex gap-5">
                 <div className="flex flex-col gap-5">
-                
-                  {[].map((img, key) => (
-                    <button
-                      onClick={() => setActivePreview(key)}
-                      key={key}
-                      className={`flex items-center justify-center w-20 h-20 overflow-hidden rounded-lg bg-gray-1 ease-out duration-200 hover:border-2 hover:border-blue ${
-                        activePreview === key && "border-2 border-blue"
-                      }`}
-                    >
-                      <Image
-                        src={img || ""}
-                        alt="thumbnail"
-                        width={61}
-                        height={61}
-                        className="aspect-square"
-                      />
-                    </button>
-                  ))}
+                  {productImages.length > 0 ? (
+                    productImages.map((img, key) => (
+                      <button
+                        onClick={() => setActivePreview(key)}
+                        key={key}
+                        className={`flex items-center justify-center w-20 h-20 overflow-hidden rounded-lg bg-gray-1 ease-out duration-200 hover:border-2 hover:border-blue ${
+                          activePreview === key && "border-2 border-blue"
+                        }`}
+                      >
+                        <Image
+                          src={img || ""}
+                          alt="thumbnail"
+                          width={61}
+                          height={61}
+                          className="aspect-square object-contain"
+                          unoptimized
+                        />
+                      </button>
+                    ))
+                  ) : null}
                 </div>
 
                 <div className="relative z-1 overflow-hidden flex items-center justify-center w-full sm:min-h-[508px] bg-gray-1 rounded-lg border border-gray-3">
@@ -124,10 +150,12 @@ const QuickViewModal = () => {
                     </button>
 
                     <Image
-                      src="/images/products/product-1.jpg"
-                      alt="products-details"
+                      src={currentImage}
+                      alt={product?.title || "products-details"}
                       width={400}
                       height={400}
+                      className="object-contain"
+                      unoptimized
                     />
                   </div>
                 </div>
@@ -135,88 +163,41 @@ const QuickViewModal = () => {
             </div>
 
             <div className="max-w-[445px] w-full">
-              <span className="inline-block text-custom-xs font-medium text-white py-1 px-3 bg-green mb-6.5">
-                SALE 20% OFF
-              </span>
+              {discountPercentage > 0 && (
+                <span className="inline-block text-custom-xs font-medium text-white py-1 px-3 bg-green mb-6.5">
+                  SALE {discountPercentage}% OFF
+                </span>
+              )}
 
               <h3 className="font-semibold text-xl xl:text-heading-5 text-dark mb-4">
-                tittle
+                {product?.title || "Sản phẩm"}
               </h3>
 
               <div className="flex flex-wrap items-center gap-5 mb-6">
                 <div className="flex items-center gap-1.5">
                   {/* <!-- stars --> */}
                   <div className="flex items-center gap-1">
-                    {[...Array(3)].map((_, i) => (
+                    {[...Array(5)].map((_, i) => (
                       <svg
                         key={i}
-                        className="text-yellow-400"
+                        className={i < rating ? "text-yellow-400" : "fill-gray-4"}
                         width="18"
                         height="18"
                         viewBox="0 0 18 18"
                         fill="none"
                         xmlns="http://www.w3.org/2000/svg"
                       >
-                        <g clipPath={`url(#clip0_375_9172_${i})`}>
-                          <path
-                            d="M16.7906 6.72187L11.7 5.93438L9.39377 1.09688C9.22502 0.759375 8.77502 0.759375 8.60627 1.09688L6.30002 5.9625L1.23752 6.72187C0.871891 6.77812 0.731266 7.25625 1.01252 7.50938L4.69689 11.3063L3.82502 16.6219C3.76877 16.9875 4.13439 17.2969 4.47189 17.0719L9.05627 14.5687L13.6125 17.0719C13.9219 17.2406 14.3156 16.9594 14.2313 16.6219L13.3594 11.3063L17.0438 7.50938C17.2688 7.25625 17.1563 6.77812 16.7906 6.72187Z"
-                            fill="currentColor"
-                          />
-                        </g>
-                        <defs>
-                          <clipPath id={`clip0_375_9172_${i}`}>
-                            <rect width="18" height="18" fill="white" />
-                          </clipPath>
-                        </defs>
+                        <path
+                          d="M16.7906 6.72187L11.7 5.93438L9.39377 1.09688C9.22502 0.759375 8.77502 0.759375 8.60627 1.09688L6.30002 5.9625L1.23752 6.72187C0.871891 6.77812 0.731266 7.25625 1.01252 7.50938L4.69689 11.3063L3.82502 16.6219C3.76877 16.9875 4.13439 17.2969 4.47189 17.0719L9.05627 14.5687L13.6125 17.0719C13.9219 17.2406 14.3156 16.9594 14.2313 16.6219L13.3594 11.3063L17.0438 7.50938C17.2688 7.25625 17.1563 6.77812 16.7906 6.72187Z"
+                          fill="currentColor"
+                        />
                       </svg>
                     ))}
-
-                    <svg
-                      className="fill-gray-4"
-                      width="18"
-                      height="18"
-                      viewBox="0 0 18 18"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <g clipPath="url(#clip0_375_9172)">
-                        <path
-                          d="M16.7906 6.72187L11.7 5.93438L9.39377 1.09688C9.22502 0.759375 8.77502 0.759375 8.60627 1.09688L6.30002 5.9625L1.23752 6.72187C0.871891 6.77812 0.731266 7.25625 1.01252 7.50938L4.69689 11.3063L3.82502 16.6219C3.76877 16.9875 4.13439 17.2969 4.47189 17.0719L9.05627 14.5687L13.6125 17.0719C13.9219 17.2406 14.3156 16.9594 14.2313 16.6219L13.3594 11.3063L17.0438 7.50938C17.2688 7.25625 17.1563 6.77812 16.7906 6.72187Z"
-                          fill=""
-                        />
-                      </g>
-                      <defs>
-                        <clipPath id="clip0_375_9172">
-                          <rect width="18" height="18" fill="white" />
-                        </clipPath>
-                      </defs>
-                    </svg>
-
-                    <svg
-                      className="fill-gray-4"
-                      width="18"
-                      height="18"
-                      viewBox="0 0 18 18"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <g clipPath="url(#clip0_375_9172)">
-                        <path
-                          d="M16.7906 6.72187L11.7 5.93438L9.39377 1.09688C9.22502 0.759375 8.77502 0.759375 8.60627 1.09688L6.30002 5.9625L1.23752 6.72187C0.871891 6.77812 0.731266 7.25625 1.01252 7.50938L4.69689 11.3063L3.82502 16.6219C3.76877 16.9875 4.13439 17.2969 4.47189 17.0719L9.05627 14.5687L13.6125 17.0719C13.9219 17.2406 14.3156 16.9594 14.2313 16.6219L13.3594 11.3063L17.0438 7.50938C17.2688 7.25625 17.1563 6.77812 16.7906 6.72187Z"
-                          fill=""
-                        />
-                      </g>
-                      <defs>
-                        <clipPath id="clip0_375_9172">
-                          <rect width="18" height="18" fill="white" />
-                        </clipPath>
-                      </defs>
-                    </svg>
                   </div>
 
                   <span>
-                    <span className="font-medium text-dark"> 4.7 Rating </span>
-                    <span className="text-dark-2"> (5 reviews) </span>
+                    <span className="font-medium text-dark"> {rating.toFixed(1)} Rating </span>
+                    <span className="text-dark-2"> ({product?.reviews || 0} reviews) </span>
                   </span>
                 </div>
 
@@ -249,10 +230,11 @@ const QuickViewModal = () => {
                 </div>
               </div>
 
-              <p>
-                Lorem Ipsum is simply dummy text of the printing and typesetting
-                industry. Lorem Ipsum has.
-              </p>
+              {product?.title && (
+                <p className="text-dark-2">
+                  {product.title}
+                </p>
+              )}
 
               <div className="flex flex-wrap justify-between gap-5 mt-6 mb-7.5">
                 <div>
@@ -260,14 +242,28 @@ const QuickViewModal = () => {
                     Price
                   </h4>
 
-                  <span className="flex items-center gap-2">
+                  {product && product.price > 0 ? (
+                    <span className="flex items-center gap-2">
+                      {product.discountedPrice > 0 && product.discountedPrice !== product.price ? (
+                        <>
+                          <span className="font-semibold text-dark text-xl xl:text-heading-4">
+                            {formatPrice(product.discountedPrice)}
+                          </span>
+                          <span className="font-medium text-dark-4 text-lg xl:text-2xl line-through">
+                            {formatPrice(product.price)}
+                          </span>
+                        </>
+                      ) : (
+                        <span className="font-semibold text-dark text-xl xl:text-heading-4">
+                          {formatPrice(product.price)}
+                        </span>
+                      )}
+                    </span>
+                  ) : (
                     <span className="font-semibold text-dark text-xl xl:text-heading-4">
-                      discountedPrice
+                      Liên hệ
                     </span>
-                    <span className="font-medium text-dark-4 text-lg xl:text-2xl line-through">
-                      price
-                    </span>
-                  </span>
+                  )}
                 </div>
 
                 <div>

@@ -47,36 +47,31 @@ const Cart = () => {
       </section>
       {/* <!-- ===== Breadcrumb Section End ===== --> */}
       {cartItems.length > 0 ? (
-        <section className="overflow-hidden py-20 bg-gray-2 ">
+        <section className="overflow-hidden py-5 bg-gray-2 ">
           <div className="max-w-[1170px] w-full mx-auto px-4 sm:px-8 xl:px-0">
-            <div className="flex flex-wrap items-center justify-between gap-5 mb-7.5">
-              <h2 className="font-medium text-dark text-2xl">Your Cart</h2>
-              <button className="text-blue">Clear Shopping Cart</button>
-            </div>
-
-            <div className="bg-white rounded-[10px] shadow-1">
+            <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
               <div className="w-full overflow-x-auto">
                 <div className="min-w-[1170px]">
                   {/* <!-- table header --> */}
-                  <div className="flex items-center py-5.5 px-7.5">
+                  <div className="flex items-center py-6 px-7.5 bg-gradient-to-r from-gray-50 to-gray-100 border-b-2 border-gray-200">
                     <div className="min-w-[400px]">
-                      <p className="text-dark">Product</p>
+                      <p className="text-black font-bold text-base">Sản phẩm</p>
                     </div>
 
                     <div className="min-w-[180px]">
-                      <p className="text-dark">Price</p>
+                      <p className="text-black font-bold text-base">Giá</p>
                     </div>
 
                     <div className="min-w-[275px]">
-                      <p className="text-dark">Quantity</p>
+                      <p className="text-black font-bold text-base">Số lượng</p>
                     </div>
 
                     <div className="min-w-[200px]">
-                      <p className="text-dark">Subtotal</p>
+                      <p className="text-black font-bold text-base">Tổng tiền</p>
                     </div>
 
                     <div className="min-w-[50px]">
-                      <p className="text-dark text-right">Action</p>
+                      <p className="text-black font-bold text-base text-right">Thao tác</p>
                     </div>
                   </div>
 

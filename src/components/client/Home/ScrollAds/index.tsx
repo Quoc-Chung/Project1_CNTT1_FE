@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 interface ScrollAd {
   id: number;
@@ -47,8 +48,14 @@ const scrollAds: ScrollAd[] = [
 ];
 
 const ScrollAds = () => {
+  const pathname = usePathname();
   const [isVisible, setIsVisible] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+
+  // Chỉ hiển thị ở trang home
+  if (pathname !== "/") {
+    return null;
+  }
 
   useEffect(() => {
     const checkMobile = () => {

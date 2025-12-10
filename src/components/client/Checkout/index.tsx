@@ -227,13 +227,13 @@ const Checkout = () => {
     <>
       <style jsx global>{`
         select {
-          font-size: 15px;
+          font-size: 14px;
         }
         select option {
-          padding: 12px 16px;
+          padding: 8px 12px;
           background-color: white;
           color: #1F2937;
-          font-size: 15px;
+          font-size: 14px;
           transition: background-color 0.2s ease;
         }
         select option:hover {
@@ -257,20 +257,20 @@ const Checkout = () => {
               <div className="lg:max-w-[670px] w-full">
                 {/* <!-- Address Selection --> */}
                 <div className="bg-white shadow-1 rounded-[10px] p-4 sm:p-8.5">
-                  <h3 className="font-medium text-lg text-dark mb-5">
+                  <h3 className="font-bold text-lg text-dark mb-6">
                     Địa chỉ giao hàng
                   </h3>
 
                   {/* Province Dropdown */}
-                  <div className="mb-5">
-                    <label className="block mb-2.5 text-dark font-medium">
+                  <div className="mb-4">
+                    <label className="block mb-2 text-dark font-bold text-sm">
                       Tỉnh/Thành phố <span className="text-red">*</span>
                     </label>
                     <div className="relative">
                       <select
                         value={selectedProvinceIndex}
                         onChange={handleProvinceChange}
-                        className="w-full rounded-lg border border-gray-3 bg-white text-dark py-3 px-4 pr-10 appearance-none outline-none transition-all duration-300 hover:border-gray-4 hover:bg-gray-1 hover:shadow-sm focus:border-gray-4 focus:bg-white focus:shadow-md focus:ring-2 focus:ring-gray-200 cursor-pointer text-base"
+                        className="w-full rounded-md border border-gray-3 bg-white text-dark py-2 px-3 pr-9 appearance-none outline-none transition-all duration-200 hover:border-gray-4 hover:bg-gray-1 focus:border-gray-4 focus:bg-white focus:shadow-sm focus:ring-1 focus:ring-gray-300 cursor-pointer text-sm"
                         required
                       >
                         <option value="" className="text-dark-5 py-2">-- Chọn Tỉnh/Thành phố --</option>
@@ -280,11 +280,11 @@ const Checkout = () => {
                           </option>
                         ))}
                       </select>
-                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-dark-4 pointer-events-none transition-transform duration-200">
+                      <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-dark-4 pointer-events-none transition-transform duration-200">
                         <svg
                           className="fill-current"
-                          width="18"
-                          height="18"
+                          width="16"
+                          height="16"
                           viewBox="0 0 16 16"
                           fill="none"
                           xmlns="http://www.w3.org/2000/svg"
@@ -299,8 +299,8 @@ const Checkout = () => {
                   </div>
 
                   {/* District Dropdown */}
-                  <div className="mb-5">
-                    <label className="block mb-2.5 text-dark font-medium">
+                  <div className="mb-4">
+                    <label className="block mb-2 text-dark font-bold text-sm">
                       Quận/Huyện <span className="text-red">*</span>
                     </label>
                     <div className="relative">
@@ -308,7 +308,7 @@ const Checkout = () => {
                         value={selectedDistrictIndex}
                         onChange={handleDistrictChange}
                         disabled={!selectedProvince}
-                        className="w-full rounded-lg border border-gray-3 bg-white text-dark py-3 px-4 pr-10 appearance-none outline-none transition-all duration-300 hover:border-gray-4 hover:bg-gray-1 hover:shadow-sm focus:border-gray-4 focus:bg-white focus:shadow-md focus:ring-2 focus:ring-gray-200 cursor-pointer text-base disabled:bg-gray-1 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-gray-3 disabled:hover:shadow-none"
+                        className="w-full rounded-md border border-gray-3 bg-white text-dark py-2 px-3 pr-9 appearance-none outline-none transition-all duration-200 hover:border-gray-4 hover:bg-gray-1 focus:border-gray-4 focus:bg-white focus:shadow-sm focus:ring-1 focus:ring-gray-300 cursor-pointer text-sm disabled:bg-gray-1 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-gray-3 disabled:hover:shadow-none"
                         required
                       >
                         <option value="" className="text-dark-5 py-2">-- Chọn Quận/Huyện --</option>
@@ -318,11 +318,11 @@ const Checkout = () => {
                           </option>
                         ))}
                       </select>
-                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-dark-4 pointer-events-none transition-transform duration-200">
+                      <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-dark-4 pointer-events-none transition-transform duration-200">
                         <svg
                           className="fill-current"
-                          width="18"
-                          height="18"
+                          width="16"
+                          height="16"
                           viewBox="0 0 16 16"
                           fill="none"
                           xmlns="http://www.w3.org/2000/svg"
@@ -337,8 +337,8 @@ const Checkout = () => {
                   </div>
 
                   {/* Ward Dropdown */}
-                  <div className="mb-5">
-                    <label className="block mb-2.5 text-dark font-medium">
+                  <div className="mb-4">
+                    <label className="block mb-2 text-dark font-bold text-sm">
                       Xã/Phường <span className="text-red">*</span>
                     </label>
                     <div className="relative">
@@ -346,7 +346,7 @@ const Checkout = () => {
                         value={selectedWard}
                         onChange={(e) => setSelectedWard(e.target.value)}
                         disabled={!selectedDistrict}
-                        className="w-full rounded-lg border border-gray-3 bg-white text-dark py-3 px-4 pr-10 appearance-none outline-none transition-all duration-300 hover:border-gray-4 hover:bg-gray-1 hover:shadow-sm focus:border-gray-4 focus:bg-white focus:shadow-md focus:ring-2 focus:ring-gray-200 cursor-pointer text-base disabled:bg-gray-1 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-gray-3 disabled:hover:shadow-none"
+                        className="w-full rounded-md border border-gray-3 bg-white text-dark py-2 px-3 pr-9 appearance-none outline-none transition-all duration-200 hover:border-gray-4 hover:bg-gray-1 focus:border-gray-4 focus:bg-white focus:shadow-sm focus:ring-1 focus:ring-gray-300 cursor-pointer text-sm disabled:bg-gray-1 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-gray-3 disabled:hover:shadow-none"
                         required
                       >
                         <option value="" className="text-dark-5 py-2">-- Chọn Xã/Phường --</option>
@@ -356,11 +356,11 @@ const Checkout = () => {
                           </option>
                         ))}
                       </select>
-                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-dark-4 pointer-events-none transition-transform duration-200">
+                      <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-dark-4 pointer-events-none transition-transform duration-200">
                         <svg
                           className="fill-current"
-                          width="18"
-                          height="18"
+                          width="16"
+                          height="16"
                           viewBox="0 0 16 16"
                           fill="none"
                           xmlns="http://www.w3.org/2000/svg"
@@ -375,8 +375,8 @@ const Checkout = () => {
                   </div>
 
                   {/* Detailed Address Input */}
-                  <div className="mb-5">
-                    <label className="block mb-2.5 text-dark">
+                  <div className="mb-4">
+                    <label className="block mb-2 text-dark font-bold text-sm">
                       Địa chỉ chi tiết <span className="text-red">*</span>
                     </label>
                     <input
@@ -384,14 +384,14 @@ const Checkout = () => {
                       value={detailedAddress}
                       onChange={(e) => setDetailedAddress(e.target.value)}
                       placeholder="Số nhà, tên đường, ..."
-                      className="w-full rounded-md border border-gray-3 bg-white placeholder:text-dark-5 text-dark py-2.5 px-5 outline-none duration-200 hover:border-gray-4 hover:bg-gray-1 focus:border-gray-4 focus:bg-white focus:shadow-input focus:ring-2 focus:ring-gray-300"
+                      className="w-full rounded-md border border-gray-3 bg-white placeholder:text-dark-5 placeholder:text-sm text-dark py-2 px-3 text-sm outline-none duration-200 hover:border-gray-4 hover:bg-gray-1 focus:border-gray-4 focus:bg-white focus:shadow-sm focus:ring-1 focus:ring-gray-300"
                       required
                     />
                   </div>
 
                   {/* Phone Number Input */}
-                  <div className="mb-5">
-                    <label className="block mb-2.5 text-dark">
+                  <div className="mb-4">
+                    <label className="block mb-2 text-dark font-bold text-sm">
                       Số điện thoại <span className="text-red">*</span>
                     </label>
                     <input
@@ -399,16 +399,16 @@ const Checkout = () => {
                       value={phoneNumber}
                       onChange={(e) => setPhoneNumber(e.target.value)}
                       placeholder="Nhập số điện thoại"
-                      className="w-full rounded-md border border-gray-3 bg-white placeholder:text-dark-5 text-dark py-2.5 px-5 outline-none duration-200 hover:border-gray-4 hover:bg-gray-1 focus:border-gray-4 focus:bg-white focus:shadow-input focus:ring-2 focus:ring-gray-300"
+                      className="w-full rounded-md border border-gray-3 bg-white placeholder:text-dark-5 placeholder:text-sm text-dark py-2 px-3 text-sm outline-none duration-200 hover:border-gray-4 hover:bg-gray-1 focus:border-gray-4 focus:bg-white focus:shadow-sm focus:ring-1 focus:ring-gray-300"
                       required
                     />
                   </div>
                 </div>
 
                 {/* <!-- others note box --> */}
-                <div className="bg-white shadow-1 rounded-[10px] p-4 sm:p-8.5 mt-7.5">
+                <div className="bg-white shadow-1 rounded-[10px] p-4 sm:p-8.5 mt-6">
                   <div>
-                    <label htmlFor="notes" className="block mb-2.5">
+                    <label htmlFor="notes" className="block mb-2 text-dark font-bold text-sm">
                       Ghi chú đơn hàng (không bắt buộc)
                     </label>
                     <textarea
@@ -418,7 +418,7 @@ const Checkout = () => {
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
                       placeholder="Ghi chú về đơn hàng của bạn, ví dụ: yêu cầu đặc biệt khi giao hàng."
-                      className="rounded-md border border-gray-3 bg-white placeholder:text-dark-5 w-full p-5 outline-none duration-200 hover:border-gray-4 hover:bg-gray-1 focus:border-gray-4 focus:bg-white focus:shadow-input focus:ring-2 focus:ring-gray-300"
+                      className="rounded-md border border-gray-3 bg-white placeholder:text-dark-5 placeholder:text-sm w-full p-3 text-sm outline-none duration-200 hover:border-gray-4 hover:bg-gray-1 focus:border-gray-4 focus:bg-white focus:shadow-sm focus:ring-1 focus:ring-gray-300"
                     ></textarea>
                   </div>
                 </div>

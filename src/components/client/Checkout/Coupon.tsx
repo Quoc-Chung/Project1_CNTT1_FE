@@ -46,23 +46,23 @@ const Coupon: React.FC<CouponProps> = ({ value, onChange, onApply }) => {
   };
 
   return (
-    <div className="bg-white shadow-1 rounded-[10px] mt-7.5">
-      <div className="border-b border-gray-3 py-5 px-4 sm:px-8.5">
-        <h3 className="font-medium text-xl text-dark">Mã code giảm giá</h3>
+    <div className="bg-white shadow-1 rounded-[10px] mt-6">
+      <div className="border-b border-gray-3 py-4 px-4 sm:px-8.5">
+        <h3 className="font-bold text-lg text-dark">Mã code giảm giá</h3>
       </div>
 
-      <div className="py-8 px-4 sm:px-8.5">
+      <div className="py-6 px-4 sm:px-8.5">
         <div className="space-y-4">
           {/* Dropdown chọn mã giảm giá */}
           <div>
-            <label className="block mb-2.5 text-dark font-medium">
+            <label className="block mb-2 text-dark font-bold text-sm">
               Chọn mã giảm giá
             </label>
             <div className="relative">
               <select
                 value={selectedCoupon}
                 onChange={handleCouponSelect}
-                className="w-full rounded-lg border border-gray-3 bg-white text-dark py-3 px-4 pr-10 appearance-none outline-none transition-all duration-300 hover:border-gray-4 hover:bg-gray-1 hover:shadow-sm focus:border-gray-4 focus:bg-white focus:shadow-md focus:ring-2 focus:ring-gray-200 cursor-pointer text-base"
+                className="w-full rounded-md border border-gray-3 bg-white text-dark py-2 px-3 pr-9 appearance-none outline-none transition-all duration-200 hover:border-gray-4 hover:bg-gray-1 focus:border-gray-4 focus:bg-white focus:shadow-sm focus:ring-1 focus:ring-gray-300 cursor-pointer text-sm"
               >
                 {availableCoupons.map((coupon, index) => (
                   <option key={index} value={coupon.code} className="text-dark py-2">
@@ -70,11 +70,11 @@ const Coupon: React.FC<CouponProps> = ({ value, onChange, onApply }) => {
                   </option>
                 ))}
               </select>
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-dark-4 pointer-events-none transition-transform duration-200">
+              <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-dark-4 pointer-events-none transition-transform duration-200">
                 <svg
                   className="fill-current"
-                  width="18"
-                  height="18"
+                  width="16"
+                  height="16"
                   viewBox="0 0 16 16"
                   fill="none"
                   xmlns="http://www.w3.org/2000/svg"
@@ -90,7 +90,7 @@ const Coupon: React.FC<CouponProps> = ({ value, onChange, onApply }) => {
 
           {/* Input nhập mã tùy chỉnh */}
           <div>
-            <label className="block mb-2.5 text-dark">
+            <label className="block mb-2 text-dark font-bold text-sm">
               Hoặc nhập mã code giảm giá
             </label>
             <div className="flex gap-4">
@@ -101,13 +101,13 @@ const Coupon: React.FC<CouponProps> = ({ value, onChange, onApply }) => {
                 value={customCode}
                 onChange={handleCustomCodeChange}
                 placeholder="Nhập mã code giảm giá"
-                className="rounded-md border border-gray-3 bg-white placeholder:text-dark-5 text-dark w-full py-2.5 px-5 outline-none duration-200 hover:border-gray-4 hover:bg-gray-1 focus:border-gray-4 focus:bg-white focus:shadow-input focus:ring-2 focus:ring-gray-300"
+                className="rounded-md border border-gray-3 bg-white placeholder:text-dark-5 placeholder:text-sm text-dark w-full py-2 px-3 text-sm outline-none duration-200 hover:border-gray-4 hover:bg-gray-1 focus:border-gray-4 focus:bg-white focus:shadow-sm focus:ring-1 focus:ring-gray-300"
               />
 
               <button
                 type="button"
                 onClick={handleApply}
-                className="inline-flex font-medium text-white bg-blue py-3 px-6 rounded-lg ease-out duration-200 hover:bg-blue-dark whitespace-nowrap"
+                className="inline-flex items-center justify-center font-medium text-white bg-blue py-2 px-5 rounded-md ease-out duration-200 hover:bg-blue-dark whitespace-nowrap text-sm"
               >
                 Áp dụng
               </button>

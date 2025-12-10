@@ -17,8 +17,8 @@ const ProductItem = ({ item }: { item: Product }) => {
   }
 
   return (
-    <Link 
-      href={`/shop-details/${String(productId)}`} 
+    <Link
+      href={`/shop-details/${String(productId)}`}
       prefetch={true}
       scroll={true}
       className="group cursor-pointer block"
@@ -27,21 +27,23 @@ const ProductItem = ({ item }: { item: Product }) => {
       aria-label={`Xem chi tiết sản phẩm ${item.title}`}
     >
       <div className="relative overflow-hidden flex items-center justify-center rounded-lg bg-[#F6F7FB] min-h-[270px] mb-4">
-        <Image 
-          src={item.imgs?.previews?.[0] || "/images/products/product-1-bg-1.png"} 
-          alt={item.title} 
-          width={250} 
+        <Image
+          src={item.imgs?.previews?.[0]}
+          alt={item.title}
+          width={250}
           height={250}
           className="object-contain"
           unoptimized
         />
 
         <div className="absolute left-0 bottom-0 translate-y-full w-full flex items-center justify-center gap-2.5 pb-5 ease-linear duration-200 group-hover:translate-y-0">
+         
+         
           <button
             onClick={(e) => {
-              e.preventDefault(); 
-              e.stopPropagation(); 
-              openModal();
+              e.preventDefault();
+              e.stopPropagation();
+              openModal(item);
             }}
             id="newOne"
             aria-label="button for quick view"
@@ -70,11 +72,11 @@ const ProductItem = ({ item }: { item: Product }) => {
             </svg>
           </button>
 
-        
+
           <button
             onClick={(e) => {
-              e.preventDefault(); 
-              e.stopPropagation(); 
+              e.preventDefault();
+              e.stopPropagation();
             }}
             className="inline-flex font-medium text-custom-sm py-[7px] px-5 rounded-[5px] bg-blue text-white ease-out duration-200 hover:bg-blue-dark"
           >
@@ -83,8 +85,8 @@ const ProductItem = ({ item }: { item: Product }) => {
 
           <button
             onClick={(e) => {
-              e.preventDefault(); 
-              e.stopPropagation(); 
+              e.preventDefault();
+              e.stopPropagation();
 
             }}
             aria-label="button for favorite select"
@@ -128,14 +130,26 @@ const ProductItem = ({ item }: { item: Product }) => {
 
       {item.price > 0 ? (
         <span className="flex items-center gap-2 font-medium text-lg">
-          <span className="text-dark">{formatPrice(item.discountedPrice)}</span>
-          {item.price !== item.discountedPrice && (
-            <span className="text-dark-4 line-through">{formatPrice(item.price)}</span>
+          {item.discountedPrice > 0 && item.discountedPrice !== item.price ? (
+            <>
+              <span className="text-dark">
+                {formatPrice(item.discountedPrice)}
+              </span>
+
+              <span className="text-dark-4 line-through">
+                {formatPrice(item.price)}
+              </span>
+            </>
+          ) : (
+            <span className="text-dark">
+              {formatPrice(item.price)}
+            </span>
           )}
         </span>
       ) : (
         <span className="text-dark font-medium text-lg">Liên hệ</span>
       )}
+
     </Link>
   );
 };

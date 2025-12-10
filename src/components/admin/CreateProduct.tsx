@@ -159,9 +159,8 @@ const CreateProduct = () => {
       // Redirect to products management page
       router.push("/admin-app/products/management");
     } catch (error: any) {
-      console.error("❌ Create product failed:", error);
 
-      // Parse error message to provide better feedback
+
       let errorMessage = "Tạo sản phẩm thất bại!";
 
       if (error.message?.includes("500")) {

@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 interface FloatingAd {
   id: number;
@@ -44,9 +45,15 @@ const floatingAds: FloatingAd[] = [
 ];
 
 const FloatingAds = () => {
+  const pathname = usePathname();
   const [visibleAds, setVisibleAds] = useState<Set<number>>(new Set([1, 2]));
   const [isMobile, setIsMobile] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
+
+  // Chỉ hiển thị ở trang home
+  if (pathname !== "/") {
+    return null;
+  }
 
   useEffect(() => {
     const checkMobile = () => {

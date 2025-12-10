@@ -8,5 +8,7 @@ export const BASE_API_AL_URL = "http://103.90.225.90:8080/services/auth-service"
 
 export const BASE_API_SALE_SERVICE_URL = "http://103.90.225.90:8080/services/sale-service";
 
+export const BASE_API_REVIEW_URL = "http://103.90.225.90:8080/services/review-service";
+
 // Alias for backward compatibility
 export const BASE_API_URL = BASE_API_AUTH_URL;
