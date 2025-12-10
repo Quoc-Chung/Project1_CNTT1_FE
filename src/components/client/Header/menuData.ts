@@ -23,7 +23,7 @@ export const menuData: Menu[] = [
     id: 4,
     title: "Hỏi đáp",
     newTab: false,
-    path: "/faq",
+    path: "/qa",
   },
   {
     id: 5,

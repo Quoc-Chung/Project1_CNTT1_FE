@@ -12,6 +12,8 @@ import { addProductToCartAction } from "../../../redux/Client/CartOrder/Action";
 import { useOptimizedHydration } from "../../../hooks/useOptimizedHydration";
 import { ProductService } from "@/services/ProductService";
 import { SKU } from "@/types/Client/Product/Product";
+import ReviewList from "../Reviews/ReviewList";
+import CreateReview from "../Reviews/CreateReview";
 
 interface ShopDetailsProps {
   productData: ProductDetailResponse | null;
@@ -23,6 +25,7 @@ const ShopDetails = ({ productData }: ShopDetailsProps) => {
   const [skus, setSkus] = useState<SKU[]>([]);
   const [selectedSKU, setSelectedSKU] = useState<SKU | null>(null);
   const [loadingSKUs, setLoadingSKUs] = useState(false);
+  const [refreshReviews, setRefreshReviews] = useState(0);
   const isHydrated = useOptimizedHydration(30); // Sử dụng hook tối ưu hóa
   const { openPreviewModal } = usePreviewSlider();
   const router = useRouter();
@@ -627,6 +630,23 @@ const ShopDetails = ({ productData }: ShopDetailsProps) => {
                 </div>
               </div>
 
+              {/* Reviews Section */}
+              <div className="mt-12 space-y-6">
+                <h2 className="text-3xl font-bold text-dark">Đánh giá sản phẩm</h2>
+
+                {/* Create Review Form */}
+                <CreateReview
+                  productId={safeProduct.id}
+                  onReviewCreated={() => setRefreshReviews(prev => prev + 1)}
+                />
+
+                {/* Reviews List */}
+                <ReviewList
+                  productId={safeProduct.id}
+                  limit={5}
+                  key={refreshReviews}
+                />
+              </div>
 
             </div>
           </section>
