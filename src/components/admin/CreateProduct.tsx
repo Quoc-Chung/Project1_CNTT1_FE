@@ -258,7 +258,7 @@ const CreateProduct = () => {
                 </label>
                 <input
                   type="text"
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 ${
+                  className={`w-full px-2.5 py-1.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 text-sm ${
                     formErrors.name ? "border-red-500" : "border-gray-300"
                   }`}
                   value={formData.name}
@@ -278,7 +278,7 @@ const CreateProduct = () => {
                   Mô tả <span className="text-red-500">*</span>
                 </label>
                 <textarea
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 ${
+                  className={`w-full px-2.5 py-1.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 text-sm ${
                     formErrors.description ? "border-red-500" : "border-gray-300"
                   }`}
                   rows={4}
@@ -302,7 +302,7 @@ const CreateProduct = () => {
                     Thương hiệu <span className="text-red-500">*</span>
                   </label>
                   <select
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm ${
+                    className={`w-full px-2.5 py-1.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm ${
                       formErrors.brandId ? "border-red-500" : "border-gray-300"
                     }`}
                     value={formData.brandId}
@@ -330,7 +330,7 @@ const CreateProduct = () => {
                     Danh mục <span className="text-red-500">*</span>
                   </label>
                   <select
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm ${
+                    className={`w-full px-2.5 py-1.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm ${
                       formErrors.categoryId
                         ? "border-red-500"
                         : "border-gray-300"
@@ -369,7 +369,7 @@ const CreateProduct = () => {
                 <div className="flex gap-2">
                   <input
                     type="text"
-                    className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                    className="flex-1 px-2.5 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
                     placeholder="Tên thông số (VD: CPU, RAM)"
                     value={specKey}
                     onChange={(e) => setSpecKey(e.target.value)}
@@ -382,7 +382,7 @@ const CreateProduct = () => {
                   />
                   <input
                     type="text"
-                    className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                    className="flex-1 px-2.5 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
                     placeholder="Giá trị (VD: Apple M3 Pro, 16GB)"
                     value={specValue}
                     onChange={(e) => setSpecValue(e.target.value)}
@@ -396,7 +396,7 @@ const CreateProduct = () => {
                   <button
                     type="button"
                     onClick={handleAddSpec}
-                    className="px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm transition-colors flex items-center gap-2"
+                    className="px-2.5 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm transition-colors flex items-center gap-2"
                   >
                     <Plus size={16} />
                     Thêm
@@ -408,7 +408,7 @@ const CreateProduct = () => {
                     {Object.entries(formData.specs || {}).map(([key, value]) => (
                       <div
                         key={key}
-                        className="flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-lg text-sm"
+                        className="flex items-center gap-2 bg-gray-100 px-2 py-1 rounded-lg text-sm"
                       >
                         <span className="font-medium">{key}:</span>
                         <span>{value}</span>
@@ -432,7 +432,7 @@ const CreateProduct = () => {
               <button
                 type="submit"
                 disabled={creating}
-                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-1.5 px-3 rounded-lg font-medium text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {creating ? (
                   <span className="flex items-center justify-center gap-2">
@@ -447,7 +447,7 @@ const CreateProduct = () => {
                 type="button"
                 onClick={handleCancel}
                 disabled={creating}
-                className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 px-6 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-1.5 px-3 rounded-lg font-medium text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Hủy bỏ
               </button>

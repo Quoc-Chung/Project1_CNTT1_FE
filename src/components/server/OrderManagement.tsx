@@ -26,10 +26,10 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ orders }) => {
       <button
         key={i + 1}
         onClick={() => setCurrentPage(i + 1)}
-        className={`px-3 py-1 rounded-md text-sm ${
+        className={`px-2.5 py-1.5 min-w-[36px] rounded-lg text-sm font-semibold transition-all duration-200 ${
           currentPage === i + 1
-            ? "bg-blue-600 text-white"
-            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+            ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/50 scale-105"
+            : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 hover:border-gray-400 hover:shadow-md"
         }`}
       >
         {i + 1}
@@ -43,7 +43,7 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ orders }) => {
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-gray-900">Quản Lý Đơn Hàng</h2>
         <div className="flex space-x-3">
-          <select className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm">
+          <select className="px-2 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm">
             <option value="">Tất cả trạng thái</option>
             <option value="pending">Chờ xử lý</option>
             <option value="processing">Đang xử lý</option>
@@ -51,7 +51,7 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ orders }) => {
             <option value="delivered">Đã giao</option>
             <option value="cancelled">Đã hủy</option>
           </select>
-          <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 text-sm transition-colors">
+          <button className="bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1.5 rounded-lg flex items-center space-x-2 text-sm transition-colors">
             <Plus size={18} />
             <span>Tạo đơn hàng</span>
           </button>
@@ -83,28 +83,28 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ orders }) => {
       </div>
 
       {/* Bảng + pagination */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 flex flex-col h-[555px]">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 flex flex-col h-[535px]">
         {/* Table scroll */}
         <div className="overflow-x-auto flex-1">
           <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Đơn hàng</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Khách hàng</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Sản phẩm</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Tổng tiền</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Trạng thái</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Ngày đặt</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Thao tác</th>
+            <thead>
+              <tr className="bg-gray-50 border-b border-gray-200">
+                <th className="px-6 py-3 text-left text-sm font-bold text-gray-900">Đơn hàng</th>
+                <th className="px-6 py-3 text-left text-sm font-bold text-gray-900">Khách hàng</th>
+                <th className="px-6 py-3 text-left text-sm font-bold text-gray-900">Sản phẩm</th>
+                <th className="px-6 py-3 text-left text-sm font-bold text-gray-900">Tổng tiền</th>
+                <th className="px-6 py-3 text-left text-sm font-bold text-gray-900">Trạng thái</th>
+                <th className="px-6 py-3 text-left text-sm font-bold text-gray-900">Ngày đặt</th>
+                <th className="px-6 py-3 text-left text-sm font-bold text-gray-900">Thao tác</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody>
               {currentOrders.map((order) => (
-                <tr key={order.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4 text-sm font-mono text-gray-900">{order.id}</td>
+                <tr key={order.id} className="hover:bg-gray-50 transition-colors border-b border-gray-100">
+                  <td className="px-6 py-4 text-sm font-mono font-medium text-gray-900">{order.id}</td>
                   <td className="px-6 py-4 text-sm">
-                    <div className="font-medium text-gray-900">{order.customerName}</div>
-                    <div className="text-gray-500">{order.customerId}</div>
+                    <div className="font-semibold text-gray-900">{order.customerName}</div>
+                    <div className="text-gray-600 text-xs">{order.customerId}</div>
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center space-x-2">
@@ -118,16 +118,16 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ orders }) => {
                           className="rounded object-cover"
                         />
                       ))}
-                      <span className="text-sm text-gray-600">{order.products.length} sản phẩm</span>
+                      <span className="text-sm font-medium text-gray-700">{order.products.length} sản phẩm</span>
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-sm font-semibold text-gray-900">{formatPrice(order.totalAmount)}</td>
+                  <td className="px-6 py-4 text-sm font-bold text-red-600">{formatPrice(order.totalAmount)}</td>
                   <td className="px-6 py-4 text-sm">
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${getStatusBadge(order.status).color}`}>
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${getStatusBadge(order.status).color}`}>
                       {getStatusBadge(order.status).text}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-500">{formatDate(order.orderDate)}</td>
+                  <td className="px-6 py-4 text-sm text-gray-600">{formatDate(order.orderDate)}</td>
                   <td className="px-6 py-4">
                     <div className="flex items-center space-x-3">
                       <button className="text-blue-600 hover:text-blue-900"><Eye size={16} /></button>
@@ -149,23 +149,27 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ orders }) => {
         </div>
 
         {/* Pagination luôn đứng yên */}
-        <div className="px-6 py-3 border-t border-gray-200 flex justify-between items-center">
-          <p className="text-sm text-gray-600">
-            Trang {currentPage}/{totalPages || 1} — Tổng {orders.length} đơn hàng
+        <div className="px-6 py-4 -mt-2 bg-gradient-to-r from-gray-50 to-white border-t border-gray-200 flex justify-between items-center shadow-sm">
+          <p className="text-sm font-medium text-gray-700">
+            <span className="font-semibold text-gray-900">Trang {currentPage}/{totalPages || 1}</span>
+            <span className="mx-2 text-gray-400">•</span>
+            <span>Tổng {orders.length} đơn hàng</span>
           </p>
-          <div className="flex space-x-2">
+          <div className="flex items-center space-x-2">
             <button
               onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
               disabled={currentPage === 1}
-              className="px-3 py-1 border rounded-md text-sm disabled:opacity-50 text-black"
+              className="px-2.5 py-1.5 rounded-lg text-sm font-semibold bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 hover:border-gray-400 hover:shadow-md transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:shadow-none"
             >
               Trước
             </button>
-            {renderPagination()}
+            <div className="flex items-center space-x-1.5">
+              {renderPagination()}
+            </div>
             <button
               onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
               disabled={currentPage === totalPages}
-              className="px-3 py-1 border rounded-md text-sm disabled:opacity-50 text-black"
+              className="px-2.5 py-1.5 rounded-lg text-sm font-semibold bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 hover:border-gray-400 hover:shadow-md transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:shadow-none"
             >
               Sau
             </button>

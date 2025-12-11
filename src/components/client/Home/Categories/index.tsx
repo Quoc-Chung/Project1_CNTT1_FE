@@ -210,16 +210,16 @@ const Categories = () => {
           ) : (
             <Swiper
               ref={sliderRef}
-              slidesPerView={6}
+              slidesPerView={4}
               breakpoints={{
                 0: {
                   slidesPerView: 2,
                 },
+                768: {
+                  slidesPerView: 3,
+                },
                 1000: {
                   slidesPerView: 4,
-                },
-                1200: {
-                  slidesPerView: 6,
                 },
               }}
             >

@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function OrdersPage() {
   return (
-    <main className="p-8">
+    <main className="w-full">
       <OrderManagement orders={mockOrders} />
     </main>
   );

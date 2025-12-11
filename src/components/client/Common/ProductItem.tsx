@@ -1,13 +1,23 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import Image from "next/image";
 import { Product } from "@/types/Client/Product/ProductItem";
 import { useModalContext } from "@/app/context/QuickViewModalContext";
 import Link from "next/link";
 import { formatPrice } from "@/utils/helpers";
+import { useRouter } from "next/navigation";
+import { useAppDispatch, useAppSelector } from "@/redux/store";
+import { addProductToCartAction } from "@/redux/Client/CartOrder/Action";
+import { toast } from "react-toastify";
+import { ProductService } from "@/services/ProductService";
 
 const ProductItem = ({ item }: { item: Product }) => {
   const { openModal } = useModalContext();
+  const router = useRouter();
+  const dispatch = useAppDispatch();
+  const user = useAppSelector((state) => state.auth.user);
+  const token = useAppSelector((state) => state.auth.token);
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
   const productId = item.originalId || item.id;
 
   // Validate productId
@@ -15,6 +25,86 @@ const ProductItem = ({ item }: { item: Product }) => {
     console.error('Invalid product ID:', productId, item);
     return null;
   }
+
+  const handleAddToCart = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Kiểm tra đăng nhập
+    if (!user || !token) {
+      toast.warning("Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng!", {
+        autoClose: 2000,
+        position: "top-right"
+      });
+      router.push('/signin');
+      return;
+    }
+
+    // Kiểm tra nếu đang thêm vào giỏ hàng
+    if (isAddingToCart) {
+      return;
+    }
+
+    setIsAddingToCart(true);
+
+    try {
+      // Fetch SKU đầu tiên của sản phẩm
+      const skuResponse = await ProductService.getSKUsByProductId(String(productId));
+      
+      if (!skuResponse.data || skuResponse.data.length === 0) {
+        toast.error("Sản phẩm này hiện không có phiên bản nào khả dụng!");
+        setIsAddingToCart(false);
+        return;
+      }
+
+      // Lấy SKU đầu tiên
+      const firstSKU = skuResponse.data[0];
+
+      // Kiểm tra tồn kho
+      if (firstSKU.stock < 1) {
+        toast.error("Sản phẩm này đã hết hàng!");
+        setIsAddingToCart(false);
+        return;
+      }
+
+      // Thêm sản phẩm vào giỏ hàng với số lượng mặc định là 1
+      dispatch(
+        addProductToCartAction(
+          {
+            productId: String(productId),
+            skuId: firstSKU.id,
+            quantity: 1
+          },
+          token,
+          (res) => {
+            toast.success(`Đã thêm sản phẩm "${item.title}" vào giỏ hàng!`, {
+              autoClose: 1500,
+              position: "top-right"
+            });
+            setIsAddingToCart(false);
+          },
+          (err) => {
+            if (err === "Token hết hạn") {
+              // Clear token và redirect về trang đăng nhập
+              dispatch({ type: "LOGOUT" });
+              toast.warning("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại!", {
+                autoClose: 3000,
+                position: "top-right"
+              });
+              router.push('/signin');
+            } else {
+              toast.error("Thêm sản phẩm thất bại: " + err);
+            }
+            setIsAddingToCart(false);
+          }
+        )
+      );
+    } catch (error: any) {
+      console.error("Error adding to cart:", error);
+      toast.error("Không thể thêm sản phẩm vào giỏ hàng. Vui lòng thử lại!");
+      setIsAddingToCart(false);
+    }
+  };
 
   return (
     <Link
@@ -74,13 +164,13 @@ const ProductItem = ({ item }: { item: Product }) => {
 
 
           <button
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-            }}
-            className="inline-flex font-medium text-custom-sm py-[7px] px-5 rounded-[5px] bg-blue text-white ease-out duration-200 hover:bg-blue-dark"
+            onClick={handleAddToCart}
+            disabled={isAddingToCart}
+            className={`inline-flex font-medium text-custom-sm py-[7px] px-5 rounded-[5px] bg-blue text-white ease-out duration-200 hover:bg-blue-dark ${
+              isAddingToCart ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
           >
-            Thêm vào giỏ
+            {isAddingToCart ? 'Đang thêm...' : 'Thêm vào giỏ'}
           </button>
 
           <button

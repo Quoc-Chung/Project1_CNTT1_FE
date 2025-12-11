@@ -19,7 +19,7 @@ export default function DashboardPage() {
   };
 
   return (
-    <main className="p-8">
+    <main className="w-full">
       <DashboardOverview stats={stats} products={mockProducts} />
     </main>
   );

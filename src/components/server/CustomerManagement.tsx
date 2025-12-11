@@ -40,7 +40,7 @@ export const CustomerManagement: React.FC<CustomerManagementProps> = ({
         <h2 className="text-3xl font-bold text-gray-900">
           Quản Lý Khách Hàng
         </h2>
-        <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg flex items-center space-x-2">
+        <button className="bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1.5 rounded-lg flex items-center space-x-2 text-sm">
           <Plus size={20} />
           <span>Thêm Khách Hàng</span>
         </button>
@@ -64,62 +64,62 @@ export const CustomerManagement: React.FC<CustomerManagementProps> = ({
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-xl shadow-sm border flex flex-col h-[550px]">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 flex flex-col h-[530px]">
         <div className="overflow-y-auto flex-1">
           <table className="w-full min-w-full">
-            <thead className="bg-gray-50 sticky top-0">
-              <tr>
-                <th className="px-6 py-4 text-left text-xs font-semibold">
+            <thead>
+              <tr className="bg-gray-50 sticky top-0 border-b border-gray-200 z-10">
+                <th className="px-6 py-4 text-left text-sm font-bold text-gray-900">
                   Khách hàng
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold">
+                <th className="px-6 py-4 text-left text-sm font-bold text-gray-900">
                   Liên hệ
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold">
+                <th className="px-6 py-4 text-left text-sm font-bold text-gray-900">
                   Tổng đơn
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold">
+                <th className="px-6 py-4 text-left text-sm font-bold text-gray-900">
                   Tổng chi tiêu
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold">
+                <th className="px-6 py-4 text-left text-sm font-bold text-gray-900">
                   Đơn gần nhất
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold">
+                <th className="px-6 py-4 text-left text-sm font-bold text-gray-900">
                   Trạng thái
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold">
+                <th className="px-6 py-4 text-left text-sm font-bold text-gray-900">
                   Thao tác
                 </th>
               </tr>
             </thead>
             <tbody>
               {current.map((c) => (
-                <tr key={c.id} className="hover:bg-gray-50">
+                <tr key={c.id} className="hover:bg-gray-50 transition-colors border-b border-gray-100">
                   <td className="px-6 py-4">
                     <div className="flex items-center">
                       <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
                         <User size={20} className="text-white" />
                       </div>
                       <div className="ml-4">
-                        <div className="text-sm font-medium">{c.name}</div>
-                        <div className="text-sm text-gray-500">{c.id}</div>
+                        <div className="text-sm font-semibold text-gray-900">{c.name}</div>
+                        <div className="text-xs text-gray-600">{c.id}</div>
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="text-sm">{c.email}</div>
-                    <div className="text-sm text-gray-500">{c.phone}</div>
+                    <div className="text-sm font-medium text-gray-900">{c.email}</div>
+                    <div className="text-sm text-gray-600">{c.phone}</div>
                   </td>
-                  <td className="px-6 py-4">{c.totalOrders}</td>
-                  <td className="px-6 py-4 text-green-600 font-semibold">
+                  <td className="px-6 py-4 text-sm font-semibold text-gray-900">{c.totalOrders}</td>
+                  <td className="px-6 py-4 text-sm font-bold text-red-600">
                     {formatPrice(c.totalSpent)}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-500">
+                  <td className="px-6 py-4 text-sm text-gray-600">
                     {c.lastOrderDate ? formatDate(c.lastOrderDate) : "Chưa có"}
                   </td>
                   <td className="px-6 py-4">
                     <span
-                      className={`px-2 py-1 rounded-full text-xs ${
+                      className={`px-2 py-1 rounded-full text-xs font-semibold ${
                         c.isActive
                           ? "bg-green-100 text-green-800"
                           : "bg-red-100 text-red-800"
@@ -128,7 +128,7 @@ export const CustomerManagement: React.FC<CustomerManagementProps> = ({
                       {c.isActive ? "Hoạt động" : "Không hoạt động"}
                     </span>
                   </td>
-                  <td className="px-6 py-4 flex ">
+                  <td className="px-6 py-4 flex">
 
 
                     <button
@@ -153,20 +153,20 @@ export const CustomerManagement: React.FC<CustomerManagementProps> = ({
         </div>
 
         {/* Pagination */}
-        <div className="px-4 py-3 border-t flex justify-between items-center">
-          <p className="text-sm text-gray-600">
-            Trang {currentPage}/{totalPages || 1}
+        <div className="px-6 py-4 -mt-2 bg-gradient-to-r from-gray-50 to-white border-t border-gray-200 flex justify-between items-center shadow-sm">
+          <p className="text-sm font-medium text-gray-700">
+            <span className="font-semibold text-gray-900">Trang {currentPage}/{totalPages || 1}</span>
           </p>
-          <div className="flex space-x-2">
+          <div className="flex items-center space-x-2">
             <button
-             className="px-3 py-1 border rounded-md text-sm disabled:opacity-50 text-black"
+              className="px-2.5 py-1.5 rounded-lg text-sm font-semibold bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 hover:border-gray-400 hover:shadow-md transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:shadow-none"
               onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
               disabled={currentPage === 1}
             >
               Trước
             </button>
             <button 
-              className="px-3 py-1 border rounded-md text-sm disabled:opacity-50 text-black"
+              className="px-2.5 py-1.5 rounded-lg text-sm font-semibold bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 hover:border-gray-400 hover:shadow-md transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:shadow-none"
               onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
               disabled={currentPage === totalPages}
             >

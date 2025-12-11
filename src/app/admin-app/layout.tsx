@@ -37,10 +37,27 @@ export default function RootLayout({
               {/* Sidebar cố định */}
               <Sidebar />
               {/* Nội dung page */}
-              <div className="flex-1 overflow-hidden">
-                <div className="p-8 h-full overflow-y-auto">{children}</div>
-              </div>
+              <main className="flex-1 min-w-0 overflow-hidden">
+                <div className="p-6 h-screen overflow-y-auto custom-scrollbar w-full">{children}</div>
+              </main>
             </div>
+            
+            <style jsx global>{`
+              .custom-scrollbar::-webkit-scrollbar {
+                width: 8px;
+              }
+              .custom-scrollbar::-webkit-scrollbar-track {
+                background: #f1f1f1;
+                border-radius: 10px;
+              }
+              .custom-scrollbar::-webkit-scrollbar-thumb {
+                background: linear-gradient(to bottom, #3b82f6, #8b5cf6);
+                border-radius: 10px;
+              }
+              .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                background: linear-gradient(to bottom, #2563eb, #7c3aed);
+              }
+            `}</style>
             {/* ToastContainer for notifications */}
             <ToastContainer
               position="top-right"
