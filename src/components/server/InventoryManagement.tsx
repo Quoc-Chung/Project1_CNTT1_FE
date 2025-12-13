@@ -29,11 +29,11 @@ export const InventoryManagement = () => {
           Quản Lý Kho Hàng
         </h2>
         <div className="flex space-x-3">
-          <button className="bg-green-600 hover:bg-green-700 text-white px-2.5 py-1.5 rounded-lg flex items-center space-x-2 text-sm">
+          <button className="bg-green-600 hover:bg-green-700 text-white px-2.5 py-1 rounded-md flex items-center space-x-2 text-sm">
             <Plus size={18} />
             <span>Nhập kho</span>
           </button>
-          <button className="bg-orange-600 hover:bg-orange-700 text-white px-2.5 py-1.5 rounded-lg flex items-center space-x-2 text-sm">
+          <button className="bg-orange-600 hover:bg-orange-700 text-white px-2.5 py-1 rounded-md flex items-center space-x-2 text-sm">
             <AlertCircle size={18} />
             <span>Cảnh báo tồn kho</span>
           </button>
@@ -85,6 +85,7 @@ export const InventoryManagement = () => {
                           width={48}
                           height={48}
                           className="rounded-lg object-cover mr-3"
+                          style={{ width: "auto", height: "auto" }}
                         />
                         <div>
                           <div className="text-sm font-semibold text-gray-900">

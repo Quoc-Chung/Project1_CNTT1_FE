@@ -117,6 +117,7 @@ const SingleItem = ({ item }: SingleItemProps) => {
                 src={productImage}
                 alt={item.productName || "product"}
                 className="object-contain"
+                style={{ width: "auto", height: "auto" }}
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   target.src = "/images/products/product-1-1.png";
@@ -143,7 +144,7 @@ const SingleItem = ({ item }: SingleItemProps) => {
       </div>
 
       <div className="min-w-[275px]">
-        <div className="w-max flex items-center rounded-lg border-2 border-gray-300 shadow-sm overflow-hidden">
+        <div className="w-max flex items-center rounded-md border-2 border-gray-300 shadow-sm overflow-hidden">
           <button
             onClick={() => handleDecreaseQuantity()}
             aria-label="button for remove product"
@@ -203,7 +204,7 @@ const SingleItem = ({ item }: SingleItemProps) => {
           onClick={() => handleRemoveFromCart()}
           disabled={isRemoving}
           aria-label="button for remove product from cart"
-          className={`flex items-center justify-center rounded-lg max-w-[38px] w-full h-9.5 bg-white border-2 border-gray-300 text-black ease-out duration-200 hover:bg-red-50 hover:border-red-400 hover:text-red-600 shadow-sm transition-all ${isRemoving ? 'opacity-50 cursor-not-allowed' : ''}`}
+          className={`flex items-center justify-center rounded-md max-w-[38px] w-full h-9.5 bg-white border-2 border-gray-300 text-black ease-out duration-200 hover:bg-red-50 hover:border-red-400 hover:text-red-600 shadow-sm transition-all ${isRemoving ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
           <svg
             className="fill-current"

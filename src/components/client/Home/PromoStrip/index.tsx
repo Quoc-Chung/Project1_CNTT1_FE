@@ -49,7 +49,7 @@ const promoItems: PromoItem[] = [
 
 const PromoStrip = () => {
   return (
-    <section className="py-4 sm:py-5 bg-gradient-to-b from-white via-gray-50 to-white border-y border-gray-200/50 w-full overflow-hidden">
+    <section className="py-1 sm:py-1 bg-gradient-to-b from-white via-gray-50 to-white border-y border-gray-200/50 w-full overflow-hidden">
       <div className="max-w-[1170px] w-full mx-auto px-4 sm:px-8 xl:px-0">
         <div className="hidden md:flex items-center justify-between gap-4 lg:gap-6">
           {promoItems.map((item) => (

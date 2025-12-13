@@ -97,7 +97,7 @@ const PromoSlider = () => {
                     <div className="relative z-10 h-full flex flex-col justify-center items-start px-6 sm:px-10 lg:px-16 text-white">
                       {/* Discount Badge */}
                       {slide.discount && (
-                        <div className="mb-4 sm:mb-6 inline-block bg-white/90 backdrop-blur-sm text-blue-600 font-bold text-xl sm:text-2xl lg:text-3xl px-4 sm:px-6 py-2 sm:py-3 rounded-lg transform transition-all duration-300 group-hover:scale-110 group-hover:rotate-2">
+                        <div className="mb-4 sm:mb-6 inline-block bg-white/90 backdrop-blur-sm text-blue-600 font-bold text-xl sm:text-2xl lg:text-3xl px-4 sm:px-6 py-1 sm:py-1.5 rounded-md transform transition-all duration-300 group-hover:scale-110 group-hover:rotate-2">
                           {slide.discount}
                         </div>
                       )}
@@ -113,7 +113,7 @@ const PromoSlider = () => {
                       </p>
 
                       {/* CTA Button */}
-                      <button className="mt-6 sm:mt-8 bg-white text-blue-600 font-semibold px-6 sm:px-8 py-2 sm:py-3 rounded-lg shadow-lg transform transition-all duration-300 hover:scale-110 hover:shadow-xl">
+                      <button className="mt-6 sm:mt-8 bg-white text-blue-600 font-semibold px-6 sm:px-8 py-1 sm:py-1.5 rounded-md shadow-lg transform transition-all duration-300 hover:scale-110 hover:shadow-xl">
                         Xem ngay →
                       </button>
                     </div>

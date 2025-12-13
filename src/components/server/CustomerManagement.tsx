@@ -40,7 +40,7 @@ export const CustomerManagement: React.FC<CustomerManagementProps> = ({
         <h2 className="text-3xl font-bold text-gray-900">
           Quản Lý Khách Hàng
         </h2>
-        <button className="bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1.5 rounded-lg flex items-center space-x-2 text-sm">
+        <button className="bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1 rounded-md flex items-center space-x-2 text-sm">
           <Plus size={20} />
           <span>Thêm Khách Hàng</span>
         </button>

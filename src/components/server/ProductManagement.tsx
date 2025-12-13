@@ -50,6 +50,7 @@ const ProductImageCell: React.FC<{ product: Product }> = ({ product }) => {
         width={56}
         height={40}
         className={`object-cover rounded-md ${imageLoaded ? 'opacity-100' : 'opacity-0'} transition-opacity`}
+        style={{ width: "auto", height: "auto" }}
         onError={() => {
           setImageError(true);
           setImageLoaded(false);
@@ -315,7 +316,7 @@ const ProductManagement: React.FC = () => {
         <button 
 
         onClick={handleAddProduct}
-        className="bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1.5 rounded-lg flex items-center space-x-2 transition-colors shadow-sm text-sm">
+        className="bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1 rounded-md flex items-center space-x-2 transition-colors shadow-sm text-sm">
           <Plus size={16} />
           <span>Thêm Sản Phẩm</span>
         </button>
@@ -337,7 +338,7 @@ const ProductManagement: React.FC = () => {
           </div>
           <button
             onClick={handleSearch}
-            className="px-2.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center space-x-2 text-sm"
+            className="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors flex items-center space-x-2 text-sm"
           >
             <Search size={16} />
             <span>Tìm kiếm</span>

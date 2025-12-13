@@ -23,7 +23,7 @@ interface BannerSlide {
 const bannerSlides: BannerSlide[] = [
   {
     id: 1,
-    image: "/images/hero/hero-01.png",
+    image: "/banner/gaming.png",
     title: "Siêu giảm giá",
     subtitle: "Giảm giá lên đến 50% cho tất cả sản phẩm công nghệ",
     discount: "50% OFF",
@@ -31,7 +31,7 @@ const bannerSlides: BannerSlide[] = [
   },
   {
     id: 2,
-    image: "/images/hero/hero-02.png",
+    image: "/banner/gaming1.png",
     title: "Công nghệ mới nhất 2025",
     subtitle: "Khám phá những sản phẩm công nghệ tiên tiến nhất",
     discount: "30% OFF",
@@ -103,7 +103,7 @@ const MainBannerCarousel = () => {
                       initial={{ opacity: 0, scale: 0.8 }}
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ duration: 0.5, delay: 0.4 }}
-                      className="mb-4 sm:mb-6 inline-block bg-white/95 backdrop-blur-sm text-blue-600 font-bold text-xl sm:text-2xl lg:text-3xl px-5 sm:px-7 py-2.5 sm:py-3.5 rounded-xl shadow-2xl transform transition-all duration-300 group-hover:scale-110 group-hover:rotate-1"
+                      className="mb-4 sm:mb-6 inline-block bg-white/95 backdrop-blur-sm text-blue-600 font-bold text-xl sm:text-2xl lg:text-3xl px-5 sm:px-7 py-1 sm:py-1.5 rounded-md shadow-2xl transform transition-all duration-300 group-hover:scale-110 group-hover:rotate-1"
                     >
                       {slide.discount}
                     </motion.div>
@@ -136,7 +136,7 @@ const MainBannerCarousel = () => {
                     transition={{ duration: 0.6, delay: 0.7 }}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    className="bg-white text-blue-600 font-semibold px-8 sm:px-10 py-3 sm:py-4 rounded-xl shadow-xl transform transition-all duration-300 hover:shadow-2xl text-base sm:text-lg"
+                    className="bg-white text-blue-600 font-semibold px-8 sm:px-10 py-1.5 sm:py-2 rounded-md shadow-xl transform transition-all duration-300 hover:shadow-2xl text-base sm:text-lg"
                   >
                     Xem ngay →
                   </motion.button>

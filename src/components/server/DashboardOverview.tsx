@@ -240,6 +240,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
                     width={48}
                     height={48}
                     className="rounded-lg object-cover flex-shrink-0"
+                    style={{ width: "auto", height: "auto" }}
                   />
 
                   <div className="flex-1 min-w-0">

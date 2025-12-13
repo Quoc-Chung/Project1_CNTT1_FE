@@ -123,6 +123,7 @@ const ProductItem = ({ item }: { item: Product }) => {
           width={250}
           height={250}
           className="object-contain"
+          style={{ width: "auto", height: "auto" }}
           unoptimized
         />
 
@@ -166,7 +167,7 @@ const ProductItem = ({ item }: { item: Product }) => {
           <button
             onClick={handleAddToCart}
             disabled={isAddingToCart}
-            className={`inline-flex font-medium text-custom-sm py-[7px] px-5 rounded-[5px] bg-blue text-white ease-out duration-200 hover:bg-blue-dark ${
+            className={`inline-flex font-medium text-custom-sm py-1 px-5 rounded-md bg-blue text-white ease-out duration-200 hover:bg-blue-dark ${
               isAddingToCart ? 'opacity-50 cursor-not-allowed' : ''
             }`}
           >

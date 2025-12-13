@@ -4,7 +4,7 @@ import React from "react";
 const Breadcrumb = ({ title, pages }) => {
   return (
     <div 
-      className="overflow-hidden pt-[280px] sm:pt-[150px] lg:pt-[150px] xl:pt-[150px]"
+      className="overflow-hidden pt-[280px] sm:pt-[160px] lg:pt-[160px] xl:pt-[160px]"
       style={{
         boxShadow: '0 2px 8px rgba(59, 130, 246, 0.1), 0 1px 3px rgba(147, 51, 234, 0.1)'
       }}
@@ -17,7 +17,7 @@ const Breadcrumb = ({ title, pages }) => {
         <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-blue-400 to-transparent opacity-50"></div>
         
         <div className="bg-white border-t-2 border-blue-100 shadow-sm">
-          <div className="max-w-[1170px] w-full mx-auto px-4 sm:px-8 xl:px-0 py-5 xl:py-10">
+          <div className="max-w-[1170px] w-full mx-auto px-4 sm:px-8 xl:px-0 py-3 xl:py-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <h1 className="font-semibold text-dark text-xl sm:text-2xl xl:text-custom-2 line-clamp-2 flex-1 min-w-0">
          

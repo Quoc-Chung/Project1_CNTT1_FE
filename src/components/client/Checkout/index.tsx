@@ -249,7 +249,7 @@ const Checkout = () => {
         }
       `}</style>
       <Breadcrumb title={"Đặt hàng"} pages={["Đặt hàng"]} />
-      <section className="overflow-hidden py-20 bg-gray-2">
+      <section className="overflow-hidden py-5 bg-gray-2">
         <div className="max-w-[1170px] w-full mx-auto px-4 sm:px-8 xl:px-0">
           <form onSubmit={handleSubmit}>
             <div className="flex flex-col lg:flex-row gap-7.5 xl:gap-11 items-start">
@@ -474,6 +474,7 @@ const Checkout = () => {
                                   width={64}
                                   height={64}
                                   className="object-contain rounded-[5px]"
+                                  style={{ width: "auto", height: "auto" }}
                                   onError={(e) => {
                                     const target = e.target as HTMLImageElement;
                                     target.src = "/images/products/product-1-1.png";
@@ -550,7 +551,7 @@ const Checkout = () => {
                 <button
                   type="submit"
                   disabled={loading || cart.length === 0}
-                  className="w-full flex justify-center font-medium text-white bg-blue py-3 px-6 rounded-lg ease-out duration-200 hover:bg-blue-dark mt-7.5 disabled:bg-gray-4 disabled:cursor-not-allowed"
+                  className="w-full flex justify-center font-medium text-white bg-blue py-1.5 px-6 rounded-md ease-out duration-200 hover:bg-blue-dark mt-7.5 disabled:bg-gray-4 disabled:cursor-not-allowed"
                 >
                   {loading ? "Đang xử lý..." : "Đặt hàng"}
                 </button>

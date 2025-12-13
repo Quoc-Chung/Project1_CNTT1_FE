@@ -82,7 +82,7 @@ const OrderSummary = () => {
             type="button"
             onClick={handleCheckout}
             disabled={cartItems.length === 0}
-            className="w-full flex justify-center font-medium text-white bg-blue py-3 px-6 rounded-md ease-out duration-200 hover:bg-blue-dark mt-7.5 disabled:bg-gray-4 disabled:cursor-not-allowed"
+            className="w-full flex justify-center font-medium text-white bg-blue py-1.5 px-6 rounded-md ease-out duration-200 hover:bg-blue-dark mt-7.5 disabled:bg-gray-4 disabled:cursor-not-allowed"
           >
             Đặt hàng
           </button>

@@ -3,15 +3,24 @@
 import React, { useEffect, useState } from "react";
 
 import { useModalContext } from "@/app/context/QuickViewModalContext";
-import { useDispatch } from "react-redux";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { usePreviewSlider } from "@/app/context/PreviewSliderContext";
 import { formatPrice } from "@/utils/helpers";
+import { useAppDispatch, useAppSelector } from "../../../redux/store";
+import { addProductToCartAction } from "../../../redux/Client/CartOrder/Action";
+import { toast } from "react-toastify";
+import { ProductService } from "@/services/ProductService";
 
 const QuickViewModal = () => {
   const { isModalOpen, closeModal, product } = useModalContext();
   const { openPreviewModal } = usePreviewSlider();
+  const router = useRouter();
+  const dispatch = useAppDispatch();
+  const user = useAppSelector((state) => state.auth.user);
+  const token = useAppSelector((state) => state.auth.token);
   const [quantity, setQuantity] = useState(1);
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
 
   const [activePreview, setActivePreview] = useState(0);
 
@@ -41,11 +50,87 @@ const QuickViewModal = () => {
     openPreviewModal();
   };
 
+  const productId = product?.originalId || product?.id;
 
-  const handleAddToCart = () => {
-  
+  const handleAddToCart = async () => {
+    // Kiểm tra đăng nhập
+    if (!user || !token) {
+      toast.warning("Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng!", {
+        autoClose: 2000,
+        position: "top-right"
+      });
+      closeModal();
+      router.push('/signin');
+      return;
+    }
 
-    closeModal();
+    // Kiểm tra nếu đang thêm vào giỏ hàng
+    if (isAddingToCart || !productId) {
+      return;
+    }
+
+    setIsAddingToCart(true);
+
+    try {
+      // Fetch SKU đầu tiên của sản phẩm
+      const skuResponse = await ProductService.getSKUsByProductId(String(productId));
+      
+      if (!skuResponse.data || skuResponse.data.length === 0) {
+        toast.error("Sản phẩm này hiện không có phiên bản nào khả dụng!");
+        setIsAddingToCart(false);
+        return;
+      }
+
+      // Lấy SKU đầu tiên
+      const firstSKU = skuResponse.data[0];
+
+      // Kiểm tra tồn kho
+      if (firstSKU.stock < quantity) {
+        toast.error(`Sản phẩm này chỉ còn ${firstSKU.stock} sản phẩm trong kho!`);
+        setIsAddingToCart(false);
+        return;
+      }
+
+      // Thêm sản phẩm vào giỏ hàng với số lượng đã chọn
+      dispatch(
+        addProductToCartAction(
+          {
+            productId: String(productId),
+            skuId: firstSKU.id,
+            quantity: quantity
+          },
+          token,
+          (res) => {
+            toast.success(`Đã thêm ${quantity} sản phẩm "${product?.title}" vào giỏ hàng!`, {
+              autoClose: 1500,
+              position: "top-right"
+            });
+            setIsAddingToCart(false);
+            setQuantity(1);
+            closeModal();
+          },
+          (err) => {
+            if (err === "Token hết hạn") {
+              // Clear token và redirect về trang đăng nhập
+              dispatch({ type: "LOGOUT" });
+              toast.warning("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại!", {
+                autoClose: 3000,
+                position: "top-right"
+              });
+              closeModal();
+              router.push('/signin');
+            } else {
+              toast.error("Thêm sản phẩm thất bại: " + err);
+            }
+            setIsAddingToCart(false);
+          }
+        )
+      );
+    } catch (error: any) {
+      console.error("Error adding to cart:", error);
+      toast.error("Không thể thêm sản phẩm vào giỏ hàng. Vui lòng thử lại!");
+      setIsAddingToCart(false);
+    }
   };
 
   useEffect(() => {
@@ -118,6 +203,7 @@ const QuickViewModal = () => {
                           width={61}
                           height={61}
                           className="aspect-square object-contain"
+                          style={{ width: "auto", height: "auto" }}
                           unoptimized
                         />
                       </button>
@@ -155,6 +241,7 @@ const QuickViewModal = () => {
                       width={400}
                       height={400}
                       className="object-contain"
+                      style={{ width: "auto", height: "auto" }}
                       unoptimized
                     />
                   </div>
@@ -335,12 +422,13 @@ const QuickViewModal = () => {
 
               <div className="flex flex-wrap items-center gap-4">
                 <button
-                  disabled={quantity === 0 && true}
-                  onClick={() => handleAddToCart()}
-                  className={`inline-flex font-medium text-white bg-blue py-3 px-7 rounded-md ease-out duration-200 hover:bg-blue-dark
-                  `}
+                  disabled={quantity === 0 || isAddingToCart}
+                  onClick={handleAddToCart}
+                  className={`inline-flex font-medium text-white bg-blue py-1.5 px-7 rounded-md ease-out duration-200 hover:bg-blue-dark ${
+                    (quantity === 0 || isAddingToCart) ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
                 >
-                  Add to Cart
+                  {isAddingToCart ? 'Đang thêm...' : 'Thêm vào giỏ'}
                 </button>
               </div>
             </div>

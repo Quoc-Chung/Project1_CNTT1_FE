@@ -129,7 +129,7 @@ export const getOrderByIdAction = (
   dispatch({ type: GET_ORDER_BY_ID });
 
   try {
-    const res = await fetch(`${BASE_API_CART_URL}/api/order/${orderId}`, {
+    const res = await fetch(`${BASE_API_CART_URL}/api/order/detail/${orderId}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",

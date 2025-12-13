@@ -51,7 +51,7 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ orders }) => {
             <option value="delivered">Đã giao</option>
             <option value="cancelled">Đã hủy</option>
           </select>
-          <button className="bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1.5 rounded-lg flex items-center space-x-2 text-sm transition-colors">
+          <button className="bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1 rounded-md flex items-center space-x-2 text-sm transition-colors">
             <Plus size={18} />
             <span>Tạo đơn hàng</span>
           </button>
@@ -116,6 +116,7 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ orders }) => {
                           width={32}
                           height={32}
                           className="rounded object-cover"
+                          style={{ width: "auto", height: "auto" }}
                         />
                       ))}
                       <span className="text-sm font-medium text-gray-700">{order.products.length} sản phẩm</span>

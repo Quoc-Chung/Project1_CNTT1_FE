@@ -10,23 +10,23 @@ export interface CreateOrderRequest {
 }
 
 export interface OrderItemResponse {
-  id: string;
   productId: string;
+  productName: string;
   skuId: string;
-  productName?: string;
-  productPrice?: number;
+  productPrice: number;
   quantity: number;
+  subtotal: number;
 }
 
 export interface OrderResponse {
-  id: string;
-  userId: string;
-  items: OrderItemResponse[];
+  orderId: string;
+  userId: number;
+  items?: OrderItemResponse[];
   shippingAddress: string;
   totalAmount: number;
   status: string;
   createdAt: string;
-  updatedAt: string;
+  updatedAt?: string;
 }
 
 export interface OrderState {
