@@ -138,8 +138,7 @@ const Signin = () => {
             });
             setTimeout(() => {
               if (Array.isArray(userRoleNames) && userRoleNames.length > 0 && userRoleNames.includes('Administrator')) {
-                console.log('✓ User has Administrator role, redirecting to /admin-app');
-                console.log('✓ Redux state should be persisted by now');
+               
                 router.push("/admin-app");
               } else {
                 console.log('✓ User is regular user, redirecting to home');

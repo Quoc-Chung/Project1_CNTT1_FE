@@ -23,7 +23,7 @@ interface BannerSlide {
 const bannerSlides: BannerSlide[] = [
   {
     id: 1,
-    image: "/banner/gaming.png",
+    image: "/images/hero/hero-01.png",
     title: "Siêu giảm giá",
     subtitle: "Giảm giá lên đến 50% cho tất cả sản phẩm công nghệ",
     discount: "50% OFF",

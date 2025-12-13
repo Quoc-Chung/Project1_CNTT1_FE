@@ -90,14 +90,14 @@ const HeroCarousel = () => {
               <div className="absolute inset-0 bg-gradient-to-br from-blue-200/20 to-purple-200/20 rounded-full blur-3xl opacity-50 group-hover:opacity-75 transition-opacity duration-500"></div>
               <div className="relative w-full h-full transform group-hover:scale-105 transition-transform duration-500">
                 <img
-                  src="/images/hero/gaming.png"
+                  src="/images/hero/hero-01.png"
                   alt="Tai nghe không dây chống ồn chủ động"
                   className="w-full h-full object-contain drop-shadow-2xl"
                   style={{ display: 'block' }}
                   onError={(e) => {
                     console.error('Image failed to load, trying fallback');
                     const target = e.currentTarget;
-                    if (target.src.includes('gaming.png')) {
+                    if (target.src.includes('hero-01.png')) {
                       target.src = '/images/hero/hero-01.png';
                     }
                   }}

@@ -15,7 +15,7 @@ const Hero = () => {
               {/* Background decorative image with overlay */}
               <div className="absolute right-0 bottom-0 -z-1 opacity-100 transition-opacity duration-500" style={{ transform: 'translate(-20px, -30px)' }}>
                 <Image
-                  src="/banner/gaming.png"
+                  src="/images/hero/hero-01.png"
                   alt="hero bg shapes"
                   width={300}
                   height={300}
