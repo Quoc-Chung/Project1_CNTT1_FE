@@ -239,8 +239,8 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
                     alt={product.name}
                     width={48}
                     height={48}
-                    className="rounded-lg object-cover flex-shrink-0 w-12 h-12"
-                    unoptimized
+                    className="rounded-lg object-cover flex-shrink-0"
+                    style={{ width: "auto", height: "auto" }}
                   />
 
                   <div className="flex-1 min-w-0">

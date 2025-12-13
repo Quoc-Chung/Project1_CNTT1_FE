@@ -311,7 +311,7 @@ const Footer = () => {
                     alt="apple pay"
                     width={53}
                     height={22}
-                    className="w-auto h-auto"
+                    style={{ width: "auto", height: "auto" }}
                   />
                 </a>
                 <a href="#" aria-label="payment system with google pay">

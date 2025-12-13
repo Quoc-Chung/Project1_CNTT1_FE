@@ -202,7 +202,8 @@ const QuickViewModal = () => {
                           alt="thumbnail"
                           width={61}
                           height={61}
-                          className="aspect-square object-contain w-full h-auto"
+                          className="aspect-square object-contain"
+                          style={{ width: "auto", height: "auto" }}
                           unoptimized
                         />
                       </button>
@@ -239,7 +240,8 @@ const QuickViewModal = () => {
                       alt={product?.title || "products-details"}
                       width={400}
                       height={400}
-                      className="object-contain w-full h-auto"
+                      className="object-contain"
+                      style={{ width: "auto", height: "auto" }}
                       unoptimized
                     />
                   </div>

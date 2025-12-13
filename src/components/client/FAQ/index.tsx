@@ -237,7 +237,7 @@ const FAQ = () => {
                   />
                   {imagePreview && (
                     <div className="mt-4 relative w-full h-48 rounded-lg overflow-hidden">
-                      <Image src={imagePreview} alt="Preview" fill className="object-cover" />
+                      <Image src={imagePreview} alt="Preview" fill className="object-cover" style={{ width: "auto", height: "auto" }} />
                     </div>
                   )}
                 </div>

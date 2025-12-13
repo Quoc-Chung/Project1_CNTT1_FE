@@ -127,7 +127,8 @@ const SingleItem = ({ item, isSelected = false, onSelectChange }: SingleItemProp
                 height={200}
                 src={productImage}
                 alt={item.productName || "product"}
-                className="object-contain w-full h-auto"
+                className="object-contain"
+                style={{ width: "auto", height: "auto" }}
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   target.src = "/images/products/product-1-1.png";

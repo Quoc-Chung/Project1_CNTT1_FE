@@ -164,7 +164,7 @@ const Header = () => {
                   alt="Logo"
                   width={50}
                   height={36}
-                  className="w-auto h-auto"
+                  style={{ width: "auto", height: "auto" }}
                 />
                 <p className="pl-2 pt-1 text-4xl font-bold text-blue"> ProShop </p>
               </div>
