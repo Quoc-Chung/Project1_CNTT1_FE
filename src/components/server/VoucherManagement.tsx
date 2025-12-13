@@ -8,7 +8,8 @@ import { VoucherDetailDialog } from "./VoucherDetailDialog";
 import { CreateVoucherDialog } from "./CreateVoucherDialog";
 
 export const VoucherManagement: React.FC = () => {
-  const [vouchers, setVouchers] = useState<VoucherResponse[]>([]);
+  const [allVouchers, setAllVouchers] = useState<VoucherResponse[]>([]); // Tất cả voucher từ backend
+  const [filteredVouchers, setFilteredVouchers] = useState<VoucherResponse[]>([]); // Voucher sau khi filter
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const vouchersPerPage = 10;
@@ -25,96 +26,85 @@ export const VoucherManagement: React.FC = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
-  // Fetch vouchers
-  const fetchVouchers = async (useActiveApi: boolean = false) => {
+  // Fetch tất cả voucher từ backend (không filter)
+  const fetchAllVouchers = async () => {
     try {
       setLoading(true);
-      
-      // Nếu useActiveApi = true, thử gọi API lấy voucher đang hoạt động
-      // Nếu fail do CORS hoặc 500, fallback sang getAllVouchers không filter và filter ở client
-      if (useActiveApi) {
-        try {
-          const data = await VoucherService.getActiveVouchers();
-          setVouchers(data);
-          return;
-        } catch (activeError: any) {
-          // Nếu lỗi CORS hoặc 500, thử gọi getAllVouchers không filter và filter ở client
-          console.warn('Failed to fetch active vouchers, trying to fetch all and filter client-side:', activeError);
-          try {
-            const allData = await VoucherService.getAllVouchers();
-            // Lọc ở client side: lấy voucher có isActive = true hoặc status = 'ACTIVE'
-            const activeData = allData.filter(v => v.isActive === true || v.status === 'ACTIVE');
-            setVouchers(activeData);
-            return;
-          } catch (fallbackError: any) {
-            console.error('Failed to fetch all vouchers as fallback:', fallbackError);
-            toast.error('Không thể tải danh sách voucher. Vui lòng thử lại sau.');
-            setVouchers([]);
-            return;
-          }
-        }
-      }
-      
-      // Nếu không, sử dụng filter như bình thường
-      const filters: any = {};
-      
-      if (statusFilter) filters.status = statusFilter;
-      if (searchCode) filters.code = searchCode;
-      if (fromDate) filters.fromDate = fromDate;
-      if (toDate) filters.toDate = toDate;
-      if (userScopeFilter) filters.userScope = userScopeFilter;
-
-      // Nếu có filter status và có thể gây lỗi 500, thử không filter và filter ở client
-      if (filters.status) {
-        try {
-          const data = await VoucherService.getAllVouchers(filters);
-          setVouchers(data);
-        } catch (filterError: any) {
-          // Nếu lỗi 500 với filter, thử không filter và filter ở client
-          console.warn('Failed to fetch with status filter, trying without filter:', filterError);
-          try {
-            const allData = await VoucherService.getAllVouchers({
-              code: filters.code,
-              fromDate: filters.fromDate,
-              toDate: filters.toDate,
-              userScope: filters.userScope,
-            });
-            // Filter ở client side
-            const filteredData = allData.filter(v => {
-              if (filters.status && v.status !== filters.status) return false;
-              return true;
-            });
-            setVouchers(filteredData);
-          } catch (fallbackError: any) {
-            console.error('Failed to fetch vouchers:', fallbackError);
-            toast.error('Không thể tải danh sách voucher. Vui lòng thử lại sau.');
-            setVouchers([]);
-          }
-        }
-      } else {
-        const data = await VoucherService.getAllVouchers(filters);
-        setVouchers(data);
-      }
+      const data = await VoucherService.getAllVouchers();
+      setAllVouchers(data);
+      setFilteredVouchers(data); // Ban đầu hiển thị tất cả
     } catch (error: any) {
       console.error('Error fetching vouchers:', error);
       toast.error(error.message || 'Không thể tải danh sách voucher');
-      setVouchers([]);
+      setAllVouchers([]);
+      setFilteredVouchers([]);
     } finally {
       setLoading(false);
     }
   };
 
+  // Áp dụng filter cho dữ liệu đã fetch từ backend
+  const applyFilters = () => {
+    let filtered = [...allVouchers];
+
+    // Filter theo code (tìm kiếm)
+    if (searchCode.trim()) {
+      const searchLower = searchCode.toLowerCase().trim();
+      filtered = filtered.filter(v => 
+        v.code.toLowerCase().includes(searchLower) ||
+        v.name.toLowerCase().includes(searchLower)
+      );
+    }
+
+    // Filter theo status
+    if (statusFilter) {
+      filtered = filtered.filter(v => v.status === statusFilter);
+    }
+
+    // Filter theo userScope
+    if (userScopeFilter) {
+      filtered = filtered.filter(v => v.userScope === userScopeFilter);
+    }
+
+    // Filter theo fromDate (startDate >= fromDate)
+    if (fromDate) {
+      filtered = filtered.filter(v => {
+        const voucherStartDate = new Date(v.startDate);
+        const filterFromDate = new Date(fromDate);
+        return voucherStartDate >= filterFromDate;
+      });
+    }
+
+    // Filter theo toDate (endDate <= toDate)
+    if (toDate) {
+      filtered = filtered.filter(v => {
+        const voucherEndDate = new Date(v.endDate);
+        const filterToDate = new Date(toDate);
+        // Set time to end of day for toDate
+        filterToDate.setHours(23, 59, 59, 999);
+        return voucherEndDate <= filterToDate;
+      });
+    }
+
+    setFilteredVouchers(filtered);
+    setCurrentPage(1); // Reset về trang đầu khi filter
+  };
+
   useEffect(() => {
-    // Khi mới load trang, tự động lấy voucher đang hoạt động
-    fetchVouchers(true);
+    // Khi mới load trang, tự động lấy tất cả voucher
+    fetchAllVouchers();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Áp dụng filter khi các filter thay đổi
+  useEffect(() => {
+    applyFilters();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchCode, statusFilter, fromDate, toDate, userScopeFilter, allVouchers]);
+
   // Handle search
   const handleSearch = () => {
-    setCurrentPage(1);
-    // Khi search, không dùng API active nữa, dùng filter
-    fetchVouchers(false);
+    applyFilters();
   };
 
   // Handle view detail
@@ -128,7 +118,7 @@ export const VoucherManagement: React.FC = () => {
     try {
       // TODO: Gọi API để toggle active status
       toast.success(`Đã ${voucher.isActive ? 'tắt' : 'bật'} voucher ${voucher.code}`);
-      fetchVouchers();
+      fetchAllVouchers(); // Refresh lại tất cả voucher từ backend
     } catch (error: any) {
       toast.error(error.message || 'Không thể cập nhật trạng thái voucher');
     }
@@ -143,16 +133,16 @@ export const VoucherManagement: React.FC = () => {
     try {
       // TODO: Gọi API để xóa/hết hiệu lực voucher
       toast.success(`Đã xóa/hết hiệu lực voucher ${voucher.code}`);
-      fetchVouchers();
+      fetchAllVouchers(); // Refresh lại tất cả voucher từ backend
     } catch (error: any) {
       toast.error(error.message || 'Không thể xóa voucher');
     }
   };
 
   // Pagination
-  const totalPages = Math.ceil(vouchers.length / vouchersPerPage);
+  const totalPages = Math.ceil(filteredVouchers.length / vouchersPerPage);
   const startIndex = (currentPage - 1) * vouchersPerPage;
-  const currentVouchers = vouchers.slice(startIndex, startIndex + vouchersPerPage);
+  const currentVouchers = filteredVouchers.slice(startIndex, startIndex + vouchersPerPage);
 
   // Format discount display
   const formatDiscount = (voucher: VoucherResponse): string => {
@@ -230,7 +220,6 @@ export const VoucherManagement: React.FC = () => {
             value={statusFilter}
             onChange={(e) => {
               setStatusFilter(e.target.value);
-              setCurrentPage(1);
             }}
           >
             <option value="">Tất cả trạng thái</option>
@@ -248,7 +237,6 @@ export const VoucherManagement: React.FC = () => {
               value={fromDate}
               onChange={(e) => {
                 setFromDate(e.target.value);
-                setCurrentPage(1);
               }}
             />
           </div>
@@ -262,7 +250,6 @@ export const VoucherManagement: React.FC = () => {
               value={toDate}
               onChange={(e) => {
                 setToDate(e.target.value);
-                setCurrentPage(1);
               }}
             />
           </div>
@@ -273,7 +260,6 @@ export const VoucherManagement: React.FC = () => {
             value={userScopeFilter}
             onChange={(e) => {
               setUserScopeFilter(e.target.value);
-              setCurrentPage(1);
             }}
           >
             <option value="">Tất cả User Scope</option>
@@ -365,7 +351,7 @@ export const VoucherManagement: React.FC = () => {
           <p className="text-sm font-medium text-gray-700">
             <span className="font-semibold text-gray-900">Trang {currentPage}/{totalPages || 1}</span>
             <span className="mx-2 text-gray-400">•</span>
-            <span>Tổng {vouchers.length} voucher</span>
+            <span>Hiển thị {filteredVouchers.length} / {allVouchers.length} voucher</span>
           </p>
           <div className="flex items-center space-x-2">
             <button
@@ -407,7 +393,7 @@ export const VoucherManagement: React.FC = () => {
           setIsDialogOpen(false);
           setSelectedVoucher(null);
         }}
-        onVoucherUpdated={fetchVouchers}
+        onVoucherUpdated={fetchAllVouchers}
       />
 
       {/* Create Voucher Dialog */}
@@ -415,7 +401,7 @@ export const VoucherManagement: React.FC = () => {
         isOpen={isCreateDialogOpen}
         onClose={() => setIsCreateDialogOpen(false)}
         onVoucherCreated={() => {
-          fetchVouchers(false); // Refresh list after creating
+          fetchAllVouchers(); // Refresh list after creating
         }}
       />
     </div>

@@ -27,8 +27,8 @@ const floatingAds: FloatingAd[] = [
     image: "/images/anhnenmoi/ThayHinhMayChay.png",
     link: "/shop-with-sidebar?category=laptop",
     position: "left",
-    bgGradient: "from-blue-500 via-blue-600 to-indigo-600",
-    textColor: "text-white",
+    bgGradient: "from-white via-gray-50 to-white",
+    textColor: "text-gray-900",
   },
   {
     id: 2,
@@ -39,8 +39,8 @@ const floatingAds: FloatingAd[] = [
     image: "/images/anhnenmoi/ThayIP14.png",
     link: "/shop-with-sidebar?category=phone",
     position: "right",
-    bgGradient: "from-orange-500 via-red-500 to-pink-500",
-    textColor: "text-white",
+    bgGradient: "from-white via-gray-50 to-white",
+    textColor: "text-gray-900",
   },
 ];
 
@@ -114,25 +114,28 @@ const FloatingAds = () => {
           >
             <Link
               href={ad.link}
-              className="group relative block w-32 h-[219px] rounded-2xl overflow-hidden shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:scale-105"
+              className="group relative block w-32 h-[219px] rounded-2xl overflow-hidden shadow-lg border-2 border-gray-200 hover:border-gray-300 hover:shadow-xl transition-all duration-500 transform hover:scale-105 bg-white"
             >
-              {/* Background Gradient */}
-              <div className={`absolute inset-0 bg-gradient-to-br ${ad.bgGradient} opacity-95 group-hover:opacity-100 transition-opacity duration-500`}></div>
+              {/* Background - White with subtle pattern */}
+              <div className={`absolute inset-0 bg-gradient-to-br ${ad.bgGradient} transition-opacity duration-500`}></div>
               
-              {/* Decorative Pattern */}
-              <div className="absolute inset-0 opacity-10">
-                <div className="absolute top-0 left-0 w-20 h-20 bg-white rounded-full blur-2xl"></div>
-                <div className="absolute bottom-0 right-0 w-16 h-16 bg-white rounded-full blur-xl"></div>
+              {/* Decorative Pattern - Subtle gray */}
+              <div className="absolute inset-0 opacity-5">
+                <div className="absolute top-0 left-0 w-20 h-20 bg-gray-400 rounded-full blur-2xl"></div>
+                <div className="absolute bottom-0 right-0 w-16 h-16 bg-gray-400 rounded-full blur-xl"></div>
               </div>
+              
+              {/* Border accent */}
+              <div className="absolute inset-0 border-2 border-gray-100 rounded-2xl opacity-50"></div>
 
               {/* Close Button */}
               <button
-                className="absolute top-2 right-2 z-20 w-6 h-6 bg-white/20 hover:bg-white/40 backdrop-blur-sm rounded-full flex items-center justify-center transition-all duration-300 opacity-0 group-hover:opacity-100"
+                className="absolute top-2 right-2 z-20 w-6 h-6 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center transition-all duration-300 opacity-0 group-hover:opacity-100"
                 onClick={(e) => handleClose(ad.id, e)}
                 aria-label="Đóng quảng cáo"
               >
                 <svg
-                  className="w-4 h-4 text-white"
+                  className="w-4 h-4 text-gray-700"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -151,10 +154,10 @@ const FloatingAds = () => {
                 {/* Top Section - Discount Badge */}
                 <div className="text-center w-full flex-shrink-0">
                   <div className="relative mb-1">
-                    <span className={`block text-2xl font-black ${ad.textColor} drop-shadow-lg`}>
+                    <span className={`block text-2xl font-black ${ad.textColor} drop-shadow-sm`}>
                       {ad.discount}
                     </span>
-                    <div className="absolute inset-0 bg-white/30 blur-lg -z-10 animate-pulse"></div>
+                    <div className="absolute inset-0 bg-gray-200/50 blur-lg -z-10 animate-pulse"></div>
                   </div>
                   <span className={`block text-[10px] font-bold ${ad.textColor} uppercase tracking-wider mb-1`}>
                     OFF
@@ -176,7 +179,7 @@ const FloatingAds = () => {
                     priority={false}
                   />
                   {/* Glow effect */}
-                  <div className="absolute inset-0 bg-white/30 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10"></div>
+                  <div className="absolute inset-0 bg-gray-200/50 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10"></div>
                 </div>
 
                 {/* Bottom Section - Text */}
@@ -191,7 +194,7 @@ const FloatingAds = () => {
               </div>
 
               {/* Shine Effect on Hover */}
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-gray-200/30 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
             </Link>
           </div>
         ))}

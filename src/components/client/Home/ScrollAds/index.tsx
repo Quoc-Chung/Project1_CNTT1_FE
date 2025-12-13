@@ -28,8 +28,8 @@ const scrollAds: ScrollAd[] = [
     image: "/images/anhnenmoi/MayTinhHP.png",
     link: "/shop-with-sidebar?category=laptop",
     position: "left",
-    bgGradient: "from-purple-500 via-purple-600 to-indigo-600",
-    textColor: "text-white",
+    bgGradient: "from-white via-gray-50 to-white",
+    textColor: "text-gray-900",
     icon: "💻",
   },
   {
@@ -41,8 +41,8 @@ const scrollAds: ScrollAd[] = [
     image: "/images/anhnenmoi/ThayHinhTaiNghe.png",
     link: "/shop-with-sidebar?category=peripherals",
     position: "right",
-    bgGradient: "from-green-500 via-emerald-500 to-teal-500",
-    textColor: "text-white",
+    bgGradient: "from-white via-gray-50 to-white",
+    textColor: "text-gray-900",
     icon: "🎧",
   },
 ];
@@ -105,26 +105,29 @@ const ScrollAds = () => {
         >
           <Link
             href={ad.link}
-            className="group relative block w-32 h-96 rounded-2xl overflow-hidden shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:scale-105"
+            className="group relative block w-32 h-96 rounded-2xl overflow-hidden shadow-lg border-2 border-gray-200 hover:border-gray-300 hover:shadow-xl transition-all duration-500 transform hover:scale-105 bg-white"
           >
-            {/* Background Gradient */}
-            <div className={`absolute inset-0 bg-gradient-to-br ${ad.bgGradient} opacity-95 group-hover:opacity-100 transition-opacity duration-500`}></div>
+            {/* Background - White with subtle pattern */}
+            <div className={`absolute inset-0 bg-gradient-to-br ${ad.bgGradient} transition-opacity duration-500`}></div>
             
-            {/* Sparkle Effects */}
+            {/* Sparkle Effects - Gray tones */}
             <div className="absolute inset-0 overflow-hidden">
-              <div className="absolute -inset-10 bg-gradient-to-r from-transparent via-white/30 to-transparent transform -skew-x-12 animate-shine"></div>
-              <div className="absolute top-4 left-2 w-2 h-2 bg-white rounded-full animate-sparkle-1"></div>
-              <div className="absolute top-12 right-4 w-1.5 h-1.5 bg-yellow-300 rounded-full animate-sparkle-2"></div>
-              <div className="absolute bottom-20 left-4 w-1 h-1 bg-white rounded-full animate-sparkle-3"></div>
-              <div className="absolute top-1/3 right-2 w-1.5 h-1.5 bg-yellow-200 rounded-full animate-sparkle-4"></div>
-              <div className="absolute bottom-12 right-2 w-1 h-1 bg-white rounded-full animate-sparkle-1" style={{ animationDelay: '0.8s' }}></div>
+              <div className="absolute -inset-10 bg-gradient-to-r from-transparent via-gray-200/20 to-transparent transform -skew-x-12 animate-shine"></div>
+              <div className="absolute top-4 left-2 w-2 h-2 bg-gray-400 rounded-full animate-sparkle-1"></div>
+              <div className="absolute top-12 right-4 w-1.5 h-1.5 bg-gray-500 rounded-full animate-sparkle-2"></div>
+              <div className="absolute bottom-20 left-4 w-1 h-1 bg-gray-400 rounded-full animate-sparkle-3"></div>
+              <div className="absolute top-1/3 right-2 w-1.5 h-1.5 bg-gray-500 rounded-full animate-sparkle-4"></div>
+              <div className="absolute bottom-12 right-2 w-1 h-1 bg-gray-400 rounded-full animate-sparkle-1" style={{ animationDelay: '0.8s' }}></div>
             </div>
 
-            {/* Decorative Pattern */}
-            <div className="absolute inset-0 opacity-10">
-              <div className="absolute top-0 left-0 w-24 h-24 bg-white rounded-full blur-2xl"></div>
-              <div className="absolute bottom-0 right-0 w-20 h-20 bg-white rounded-full blur-xl"></div>
+            {/* Decorative Pattern - Subtle gray */}
+            <div className="absolute inset-0 opacity-5">
+              <div className="absolute top-0 left-0 w-24 h-24 bg-gray-400 rounded-full blur-2xl"></div>
+              <div className="absolute bottom-0 right-0 w-20 h-20 bg-gray-400 rounded-full blur-xl"></div>
             </div>
+            
+            {/* Border accent */}
+            <div className="absolute inset-0 border-2 border-gray-100 rounded-2xl opacity-50"></div>
 
             {/* Content */}
             <div className="relative z-10 h-full flex flex-col items-center justify-between p-3 sm:p-4">
@@ -135,14 +138,14 @@ const ScrollAds = () => {
                     <span className="text-2xl sm:text-3xl transform group-hover:scale-110 group-hover:rotate-12 transition-all duration-500">
                       {ad.icon}
                     </span>
-                    <div className="absolute inset-0 bg-white/30 blur-lg -z-10 animate-pulse"></div>
+                    <div className="absolute inset-0 bg-gray-200/50 blur-lg -z-10 animate-pulse"></div>
                   </div>
                 </div>
                 <div className="relative mb-1">
-                  <span className={`block text-3xl sm:text-3xl font-black ${ad.textColor} drop-shadow-lg`}>
+                  <span className={`block text-3xl sm:text-3xl font-black ${ad.textColor} drop-shadow-sm`}>
                     {ad.discount}
                   </span>
-                  <div className="absolute inset-0 bg-white/30 blur-lg -z-10 animate-pulse"></div>
+                  <div className="absolute inset-0 bg-gray-200/50 blur-lg -z-10 animate-pulse"></div>
                 </div>
                 <span className={`block text-[9px] font-bold ${ad.textColor} uppercase tracking-wider mb-1`}>
                   OFF
@@ -150,7 +153,7 @@ const ScrollAds = () => {
                 <h3 className={`text-[10px] font-bold ${ad.textColor} mb-0.5 leading-tight`}>
                   {ad.title}
                 </h3>
-                <p className={`text-[9px] ${ad.textColor} opacity-90 leading-tight mb-1`}>
+                <p className={`text-[9px] ${ad.textColor} opacity-80 leading-tight mb-1`}>
                   {ad.subtitle}
                 </p>
               </div>
@@ -167,7 +170,7 @@ const ScrollAds = () => {
                   priority={false}
                 />
                 {/* Glow effect */}
-                <div className="absolute inset-0 bg-white/30 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10"></div>
+                <div className="absolute inset-0 bg-gray-200/50 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10"></div>
               </div>
 
               {/* Bottom Section - Description Text */}
@@ -179,7 +182,7 @@ const ScrollAds = () => {
             </div>
 
             {/* Shine Effect on Hover */}
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-gray-200/30 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
           </Link>
         </div>
       ))}

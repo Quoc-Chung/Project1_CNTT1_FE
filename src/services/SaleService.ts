@@ -1,5 +1,6 @@
 import { BASE_API_SALE_SERVICE_URL } from '@/utils/configAPI';
 import { fetchWithAuth } from '@/utils/refreshToken';
+import { getCookie } from '@/utils/cookies';
 
 export interface SaleResponse {
   id: number;
@@ -175,10 +176,39 @@ export class SaleService {
     thumbnailImage?: File
   ): Promise<SaleResponse> {
     try {
+      // Loại bỏ các trường undefined/null để tránh lỗi backend
+      const cleanSaleData: any = {
+        code: saleData.code,
+        name: saleData.name,
+        saleType: saleData.saleType,
+        saleValue: saleData.saleValue,
+        applyScope: saleData.applyScope,
+        startDate: saleData.startDate,
+        endDate: saleData.endDate,
+        priority: saleData.priority,
+      };
+
+      // Chỉ thêm các trường optional nếu có giá trị
+      if (saleData.description) {
+        cleanSaleData.description = saleData.description;
+      }
+      if (saleData.minOrderValue !== undefined && saleData.minOrderValue !== null) {
+        cleanSaleData.minOrderValue = saleData.minOrderValue;
+      }
+      if (saleData.maxDiscountAmount !== undefined && saleData.maxDiscountAmount !== null) {
+        cleanSaleData.maxDiscountAmount = saleData.maxDiscountAmount;
+      }
+      if (saleData.minPurchaseQuantity !== undefined && saleData.minPurchaseQuantity !== null) {
+        cleanSaleData.minPurchaseQuantity = saleData.minPurchaseQuantity;
+      }
+      if (saleData.quantity !== undefined && saleData.quantity !== null) {
+        cleanSaleData.quantity = saleData.quantity;
+      }
+
       const formData = new FormData();
       
       // Thêm sale JSON
-      formData.append('sale', JSON.stringify(saleData));
+      formData.append('sale', JSON.stringify(cleanSaleData));
       
       // Thêm banner image nếu có
       if (bannerImage) {
@@ -190,22 +220,27 @@ export class SaleService {
         formData.append('thumbnailImage', thumbnailImage);
       }
 
-      // Lấy token để thêm vào header
-      const token = document.cookie
-        .split('; ')
-        .find(row => row.startsWith('token='))
-        ?.split('=')[1];
+      // Lấy token từ cookie
+      const token = getCookie('token');
 
+      if (!token) {
+        throw new Error('Không tìm thấy token. Vui lòng đăng nhập lại.');
+      }
+
+      // Không set Content-Type header khi dùng FormData, browser sẽ tự động set với boundary
       const response = await fetch(`${BASE_API_SALE_SERVICE_URL}/api/v1/sales`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
+          // Không set Content-Type, browser sẽ tự động set cho FormData
         },
         body: formData,
+        credentials: 'include',
       });
 
       if (!response.ok) {
         const errorText = await response.text().catch(() => 'Unknown error');
+        console.error('Sale creation error response:', errorText);
         throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
       }
 
@@ -232,10 +267,39 @@ export class SaleService {
     thumbnailImage?: File
   ): Promise<SaleResponse> {
     try {
+      // Loại bỏ các trường undefined/null để tránh lỗi backend
+      const cleanSaleData: any = {
+        code: saleData.code,
+        name: saleData.name,
+        saleType: saleData.saleType,
+        saleValue: saleData.saleValue,
+        applyScope: saleData.applyScope,
+        startDate: saleData.startDate,
+        endDate: saleData.endDate,
+        priority: saleData.priority,
+      };
+
+      // Chỉ thêm các trường optional nếu có giá trị
+      if (saleData.description) {
+        cleanSaleData.description = saleData.description;
+      }
+      if (saleData.minOrderValue !== undefined && saleData.minOrderValue !== null) {
+        cleanSaleData.minOrderValue = saleData.minOrderValue;
+      }
+      if (saleData.maxDiscountAmount !== undefined && saleData.maxDiscountAmount !== null) {
+        cleanSaleData.maxDiscountAmount = saleData.maxDiscountAmount;
+      }
+      if (saleData.minPurchaseQuantity !== undefined && saleData.minPurchaseQuantity !== null) {
+        cleanSaleData.minPurchaseQuantity = saleData.minPurchaseQuantity;
+      }
+      if (saleData.quantity !== undefined && saleData.quantity !== null) {
+        cleanSaleData.quantity = saleData.quantity;
+      }
+
       const formData = new FormData();
       
       // Thêm sale JSON
-      formData.append('sale', JSON.stringify(saleData));
+      formData.append('sale', JSON.stringify(cleanSaleData));
       
       // Thêm banner image nếu có
       if (bannerImage) {
@@ -247,22 +311,27 @@ export class SaleService {
         formData.append('thumbnailImage', thumbnailImage);
       }
 
-      // Lấy token để thêm vào header
-      const token = document.cookie
-        .split('; ')
-        .find(row => row.startsWith('token='))
-        ?.split('=')[1];
+      // Lấy token từ cookie
+      const token = getCookie('token');
 
+      if (!token) {
+        throw new Error('Không tìm thấy token. Vui lòng đăng nhập lại.');
+      }
+
+      // Không set Content-Type header khi dùng FormData, browser sẽ tự động set với boundary
       const response = await fetch(`${BASE_API_SALE_SERVICE_URL}/api/v1/sales/${id}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
+          // Không set Content-Type, browser sẽ tự động set cho FormData
         },
         body: formData,
+        credentials: 'include',
       });
 
       if (!response.ok) {
         const errorText = await response.text().catch(() => 'Unknown error');
+        console.error('Sale update error response:', errorText);
         throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
       }
 

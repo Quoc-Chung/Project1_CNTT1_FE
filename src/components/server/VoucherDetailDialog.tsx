@@ -1,23 +1,123 @@
 "use client";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { X } from "lucide-react";
-import { VoucherResponse } from "@/services/VoucherService";
+import { VoucherService, VoucherResponse } from "@/services/VoucherService";
 import { formatDate, formatPrice } from "@/utils/helpers";
+import { toast } from "react-toastify";
 
 interface VoucherDetailDialogProps {
   voucher: VoucherResponse | null;
+  voucherId?: number | null;
+  voucherCode?: string | null;
   isOpen: boolean;
   onClose: () => void;
   onVoucherUpdated?: () => void;
 }
 
 export const VoucherDetailDialog: React.FC<VoucherDetailDialogProps> = ({
-  voucher,
+  voucher: voucherProp,
+  voucherId,
+  voucherCode,
   isOpen,
   onClose,
   onVoucherUpdated,
 }) => {
-  if (!isOpen || !voucher) return null;
+  const [voucher, setVoucher] = useState<VoucherResponse | null>(voucherProp);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      // Nếu có voucher từ props, sử dụng luôn
+      if (voucherProp) {
+        setVoucher(voucherProp);
+        return;
+      }
+      
+      // Nếu có voucherId, fetch theo ID
+      if (voucherId) {
+        fetchVoucherById(voucherId);
+        return;
+      }
+      
+      // Nếu có voucherCode, fetch theo Code
+      if (voucherCode) {
+        fetchVoucherByCode(voucherCode);
+        return;
+      }
+      
+      // Nếu không có gì, set null
+      setVoucher(null);
+    } else {
+      // Reset khi đóng dialog
+      setVoucher(null);
+    }
+  }, [isOpen, voucherProp, voucherId, voucherCode]);
+
+  const fetchVoucherById = async (id: number) => {
+    try {
+      setLoading(true);
+      const data = await VoucherService.getVoucherById(id);
+      setVoucher(data);
+    } catch (error: any) {
+      console.error("Error fetching voucher by ID:", error);
+      toast.error(error.message || "Không thể tải chi tiết voucher");
+      onClose();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchVoucherByCode = async (code: string) => {
+    try {
+      setLoading(true);
+      const data = await VoucherService.getVoucherByCode(code);
+      setVoucher(data);
+    } catch (error: any) {
+      console.error("Error fetching voucher by code:", error);
+      toast.error(error.message || "Không thể tải chi tiết voucher");
+      onClose();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  if (loading) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+        <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+          <div className="flex items-center justify-center p-12">
+            <div className="text-center">
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-4"></div>
+              <p className="text-gray-600">Đang tải chi tiết voucher...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!voucher) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+        <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+          <div className="flex items-center justify-between p-6 border-b border-gray-200">
+            <h2 className="text-2xl font-bold text-gray-900">Chi Tiết Voucher</h2>
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <X size={24} />
+            </button>
+          </div>
+          <div className="flex items-center justify-center p-12">
+            <p className="text-gray-500">Không tìm thấy voucher</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const getStatusBadge = (status: string) => {
     const statusMap: { [key: string]: { color: string, text: string } } = {

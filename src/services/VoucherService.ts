@@ -83,6 +83,9 @@ export class VoucherService {
       if (filters?.userScope) params.append('userScope', filters.userScope);
 
       const url = `${BASE_API_SALE_SERVICE_URL}/api/v1/vouchers${params.toString() ? `?${params.toString()}` : ''}`;
+      
+      // Debug: Log URL để kiểm tra
+      console.log('Fetching vouchers from URL:', url);
 
       const response = await fetchWithAuth(url, {
         method: 'GET',
@@ -97,6 +100,18 @@ export class VoucherService {
       }
 
       const data: VouchersApiResponse = await response.json();
+      
+      // Debug: Log response để kiểm tra
+      console.log('Voucher API Response:', {
+        statusCode: data.status.code,
+        totalVouchers: data.data?.length || 0,
+        vouchers: data.data?.map(v => ({
+          id: v.id,
+          code: v.code,
+          status: v.status,
+          isActive: v.isActive
+        }))
+      });
 
       if (data.status.code === '200') {
         return data.data || [];
