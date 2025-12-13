@@ -1,7 +1,5 @@
 import { Metadata } from "next";
 import { CustomerManagement } from "../../../../../components/server/CustomerManagement";
-import { mockCustomers } from "../../../../../utils/mockData";
-
 
 export const metadata: Metadata = {
   title: "NextCommerce | Quản lý khách hàng",
@@ -11,10 +9,7 @@ export const metadata: Metadata = {
 export default function CustomerManagementPage() {
   return (
     <main className="w-full">
-      <CustomerManagement
-        customers={mockCustomers}
-        
-      />
+      <CustomerManagement />
     </main>
   );
 }

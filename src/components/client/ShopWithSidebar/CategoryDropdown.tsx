@@ -2,7 +2,17 @@
 
 import { useState } from "react";
 
-const CategoryItem = ({ category, isSelected, onToggle }) => {
+interface CategoryItemProps {
+  category: {
+    id: string;
+    name: string;
+    products: number;
+  };
+  isSelected: boolean;
+  onToggle: (categoryId: string) => void;
+}
+
+const CategoryItem = ({ category, isSelected, onToggle }: CategoryItemProps) => {
   return (
     <button
       className={`${
@@ -11,27 +21,15 @@ const CategoryItem = ({ category, isSelected, onToggle }) => {
       onClick={() => onToggle(category.id)}
     >
       <div className="flex items-center gap-2">
+        {/* Radio button style - circle with dot when selected */}
         <div
-          className={`cursor-pointer flex items-center justify-center rounded w-4 h-4 border ${
-            isSelected ? "border-blue bg-blue" : "bg-white border-gray-3"
+          className={`cursor-pointer flex items-center justify-center rounded-full w-4 h-4 border-2 ${
+            isSelected ? "border-blue" : "border-gray-3"
           }`}
         >
-          <svg
-            className={isSelected ? "block" : "hidden"}
-            width="10"
-            height="10"
-            viewBox="0 0 10 10"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M8.33317 2.5L3.74984 7.08333L1.6665 5"
-              stroke="white"
-              strokeWidth="1.94437"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
+          {isSelected && (
+            <div className="w-2 h-2 rounded-full bg-blue"></div>
+          )}
         </div>
 
         <span>{category.name}</span>
@@ -48,7 +46,18 @@ const CategoryItem = ({ category, isSelected, onToggle }) => {
   );
 };
 
-const CategoryDropdown = ({ categories, loading = false, selectedCategory = null, onCategoryChange }) => {
+interface CategoryDropdownProps {
+  categories: Array<{
+    id: string;
+    name: string;
+    products: number;
+  }>;
+  loading?: boolean;
+  selectedCategory?: string | null;
+  onCategoryChange?: (categoryId: string | null) => void;
+}
+
+const CategoryDropdown = ({ categories, loading = false, selectedCategory = null, onCategoryChange }: CategoryDropdownProps) => {
   const [toggleDropdown, setToggleDropdown] = useState(true);
 
   const handleCategoryToggle = (categoryId: string) => {

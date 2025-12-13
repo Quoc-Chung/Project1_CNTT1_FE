@@ -14,7 +14,10 @@ export const API_CONFIG = {
 
 /**
  * Helper function để tạo fetch request với CORS credentials
+ * Sử dụng fetchWithAuth để tự động refresh token khi hết hạn
  */
+import { fetchWithAuth } from './refreshToken';
+
 export const apiFetch = async (
   url: string,
   options: RequestInit = {}
@@ -39,7 +42,8 @@ export const apiFetch = async (
   };
 
   try {
-    const response = await fetch(url, mergedOptions);
+    // Sử dụng fetchWithAuth để tự động refresh token khi cần
+    const response = await fetchWithAuth(url, mergedOptions);
     return response;
   } catch (error) {
     console.error("API Fetch Error:", error);

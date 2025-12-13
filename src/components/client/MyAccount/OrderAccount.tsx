@@ -1,6 +1,6 @@
 "use client";
 import Image from "next/image";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useAppDispatch, useAppSelector } from "@/redux/store";
 import { getAllOrdersAction, getOrderByIdAction } from "@/redux/Client/Order/Action";
 import { OrderResponse } from "@/types/Client/Order/order";
@@ -33,41 +33,47 @@ const OrderAccount = () => {
     }
   }, [dispatch, token]);
 
-  // Fetch chi tiết đơn hàng khi cần thiết
-  useEffect(() => {
-    if (!token) return;
-    
-    orders.forEach((order) => {
-      // Chỉ fetch nếu chưa có items, chưa có trong orderDetails, và chưa đang fetch
-      if (
-        (!order.items || order.items.length === 0) && 
+  const orderIds = useMemo(() => orders.map(o => o.orderId).join(','), [orders]);
+  const orderDetailsKeys = useMemo(() => Object.keys(orderDetails).join(','), [orderDetails]);
+  
+  const ordersToFetch = useMemo(() => {
+    return orders.filter(
+      (order) =>
+        (!order.items || order.items.length === 0) &&
         !orderDetails[order.orderId] &&
         !fetchingOrders.current.has(order.orderId)
-      ) {
-        fetchingOrders.current.add(order.orderId);
-        
-        dispatch(
-          getOrderByIdAction(
-            order.orderId,
-            token,
-            (res) => {
-              if (res.data) {
-                setOrderDetails((prev) => ({
-                  ...prev,
-                  [order.orderId]: res.data,
-                }));
-              }
-              fetchingOrders.current.delete(order.orderId);
-            },
-            (error) => {
-              console.error("Lỗi khi lấy chi tiết đơn hàng:", error);
-              fetchingOrders.current.delete(order.orderId);
+    );
+  }, [orderIds, orderDetailsKeys, orders, orderDetails]);
+
+  // Fetch chi tiết đơn hàng khi cần thiết
+  useEffect(() => {
+    if (!token || ordersToFetch.length === 0) return;
+
+    // Chỉ fetch các order mới, không fetch lại các order đã có
+    ordersToFetch.forEach((order) => {
+      fetchingOrders.current.add(order.orderId);
+      
+      dispatch(
+        getOrderByIdAction(
+          order.orderId,
+          token,
+          (res) => {
+            if (res.data) {
+              setOrderDetails((prev) => ({
+                ...prev,
+                [order.orderId]: res.data,
+              }));
             }
-          )
-        );
-      }
+            fetchingOrders.current.delete(order.orderId);
+          },
+          (error) => {
+            console.error("Lỗi khi lấy chi tiết đơn hàng:", error);
+            fetchingOrders.current.delete(order.orderId);
+          }
+        )
+      );
     });
-  }, [orders, token, dispatch]);
+  }, [ordersToFetch, token, dispatch]); // Chỉ trigger khi có order mới cần fetch
 
   // Hàm format giá tiền VNĐ
   const formatPrice = (price: number) => {

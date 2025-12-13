@@ -131,15 +131,11 @@ const Signin = () => {
           console.log('Login success - Full response:', responseData);
           console.log('User roleNames:', userRoleNames);
           console.log('Is array?', Array.isArray(userRoleNames));
-          
-          // Đợi một chút để Redux Persist lưu dữ liệu vào localStorage trước khi redirect
           setTimeout(() => {
             toast.success("🎉 Đăng nhập thành công", {
               autoClose: 1500,
               position: "top-right"
             });
-            
-            // Đợi thêm một chút để đảm bảo Redux state đã được persist
             setTimeout(() => {
               if (Array.isArray(userRoleNames) && userRoleNames.length > 0 && userRoleNames.includes('Administrator')) {
                 console.log('✓ User has Administrator role, redirecting to /admin-app');

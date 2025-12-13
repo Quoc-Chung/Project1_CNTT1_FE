@@ -1,31 +1,94 @@
 "use client"
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Search, Plus, Edit, Eye, User, MoreHorizontal } from "lucide-react";
 import { Customer } from "../../types/Admin";
 import { formatDate, formatPrice } from "../../utils/helpers";
-import { useRouter } from "next/navigation";
+import { UserService, UserResponse } from "@/services/UserService";
+import { CustomerDetailDialog } from "./CustomerDetailDialog";
+import { toast } from "react-toastify";
 
 interface CustomerManagementProps {
-  customers: Customer[];
+  customers?: Customer[]; // Optional để có thể fetch từ API
 }
 
 export const CustomerManagement: React.FC<CustomerManagementProps> = ({
-  customers
+  customers: initialCustomers
 }) => {
+  const [customers, setCustomers] = useState<Customer[]>(initialCustomers || []);
+  const [loading, setLoading] = useState(!initialCustomers);
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const itemsPerPage = 5;
-   const router = useRouter();
 
-  const goToCustomerDetail = () => {
-    router.push("/admin-app/customers/detail"); 
+  useEffect(() => {
+    if (!initialCustomers) {
+      const fetchCustomers = async () => {
+        try {
+          setLoading(true);
+          const apiUsers = await UserService.getAllUsers();
+          
+          // Map API response to Customer format
+          const mappedCustomers: Customer[] = apiUsers.map((user: UserResponse) => ({
+            id: user.code,
+            name: user.fullName || user.username || user.account || 'Không có tên',
+            email: user.email,
+            phone: user.phone || 'Chưa có',
+            address: user.currentAddress || undefined,
+            totalOrders: 0, 
+            totalSpent: 0, 
+            lastOrderDate: user.lastLogin || undefined,
+            createdAt: user.birthday || new Date().toISOString(), 
+            isActive: user.status === 'ACTIVE',
+          }));
+          
+          setCustomers(mappedCustomers);
+        } catch (error: any) {
+          console.error('Error fetching customers:', error);
+          toast.error(error.message || 'Không thể tải danh sách khách hàng');
+        } finally {
+          setLoading(false);
+        }
+      };
+      
+      fetchCustomers();
+    }
+  }, [initialCustomers]);
+
+  const handleViewCustomerDetail = (customer: Customer) => {
+    setSelectedCustomer(customer);
+    setIsDialogOpen(true);
+  };
+
+  const handleCustomerUpdated = async () => {
+    if (!initialCustomers) {
+      try {
+        const apiUsers = await UserService.getAllUsers();
+        const mappedCustomers: Customer[] = apiUsers.map((user: UserResponse) => ({
+          id: user.code,
+          name: user.fullName || user.username || user.account || 'Không có tên',
+          email: user.email,
+          phone: user.phone || 'Chưa có',
+          address: user.currentAddress || undefined,
+          totalOrders: 0, 
+          totalSpent: 0, 
+          lastOrderDate: user.lastLogin || undefined,
+          createdAt: user.birthday || new Date().toISOString(), 
+          isActive: user.status === 'ACTIVE',
+        }));
+        setCustomers(mappedCustomers);
+      } catch (error: any) {
+        console.error('Error refreshing customers:', error);
+      }
+    }
   };
  
   const filtered = customers.filter(
     (c) =>
       c.name.toLowerCase().includes(search.toLowerCase()) ||
       c.email.toLowerCase().includes(search.toLowerCase()) ||
-      c.phone.includes(search)
+      (c.phone && c.phone.includes(search))
   );
 
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
@@ -33,6 +96,19 @@ export const CustomerManagement: React.FC<CustomerManagementProps> = ({
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-center items-center h-96">
+          <div className="text-center">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-4"></div>
+            <p className="text-gray-600">Đang tải danh sách khách hàng...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -133,7 +209,7 @@ export const CustomerManagement: React.FC<CustomerManagementProps> = ({
 
                     <button
                       className="text-blue-600 hover:text-blue-800 flex items-center space-x-1"
-                      onClick={goToCustomerDetail}
+                      onClick={() => handleViewCustomerDetail(c)}
                     >
                       <Eye size={16} />
                     </button>
@@ -175,6 +251,17 @@ export const CustomerManagement: React.FC<CustomerManagementProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Customer Detail Dialog */}
+      <CustomerDetailDialog
+        customer={selectedCustomer}
+        isOpen={isDialogOpen}
+        onClose={() => {
+          setIsDialogOpen(false);
+          setSelectedCustomer(null);
+        }}
+        onCustomerUpdated={handleCustomerUpdated}
+      />
     </div>
   );
 };

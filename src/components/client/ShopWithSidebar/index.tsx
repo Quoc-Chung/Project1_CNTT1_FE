@@ -82,8 +82,7 @@ const ShopWithSidebar = () => {
       params.append('name', searchTerm.trim());
     }
     
-    // category parameter (category name, not ID) - need to get category name from selectedCategory
-    // We'll need to find category name from categories array
+    // category parameter - API chỉ nhận 1 category (String)
     if (selectedCategory && categories.length > 0) {
       const category = categories.find(cat => cat.id === selectedCategory);
       if (category?.name) {
@@ -115,8 +114,18 @@ const ShopWithSidebar = () => {
   const fetchProducts = useCallback(async (page: number = 1) => {
     const cacheKey = `${page}-${searchTerm}-${selectedCategory || 'null'}-${selectedBrand || 'null'}-${priceRange.min}-${priceRange.max}`;
     
+    console.log("🔍 Fetching products - Filters:", {
+      page,
+      searchTerm,
+      selectedCategory,
+      selectedBrand,
+      priceRange,
+      cacheKey
+    });
+    
     // Check cache first
     if (productsCache[cacheKey]) {
+      console.log("📦 Using cached products for key:", cacheKey);
       setProducts(productsCache[cacheKey]);
       setCurrentPage(page);
       return;
@@ -137,7 +146,7 @@ const ShopWithSidebar = () => {
           params.append('name', searchTerm.trim());
         }
         
-        // Only add category if categories are loaded
+        // Only add category if categories are loaded - API chỉ nhận 1 category
         if (selectedCategory && categories.length > 0) {
           const category = categories.find(cat => cat.id === selectedCategory);
           if (category?.name) {
@@ -166,6 +175,8 @@ const ShopWithSidebar = () => {
       }
       
       console.log("🔍 Fetching products from:", url);
+      console.log("🔍 Selected category:", selectedCategory);
+      console.log("🔍 URL params:", new URL(url).searchParams.toString());
       
       const response = await fetch(url, {
         method: 'GET',
@@ -191,9 +202,13 @@ const ShopWithSidebar = () => {
       if (data.status.code === "200") {
         const productsList = data.data.content || [];
         console.log("✅ Products found:", productsList.length);
+        console.log("✅ Filter applied - Selected category:", selectedCategory);
+        if (selectedCategory) {
+          console.log("✅ Expected filtered results by category:", selectedCategory);
+        }
         
         setProducts(productsList);
-        setCurrentPage(data.data.current_page || page);
+        setCurrentPage(data.data.current_page !== undefined ? data.data.current_page + 1 : page);
         setTotalPages(data.data.total_pages || 1);
         setTotalElements(data.data.total_elements || 0);
         setHasNext(data.data.has_next || false);
@@ -340,10 +355,20 @@ const ShopWithSidebar = () => {
       return; // Wait for data to load
     }
     
+    console.log("🔄 Filter changed, fetching products with:", {
+      selectedCategory,
+      selectedBrand,
+      searchTerm,
+      priceRange
+    });
+    
+    // Clear cache when filters change to force fresh fetch
+    setProductsCache({});
     setCurrentPage(1);
     fetchProducts(1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchTerm, selectedCategory, selectedBrand, priceRange.min, priceRange.max, hasMounted, isInitialLoad, categories, brands]);
+  }, [searchTerm, selectedCategory, selectedBrand, priceRange.min, priceRange.max, hasMounted, isInitialLoad]);
+  // Loại bỏ categories và brands khỏi dependencies để tránh trigger không cần thiết
 
 
 
@@ -481,8 +506,6 @@ const ShopWithSidebar = () => {
                 </div>
               </form>
             </div>
-            {/* // <!-- Sidebar End --> */}
-
             {/* // <!-- Content Start --> */}
             <div className="xl:max-w-[870px] w-full">
               {/* Search Bar */}

@@ -72,12 +72,13 @@ const CartSidebarModal = () => {
   useEffect(() => {
     if (isCartModalOpen && token) {
       // Delay 500ms để đảm bảo không overwrite state vừa thêm sản phẩm
+      // Chỉ fetch một lần khi modal mở, không fetch lại khi token thay đổi trong cùng session
       const timer = setTimeout(() => {
         dispatch(getAllCartAction(token));
       }, 500);
       return () => clearTimeout(timer);
     }
-  }, [isCartModalOpen, token, dispatch]);
+  }, [isCartModalOpen]); // Loại bỏ token và dispatch khỏi dependencies để tránh fetch lại không cần thiết
 
   useEffect(() => {
     function handleClickOutside(event) {

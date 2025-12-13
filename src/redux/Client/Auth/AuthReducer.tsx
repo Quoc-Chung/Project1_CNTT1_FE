@@ -100,15 +100,31 @@ export const authReducer = (state = initialState, action: any) => {
     case REGISTER_FAILURE:
       return { ...state, loading: false, error: action.payload };
 
+
+
     // ============== LOGIN ==============
     case LOGIN_REQUEST:
       return { ...state, loading: true, error: null };
     case LOGIN_SUCCESS:
       console.log('AuthReducer LOGIN_SUCCESS - Full payload:', action.payload);
       
-      // Lưu token vào cookie để middleware có thể kiểm tra
+
       if (action.payload?.token && typeof window !== 'undefined') {
-        setCookie('token', action.payload.token, 7); // Lưu 7 ngày
+        setCookie('token', action.payload.token, 7);
+        
+        // Lưu refreshToken nếu có
+        if (action.payload?.refreshToken) {
+          setCookie('refreshToken', action.payload.refreshToken, 30); 
+          console.log('AuthReducer: Saved refreshToken to cookie');
+        }
+        
+        if (action.payload?.expiresIn && typeof window !== 'undefined') {
+          const expiresIn = action.payload.expiresIn;
+          const loginTime = Date.now(); 
+          localStorage.setItem('tokenExpiresAt', (loginTime + expiresIn * 1000).toString());
+          localStorage.setItem('tokenExpiresIn', expiresIn.toString());
+          console.log('AuthReducer: Saved token expiration time, expires in:', expiresIn, 'seconds');
+        }
         
         // Lấy roleNames từ payload hoặc decode từ JWT
         let roleNamesToSave = action.payload?.roleNames || [];
@@ -208,6 +224,19 @@ export const authReducer = (state = initialState, action: any) => {
       // Lưu token vào cookie để middleware có thể kiểm tra
       if (action.payload?.token && typeof window !== 'undefined') {
         setCookie('token', action.payload.token, 7); // Lưu 7 ngày
+        
+        // Lưu refreshToken nếu có
+        if (action.payload?.refreshToken) {
+          setCookie('refreshToken', action.payload.refreshToken, 30); // Lưu 30 ngày
+        }
+        
+        // Lưu expiresIn và thời điểm login để kiểm tra hết hạn
+        if (action.payload?.expiresIn && typeof window !== 'undefined') {
+          const expiresIn = action.payload.expiresIn; // seconds
+          const loginTime = Date.now(); // milliseconds
+          localStorage.setItem('tokenExpiresAt', (loginTime + expiresIn * 1000).toString());
+          localStorage.setItem('tokenExpiresIn', expiresIn.toString());
+        }
       }
       return {
         ...state,

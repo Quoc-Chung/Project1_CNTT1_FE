@@ -9,9 +9,11 @@ import { ProductService } from "../../../services/ProductService";
 
 interface SingleItemProps {
   item: CartOrderResponse;
+  isSelected?: boolean;
+  onSelectChange?: (isSelected: boolean) => void;
 }
 
-const SingleItem = ({ item }: SingleItemProps) => {
+const SingleItem = ({ item, isSelected = false, onSelectChange }: SingleItemProps) => {
   const [quantity, setQuantity] = useState(item.quantity);
   const [isRemoving, setIsRemoving] = useState(false);
   const [productImage, setProductImage] = useState<string>("/images/products/product-1-1.png");
@@ -107,7 +109,16 @@ const SingleItem = ({ item }: SingleItemProps) => {
 
   return (
     <div className="flex items-center border-t border-gray-200 py-6 px-7.5 hover:bg-gray-50 transition-colors duration-200">
-      <div className="min-w-[400px]">
+      <div className="min-w-[50px] flex items-center justify-center pr-4">
+        <input
+          type="checkbox"
+          checked={isSelected}
+          onChange={(e) => onSelectChange?.(e.target.checked)}
+          className="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 cursor-pointer"
+          aria-label={`Chọn ${item.productName}`}
+        />
+      </div>
+      <div className="min-w-[350px]">
         <div className="flex items-center justify-between gap-5">
           <div className="w-full flex items-center gap-5.5">
             <div className="flex items-center justify-center rounded-lg bg-white border border-gray-200 shadow-sm max-w-[80px] w-full h-17.5 overflow-hidden">

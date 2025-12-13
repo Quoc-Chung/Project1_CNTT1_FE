@@ -26,8 +26,7 @@ const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
         const cookieToken = getCookie('token');
         if (cookieToken) {
           t = cookieToken;
-          l = true;
-          console.log('AdminRoute: Found token from cookie (via getCookie)');
+          l = true;          
         }
       }
       if (!r || r.length === 0) {
@@ -85,15 +84,12 @@ const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
     });
 
     if (!finalToken) {
-      console.log('AdminRoute: No token');
       return false;
     }
     if (!finalIsLogin) {
-      console.log('AdminRoute: Not logged in');
       return false;
     }
     if (!finalRoleNames || !Array.isArray(finalRoleNames) || finalRoleNames.length === 0) {
-      console.log('AdminRoute: No roleNames or empty array');
       return false;
     }
     const hasAdmin = 
@@ -104,7 +100,6 @@ const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
         const roleUpper = String(role).toUpperCase().trim();
         return roleUpper === 'ADMIN' || roleUpper === 'ADMINISTRATOR';
       });
-    console.log('AdminRoute: hasAdminRole result:', hasAdmin, 'from roles:', finalRoleNames);
     return hasAdmin;
   }, [finalToken, finalIsLogin, finalRoleNames]);
 
@@ -113,10 +108,8 @@ const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
   
     // Nếu đang logout, chỉ set state, KHÔNG redirect (để Sidebar xử lý redirect)
     if (justLoggedOut && !finalToken) {
-      console.log('AdminRoute: Logout detected, keeping UI visible for toast - Sidebar will handle redirect');
       setIsLoggingOut(true); // Set state để giữ lại trong render
       setAuthStatus('redirecting'); // Set để không hiển thị loading
-      // KHÔNG redirect ở đây - để Sidebar xử lý bằng window.location.href
       return;
     }
   }, [finalToken, router]);
