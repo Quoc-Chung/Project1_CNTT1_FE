@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import ProductItem from "@/components/client/Common/ProductItem";
 import { ProductService } from "@/services/ProductService";
-import { Product } from "@/types/product";
+import { Product } from "@/types/Client/Product/ProductItem";
 import { Product as APIProduct } from "@/types/Admin/ProductAPI";
+import { useState } from "react";
 
 const NewArrival = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -21,20 +22,21 @@ const NewArrival = () => {
         // Map API products to Product format
         const mappedProducts: Product[] = apiProducts.map((apiProduct: APIProduct) => {
           // Get image URL (use thumbnailUrl or first image from images array)
-          const imageUrl = apiProduct.thumbnailUrl || 
-            (apiProduct.images && apiProduct.images.length > 0 ? apiProduct.images[0] : null) ||
-            "/images/products/product-1-bg-1.png"; // Default placeholder
-          
-      
+          const imageUrl = apiProduct.thumbnailUrl; 
+        
+          /*- Giá gốc -*/ 
           const price = apiProduct.price || 0;
-          const discountedPrice = price > 0 ? Math.round(price * 0.9) : 0;
+ 
+          /*- Giá sau khi giảm -*/ 
+          let discountedPrice = 0;
+        
           
           return {
             id: apiProduct.id, // Use string ID directly
             originalId: apiProduct.id, // Store original ID
             title: apiProduct.name,
             price: price,
-            discountedPrice: discountedPrice,
+            discountedPrice: discountedPrice, 
             reviews: Math.floor(Math.random() * 20) + 1, // Random reviews for now
             imgs: {
               thumbnails: apiProduct.images && apiProduct.images.length > 0 
@@ -50,7 +52,6 @@ const NewArrival = () => {
         setProducts(mappedProducts);
       } catch (error) {
         console.error("Error fetching latest products:", error);
-        // Fallback to empty array on error
         setProducts([]);
       } finally {
         setLoading(false);

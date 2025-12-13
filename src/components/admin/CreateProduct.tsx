@@ -26,13 +26,12 @@ const CreateProduct = () => {
   const [creating, setCreating] = useState<boolean>(false);
 
   // Form states
-  const [formData, setFormData] = useState<ProductCreateRequest>({
+  const [formData, setFormData] = useState<Omit<ProductCreateRequest, 'imageUrls'>>({
     name: "",
     description: "",
     brandId: "",
     categoryId: "",
     specs: {},
-    imageUrls: [],
   });
 
   const [formErrors, setFormErrors] = useState<{
@@ -46,12 +45,9 @@ const CreateProduct = () => {
   const [specKey, setSpecKey] = useState<string>("");
   const [specValue, setSpecValue] = useState<string>("");
 
-  // Image URL management
-  const [imageUrl, setImageUrl] = useState<string>("");
 
   // Debug: Log token
   useEffect(() => {
-    console.log("🔑 CreateProduct - Token:", token ? `${token.substring(0, 30)}...` : "NULL");
   }, [token]);
 
   // Load categories and brands on mount
@@ -149,10 +145,8 @@ const CreateProduct = () => {
         description: formData.description.trim(),
         brandId: formData.brandId.trim(),
         categoryId: formData.categoryId.trim(),
-        specs: cleanedSpecs, // Only valid string specs
-        imageUrls: (formData.imageUrls || [])
-          .map(url => url?.trim())
-          .filter(url => url && url !== ''), // Filter out empty URLs
+        specs: cleanedSpecs,
+        imageUrls: [], // Empty array - images are uploaded via files, not URLs
       };
 
       console.log("📤 Sending cleaned product data:", cleanedData);
@@ -165,9 +159,8 @@ const CreateProduct = () => {
       // Redirect to products management page
       router.push("/admin-app/products/management");
     } catch (error: any) {
-      console.error("❌ Create product failed:", error);
 
-      // Parse error message to provide better feedback
+
       let errorMessage = "Tạo sản phẩm thất bại!";
 
       if (error.message?.includes("500")) {
@@ -214,22 +207,6 @@ const CreateProduct = () => {
     });
   };
 
-  const handleAddImageUrl = () => {
-    if (imageUrl.trim()) {
-      setFormData((prev) => ({
-        ...prev,
-        imageUrls: [...(prev.imageUrls || []), imageUrl.trim()],
-      }));
-      setImageUrl("");
-    }
-  };
-
-  const handleRemoveImageUrl = (index: number) => {
-    setFormData((prev) => ({
-      ...prev,
-      imageUrls: prev.imageUrls?.filter((_, i) => i !== index) || [],
-    }));
-  };
 
   const handleCancel = () => {
     router.back();
@@ -281,7 +258,7 @@ const CreateProduct = () => {
                 </label>
                 <input
                   type="text"
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 ${
+                  className={`w-full px-2.5 py-1.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 text-sm ${
                     formErrors.name ? "border-red-500" : "border-gray-300"
                   }`}
                   value={formData.name}
@@ -301,7 +278,7 @@ const CreateProduct = () => {
                   Mô tả <span className="text-red-500">*</span>
                 </label>
                 <textarea
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 ${
+                  className={`w-full px-2.5 py-1.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 text-sm ${
                     formErrors.description ? "border-red-500" : "border-gray-300"
                   }`}
                   rows={4}
@@ -325,7 +302,7 @@ const CreateProduct = () => {
                     Thương hiệu <span className="text-red-500">*</span>
                   </label>
                   <select
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm ${
+                    className={`w-full px-2.5 py-1.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm ${
                       formErrors.brandId ? "border-red-500" : "border-gray-300"
                     }`}
                     value={formData.brandId}
@@ -353,7 +330,7 @@ const CreateProduct = () => {
                     Danh mục <span className="text-red-500">*</span>
                   </label>
                   <select
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm ${
+                    className={`w-full px-2.5 py-1.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm ${
                       formErrors.categoryId
                         ? "border-red-500"
                         : "border-gray-300"
@@ -392,7 +369,7 @@ const CreateProduct = () => {
                 <div className="flex gap-2">
                   <input
                     type="text"
-                    className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                    className="flex-1 px-2.5 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
                     placeholder="Tên thông số (VD: CPU, RAM)"
                     value={specKey}
                     onChange={(e) => setSpecKey(e.target.value)}
@@ -405,7 +382,7 @@ const CreateProduct = () => {
                   />
                   <input
                     type="text"
-                    className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                    className="flex-1 px-2.5 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
                     placeholder="Giá trị (VD: Apple M3 Pro, 16GB)"
                     value={specValue}
                     onChange={(e) => setSpecValue(e.target.value)}
@@ -419,7 +396,7 @@ const CreateProduct = () => {
                   <button
                     type="button"
                     onClick={handleAddSpec}
-                    className="px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm transition-colors flex items-center gap-2"
+                    className="px-2.5 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm transition-colors flex items-center gap-2"
                   >
                     <Plus size={16} />
                     Thêm
@@ -431,7 +408,7 @@ const CreateProduct = () => {
                     {Object.entries(formData.specs || {}).map(([key, value]) => (
                       <div
                         key={key}
-                        className="flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-lg text-sm"
+                        className="flex items-center gap-2 bg-gray-100 px-2 py-1 rounded-lg text-sm"
                       >
                         <span className="font-medium">{key}:</span>
                         <span>{value}</span>
@@ -449,67 +426,13 @@ const CreateProduct = () => {
               </div>
             </div>
 
-            {/* Image URLs */}
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold text-gray-900">
-                  URL hình ảnh
-                </h2>
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                    placeholder="Nhập URL hình ảnh"
-                    value={imageUrl}
-                    onChange={(e) => setImageUrl(e.target.value)}
-                    onKeyPress={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        handleAddImageUrl();
-                      }
-                    }}
-                  />
-                  <button
-                    type="button"
-                    onClick={handleAddImageUrl}
-                    className="px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm transition-colors flex items-center gap-2"
-                  >
-                    <Plus size={16} />
-                    Thêm
-                  </button>
-                </div>
-
-                {formData.imageUrls && formData.imageUrls.length > 0 && (
-                  <div className="space-y-2 mt-4">
-                    {formData.imageUrls.map((url, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center gap-2 bg-gray-50 px-4 py-2 rounded-lg text-sm"
-                      >
-                        <span className="flex-1 truncate">{url}</span>
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveImageUrl(index)}
-                          className="text-red-600 hover:text-red-800"
-                        >
-                          <X size={14} />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
 
             {/* Actions */}
             <div className="flex gap-4 pt-6 border-t border-gray-200">
               <button
                 type="submit"
                 disabled={creating}
-                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-1.5 px-3 rounded-lg font-medium text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {creating ? (
                   <span className="flex items-center justify-center gap-2">
@@ -524,7 +447,7 @@ const CreateProduct = () => {
                 type="button"
                 onClick={handleCancel}
                 disabled={creating}
-                className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 px-6 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-1.5 px-3 rounded-lg font-medium text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Hủy bỏ
               </button>

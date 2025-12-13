@@ -58,41 +58,6 @@ const nextConfig = {
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
   
-  // Bundle optimization
-  // Webpack config chỉ áp dụng cho production build
-  // Trong dev mode với Turbopack, config này sẽ không được sử dụng nhưng vẫn cần thiết cho production
-  webpack: (config, { dev, isServer }) => {
-    // Chỉ áp dụng optimization cho production build (khi build, không phải dev)
-    if (!dev && !isServer) {
-      config.optimization.splitChunks = {
-        chunks: 'all',
-        minSize: 20000,
-        maxSize: 244000,
-        cacheGroups: {
-          vendor: {
-            test: /[\\/]node_modules[\\/]/,
-            name: 'vendors',
-            chunks: 'all',
-            priority: 10,
-            reuseExistingChunk: true,
-          },
-          common: {
-            name: 'common',
-            minChunks: 2,
-            chunks: 'all',
-            priority: 5,
-            reuseExistingChunk: true,
-          },
-        },
-      };
-      
-      // Add chunk loading error handling (chỉ cho production)
-      config.output.chunkLoadingGlobal = 'webpackChunkNextCommerce';
-    }
-    
-    return config;
-  },
-  
   // Headers for better caching
   async headers() {
     return [

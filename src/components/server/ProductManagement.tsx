@@ -50,6 +50,7 @@ const ProductImageCell: React.FC<{ product: Product }> = ({ product }) => {
         width={56}
         height={40}
         className={`object-cover rounded-md ${imageLoaded ? 'opacity-100' : 'opacity-0'} transition-opacity`}
+        style={{ width: "auto", height: "auto" }}
         onError={() => {
           setImageError(true);
           setImageLoaded(false);
@@ -249,10 +250,10 @@ const ProductManagement: React.FC = () => {
         <button
           key={i}
           onClick={() => handlePageChange(i - 1)} // Convert to 0-based
-          className={`px-3 py-1 border rounded-md text-sm ${
+          className={`px-2.5 py-1.5 min-w-[36px] rounded-lg text-sm font-semibold transition-all duration-200 ${
             displayPage === i
-              ? "bg-blue-600 text-white"
-              : "hover:bg-gray-100 text-gray-700"
+              ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/50 scale-105"
+              : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 hover:border-gray-400 hover:shadow-md"
           }`}
         >
           {i}
@@ -315,8 +316,8 @@ const ProductManagement: React.FC = () => {
         <button 
 
         onClick={handleAddProduct}
-        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors shadow-sm">
-          <Plus size={18} />
+        className="bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1 rounded-md flex items-center space-x-2 transition-colors shadow-sm text-sm">
+          <Plus size={16} />
           <span>Thêm Sản Phẩm</span>
         </button>
       </div>
@@ -325,11 +326,11 @@ const ProductManagement: React.FC = () => {
       <div className="bg-white p-4 rounded-xl shadow-md border border-gray-300">
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
           <div className="lg:col-span-2 relative">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
+            <Search className="absolute left-2 top-2 h-4 w-4 text-gray-500" />
             <input
               type="text"
               placeholder="Tìm kiếm theo tên, thương hiệu..."
-              className="pl-9 pr-3 py-2 w-full border border-gray-400 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-800"
+              className="pl-8 pr-2 py-1.5 w-full border border-gray-400 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-800"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               onKeyPress={handleSearchKeyPress}
@@ -337,14 +338,14 @@ const ProductManagement: React.FC = () => {
           </div>
           <button
             onClick={handleSearch}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center space-x-2"
+            className="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors flex items-center space-x-2 text-sm"
           >
-            <Search size={18} />
+            <Search size={16} />
             <span>Tìm kiếm</span>
           </button>
 
           <select
-            className="px-3 py-2 border border-gray-400 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm text-gray-800"
+            className="px-2 py-1.5 border border-gray-400 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm text-gray-800"
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
           >
@@ -354,7 +355,7 @@ const ProductManagement: React.FC = () => {
           </select>
 
           <select
-            className="px-3 py-2 border border-gray-400 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm text-gray-800"
+            className="px-2 py-1.5 border border-gray-400 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm text-gray-800"
             value={selectedBrand}
             onChange={(e) => setSelectedBrand(e.target.value)}
           >
@@ -367,7 +368,7 @@ const ProductManagement: React.FC = () => {
             <input
               type="number"
               placeholder="Giá từ"
-              className="px-3 py-2 border border-gray-400 rounded-lg w-full focus:ring-2 focus:ring-blue-500 text-sm text-gray-800"
+              className="px-2 py-1.5 border border-gray-400 rounded-lg w-full focus:ring-2 focus:ring-blue-500 text-sm text-gray-800"
               value={priceRange.min}
               onChange={(e) =>
                 setPriceRange({ ...priceRange, min: e.target.value })
@@ -376,7 +377,7 @@ const ProductManagement: React.FC = () => {
             <input
               type="number"
               placeholder="Đến"
-              className="px-3 py-2 border border-gray-400 rounded-lg w-full focus:ring-2 focus:ring-blue-500 text-sm text-gray-800"
+              className="px-2 py-1.5 border border-gray-400 rounded-lg w-full focus:ring-2 focus:ring-blue-500 text-sm text-gray-800"
               value={priceRange.max}
               onChange={(e) =>
                 setPriceRange({ ...priceRange, max: e.target.value })
@@ -389,7 +390,7 @@ const ProductManagement: React.FC = () => {
           <span>Tìm thấy {displayProducts.length} sản phẩm / Tổng {totalElements} sản phẩm</span>
           <button
             onClick={clearFilters}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-md text-sm"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded-md text-sm"
           >
             Xóa bộ lọc
           </button>
@@ -397,9 +398,9 @@ const ProductManagement: React.FC = () => {
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 flex flex-col min-h-[495px]">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 flex flex-col min-h-[475px]">
         {loading ? (
-          <div className="flex items-center justify-center min-h-[495px]">
+          <div className="flex items-center justify-center min-h-[475px]">
             <div className="text-center">
               <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
               <p className="text-gray-600">Đang tải danh sách sản phẩm...</p>
@@ -409,16 +410,16 @@ const ProductManagement: React.FC = () => {
           <>
             <div className="flex-1 overflow-auto">
               <table className="w-full table-fixed">
-                <thead className="bg-gray-50 border-b border-gray-200">
-                  <tr>
-                    <th className="w-20 px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">
+                <thead>
+                  <tr className="bg-gray-50 border-b border-gray-200">
+                    <th className="w-20 px-4 py-3 text-left text-sm font-bold text-gray-900">
                       ID
                     </th>
-                    <th className="w-24 px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">
+                    <th className="w-24 px-4 py-3 text-left text-sm font-bold text-gray-900">
                       Ảnh
                     </th>
                     <th
-                      className="w-1/4 px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase cursor-pointer"
+                      className="w-1/4 px-4 py-3 text-left text-sm font-bold text-gray-900 cursor-pointer hover:bg-gray-100 transition-colors"
                       onClick={() => handleSort("name")}
                     >
                       <div className="flex items-center space-x-1">
@@ -426,14 +427,14 @@ const ProductManagement: React.FC = () => {
                         <ArrowUpDown size={14} />
                       </div>
                     </th>
-                    <th className="w-32 px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">
+                    <th className="w-32 px-4 py-3 text-left text-sm font-bold text-gray-900">
                       Thương Hiệu
                     </th>
-                    <th className="w-32 px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">
+                    <th className="w-32 px-4 py-3 text-left text-sm font-bold text-gray-900">
                       Danh Mục
                     </th>
                     <th
-                      className="w-28 px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase cursor-pointer"
+                      className="w-28 px-4 py-3 text-left text-sm font-bold text-gray-900 cursor-pointer hover:bg-gray-100 transition-colors"
                       onClick={() => handleSort("price")}
                     >
                       <div className="flex items-center space-x-1">
@@ -441,37 +442,37 @@ const ProductManagement: React.FC = () => {
                         <ArrowUpDown size={14} />
                       </div>
                     </th>
-                    <th className="w-28 px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">
+                    <th className="w-28 px-4 py-3 text-left text-sm font-bold text-gray-900">
                       Thao Tác
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
+                <tbody>
                   {displayProducts.length > 0 ? (
                     displayProducts.map((product) => (
                       <tr
                         key={product.id}
-                        className="hover:bg-gray-50 transition-colors"
+                        className="hover:bg-gray-50 transition-colors border-b border-gray-100"
                       >
-                        <td className="px-4 py-2 text-sm text-gray-900 truncate">
+                        <td className="px-4 py-3 text-sm font-medium text-gray-900 truncate">
                           {product.id.substring(0, 8)}...
                         </td>
-                        <td className="px-4 py-2">
+                        <td className="px-4 py-3">
                           <ProductImageCell product={product} />
                         </td>
-                        <td className="px-4 py-2 text-sm text-gray-900 truncate">
+                        <td className="px-4 py-3 text-sm font-medium text-gray-900 truncate">
                           {product.name}
                         </td>
-                        <td className="px-4 py-2 text-sm text-gray-600">
+                        <td className="px-4 py-3 text-sm text-gray-700">
                           {product.brandName}
                         </td>
-                        <td className="px-4 py-2 text-sm text-gray-600">
+                        <td className="px-4 py-3 text-sm text-gray-700">
                           {product.categoryName}
                         </td>
-                        <td className="px-4 py-2 text-sm font-semibold text-gray-900">
+                        <td className="px-4 py-3 text-sm font-bold text-red-600">
                           {formatPrice(product.price)}
                         </td>
-                        <td className="px-4 py-2 text-sm font-medium">
+                        <td className="px-4 py-3 text-sm font-medium">
                           <div className="flex items-center space-x-2">
                             <button
                               className="text-green-600 hover:text-green-900 disabled:opacity-50"
@@ -510,24 +511,27 @@ const ProductManagement: React.FC = () => {
             </div>
 
             {/* Pagination */}
-            <div className="px-4 py-3 border-t border-gray-200 flex justify-between items-center">
-              <p className="text-sm text-gray-600">
-                Trang {currentPage + 1}/{totalPages || 1} — Tổng{" "}
-                {totalElements} sản phẩm
+            <div className="px-6 py-4 -mt-2 bg-gradient-to-r from-gray-50 to-white border-t border-gray-200 flex justify-between items-center shadow-sm">
+              <p className="text-sm font-medium text-gray-700">
+                <span className="font-semibold text-gray-900">Trang {currentPage + 1}/{totalPages || 1}</span>
+                <span className="mx-2 text-gray-400">•</span>
+                <span>Tổng {totalElements} sản phẩm</span>
               </p>
-              <div className="flex space-x-2">
+              <div className="flex items-center space-x-2">
                 <button
                   onClick={handlePreviousPage}
                   disabled={!hasPrevious}
-                  className="px-3 py-1 border rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed text-black"
+                  className="px-2.5 py-1.5 rounded-lg text-sm font-semibold bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 hover:border-gray-400 hover:shadow-md transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:shadow-none"
                 >
                   Trước
                 </button>
-                {renderPagination()}
+                <div className="flex items-center space-x-1.5">
+                  {renderPagination()}
+                </div>
                 <button
                   onClick={handleNextPage}
                   disabled={!hasNext}
-                  className="px-3 py-1 border rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed text-black"
+                  className="px-2.5 py-1.5 rounded-lg text-sm font-semibold bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 hover:border-gray-400 hover:shadow-md transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:shadow-none"
                 >
                   Sau
                 </button>

@@ -198,7 +198,7 @@ const Categories = () => {
               </div>
               <button 
                 onClick={fetchCategories}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="px-6 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
               >
                 Thử lại
               </button>
@@ -210,16 +210,16 @@ const Categories = () => {
           ) : (
             <Swiper
               ref={sliderRef}
-              slidesPerView={6}
+              slidesPerView={4}
               breakpoints={{
                 0: {
                   slidesPerView: 2,
                 },
+                768: {
+                  slidesPerView: 3,
+                },
                 1000: {
                   slidesPerView: 4,
-                },
-                1200: {
-                  slidesPerView: 6,
                 },
               }}
             >

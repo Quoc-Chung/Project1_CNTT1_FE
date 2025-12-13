@@ -243,7 +243,7 @@ const CategoryManagement = () => {
           </div>
           <button
             onClick={handleSearch}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center space-x-2"
+            className="px-2.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center space-x-2 text-sm"
           >
             <Search size={18} />
             <span>Tìm kiếm</span>
@@ -327,7 +327,7 @@ const CategoryManagement = () => {
             <div className="flex justify-center mt-4">
               <button
                 onClick={() => handleViewDetail(category.id)}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center space-x-2 text-sm"
+                className="px-2.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center space-x-2 text-sm"
               >
                 <Eye size={16} />
                 <span>Xem chi tiết</span>
@@ -507,7 +507,7 @@ const CategoryManagement = () => {
             <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4 flex justify-end">
               <button
                 onClick={handleCloseDetailModal}
-                className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
+                className="px-2.5 py-1.5 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors text-sm"
               >
                 Đóng
               </button>

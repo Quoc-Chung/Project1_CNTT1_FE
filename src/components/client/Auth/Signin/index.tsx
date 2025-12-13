@@ -131,15 +131,11 @@ const Signin = () => {
           console.log('Login success - Full response:', responseData);
           console.log('User roleNames:', userRoleNames);
           console.log('Is array?', Array.isArray(userRoleNames));
-          
-          // Đợi một chút để Redux Persist lưu dữ liệu vào localStorage trước khi redirect
           setTimeout(() => {
             toast.success("🎉 Đăng nhập thành công", {
               autoClose: 1500,
               position: "top-right"
             });
-            
-            // Đợi thêm một chút để đảm bảo Redux state đã được persist
             setTimeout(() => {
               if (Array.isArray(userRoleNames) && userRoleNames.length > 0 && userRoleNames.includes('Administrator')) {
                 console.log('✓ User has Administrator role, redirecting to /admin-app');
@@ -184,7 +180,7 @@ const Signin = () => {
       <div className="h-[200px]">
       </div>
 
-      <section className="overflow-hidden py-20 bg-gray-2 ">
+      <section className="overflow-hidden py-5 bg-gray-2 ">
         <div className="max-w-[1170px] w-full mx-auto px-4 sm:px-8 xl:px-0">
           <div className="max-w-[570px] w-full mx-auto rounded-xl bg-white shadow-1 p-4 sm:p-7.5 xl:p-11">
             <div className="text-center mb-11">
@@ -281,7 +277,7 @@ const Signin = () => {
               group relative w-full flex items-center justify-center gap-3 
               bg-gradient-to-r from-red-500 to-orange-400 
               hover:from-red-600 hover:to-orange-500
-              text-white font-semibold py-4 px-6 rounded-xl
+              text-white font-semibold py-1.5 px-6 rounded-md
               transform transition-all duration-300 ease-out
               hover:scale-105 hover:shadow-2xl hover:-translate-y-1
               active:scale-95 active:translate-y-0

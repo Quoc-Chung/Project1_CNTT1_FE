@@ -118,7 +118,7 @@ const UserDashboard = () => {
               <div className="p-6 space-y-3">
                 <button
                   onClick={() => setActiveTab("information")}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all duration-200 font-medium ${activeTab === "information"
+                  className={`w-full flex items-center gap-3 px-4 py-2 rounded-md text-left transition-all duration-200 font-medium ${activeTab === "information"
                     ? "bg-blue-600 text-white shadow-md"
                     : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"
                     }`}
@@ -133,7 +133,7 @@ const UserDashboard = () => {
 
                 <button
                   onClick={() => setActiveTab("orders")}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all duration-200 font-medium ${activeTab === "orders"
+                  className={`w-full flex items-center gap-3 px-4 py-2 rounded-md text-left transition-all duration-200 font-medium ${activeTab === "orders"
                     ? "bg-blue-600 text-white shadow-md"
                     : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"
                     }`}
@@ -155,7 +155,7 @@ const UserDashboard = () => {
 
                 <button
                   onClick={() => setActiveTab("change-password")}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all duration-200 font-medium ${activeTab === "change-password"
+                  className={`w-full flex items-center gap-3 px-4 py-2 rounded-md text-left transition-all duration-200 font-medium ${activeTab === "change-password"
                     ? "bg-blue-600 text-white shadow-md"
                     : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"
                     }`}
@@ -225,7 +225,7 @@ const UserDashboard = () => {
                   </div>
                   <button
                     onClick={() => setShowAddressModal(true)}
-                    className="mt-6 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 font-medium"
+                    className="mt-6 px-6 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-all duration-200 font-medium"
                   >
                     Chỉnh sửa thông tin
                   </button>

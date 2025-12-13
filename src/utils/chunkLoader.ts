@@ -48,7 +48,6 @@ export class ChunkLoader {
   }
 }
 
-// Enhanced dynamic import with chunk error handling
 export function dynamicImport<T extends { default: React.ComponentType<any> }>(
   importFn: () => Promise<T>,
   options: {
@@ -65,7 +64,6 @@ export function dynamicImport<T extends { default: React.ComponentType<any> }>(
   });
 }
 
-// Global chunk error handler
 export function setupChunkErrorHandler() {
   if (typeof window === 'undefined') return;
 
@@ -94,7 +92,7 @@ export function setupChunkErrorHandler() {
   window.addEventListener('unhandledrejection', (event) => {
     if (event.reason && ChunkLoader['isChunkError'](event.reason)) {
       console.error('Unhandled chunk loading promise rejection:', event.reason);
-      event.preventDefault(); // Prevent default error handling
+      event.preventDefault(); 
     }
   });
 }

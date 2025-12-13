@@ -27,7 +27,7 @@ export default function CustomerDetailPage() {
   ];
 
   return (
-    <main className="p-8">
+    <main className="w-full">
       <CustomerDetails
         customer={customer}
         purchases={purchases}

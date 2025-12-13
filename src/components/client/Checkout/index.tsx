@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, FormEvent, useEffect } from "react";
+import React, { useState, FormEvent, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Breadcrumb from "../Common/Breadcrumb";
@@ -30,6 +30,27 @@ const Checkout = () => {
   const { token } = useAppSelector((state) => state.auth);
   const { loading, success, error } = useAppSelector((state) => state.order);
 
+  const [selectedCartItems, setSelectedCartItems] = useState<CartOrderResponse[]>([]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const storedItems = sessionStorage.getItem('selectedCartItems');
+      if (storedItems) {
+        try {
+          const parsedItems = JSON.parse(storedItems) as CartOrderResponse[];
+          setSelectedCartItems(parsedItems);
+        } catch (error) {
+          console.error('Error parsing selectedCartItems:', error);
+          // Fallback to full cart if parsing fails
+          setSelectedCartItems(cart);
+        }
+      } else {
+        // Nếu không có selectedCartItems, sử dụng toàn bộ cart
+        setSelectedCartItems(cart);
+      }
+    }
+  }, []); // Chỉ chạy một lần khi component mount
+
   // Address data
   const provinces = (addressDataRaw as unknown) as AddressData[];
 
@@ -44,20 +65,34 @@ const Checkout = () => {
   const [phoneNumber, setPhoneNumber] = useState<string>("");
   const [voucherCode, setVoucherCode] = useState<string>("");
   const [appliedVoucher, setAppliedVoucher] = useState<string | null>(null);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   
   // Product images state
   const [productImages, setProductImages] = useState<{ [key: string]: string }>({});
+
+  // Sử dụng selectedCartItems thay vì cart
+  const itemsToUse = selectedCartItems.length > 0 ? selectedCartItems : cart;
   
-  // Fetch product images for all cart items
+  // Fetch product images for selected cart items - chỉ fetch khi items thay đổi (theo ID)
+  const itemsToUseIds = useMemo(() => {
+    return itemsToUse.map(item => item.id).sort().join(',');
+  }, [itemsToUse]);
+
   useEffect(() => {
     const fetchAllProductImages = async () => {
       const imageMap: { [key: string]: string } = {};
       
       await Promise.all(
-        cart.map(async (item) => {
+        itemsToUse.map(async (item) => {
           // Use existing image if available
           if (item.productImage || item.thumbnailUrl) {
             imageMap[item.id] = item.productImage || item.thumbnailUrl || "/images/products/product-1-1.png";
+            return;
+          }
+          
+          // Chỉ fetch nếu chưa có trong productImages
+          if (productImages[item.id]) {
+            imageMap[item.id] = productImages[item.id];
             return;
           }
           
@@ -76,13 +111,13 @@ const Checkout = () => {
         })
       );
       
-      setProductImages(imageMap);
+      setProductImages(prev => ({ ...prev, ...imageMap }));
     };
     
-    if (cart.length > 0) {
+    if (itemsToUse.length > 0) {
       fetchAllProductImages();
     }
-  }, [cart]);
+  }, [itemsToUseIds]); // Chỉ trigger khi danh sách IDs thay đổi
 
   // Get selected province and district
   const selectedProvince = selectedProvinceIndex !== "" 
@@ -104,6 +139,15 @@ const Checkout = () => {
     if (selectedDistrict) parts.push(selectedDistrict.name);
     if (selectedProvince) parts.push(selectedProvince.name);
     return parts.join(", ");
+  };
+
+  // Validate phone number: phải có 10 chữ số và bắt đầu bằng 0
+  const validatePhoneNumber = (phone: string): boolean => {
+    // Loại bỏ khoảng trắng và ký tự đặc biệt
+    const cleanedPhone = phone.replace(/\s+/g, '').trim();
+    // Kiểm tra: phải có đúng 10 chữ số và bắt đầu bằng 0
+    const phoneRegex = /^0\d{9}$/;
+    return phoneRegex.test(cleanedPhone);
   };
 
   // Handle province change
@@ -144,7 +188,7 @@ const Checkout = () => {
     }
   };
 
-  // Handle form submission
+  // Handle form submission - hiển thị dialog xác nhận
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -155,8 +199,8 @@ const Checkout = () => {
       return;
     }
 
-    if (cart.length === 0) {
-      toast.error("Giỏ hàng trống");
+    if (itemsToUse.length === 0) {
+      toast.error("Không có sản phẩm nào được chọn");
       return;
     }
 
@@ -171,10 +215,27 @@ const Checkout = () => {
       return;
     }
 
+    // Validate phone number
+    if (!phoneNumber.trim()) {
+      toast.error("Vui lòng nhập số điện thoại");
+      return;
+    }
+
+    if (!validatePhoneNumber(phoneNumber)) {
+      toast.error("Số điện thoại bạn không hợp lệ. Vui lòng nhập số điện thoại 10 chữ số bắt đầu bằng 0");
+      return;
+    }
+
+    // Hiển thị dialog xác nhận thay vì submit ngay
+    setShowConfirmDialog(true);
+  };
+
+  // Handle confirm order - gọi API đặt hàng
+  const handleConfirmOrder = () => {
     const shippingAddress = buildShippingAddress();
 
-    // Convert cart items to order items
-    const orderItems: OrderItemRequest[] = cart.map((item) => ({
+    // Convert selected cart items to order items (chỉ các sản phẩm đã chọn)
+    const orderItems: OrderItemRequest[] = itemsToUse.map((item) => ({
       productId: item.productId,
       skuId: item.skuId, // Use skuId from cart
       quantity: item.quantity,
@@ -202,18 +263,25 @@ const Checkout = () => {
           toast.success("Đặt hàng thành công!");
           // Reset order state
           dispatch(resetOrderStateAction());
+          // Xóa selectedCartItems khỏi sessionStorage sau khi đặt hàng thành công
+          if (typeof window !== 'undefined') {
+            sessionStorage.removeItem('selectedCartItems');
+          }
+          // Đóng dialog
+          setShowConfirmDialog(false);
           // Redirect to order success page or order details
           router.push(`/my-account`);
         },
         (error) => {
           toast.error(`Đặt hàng thất bại: ${error}`);
+          // Không đóng dialog khi có lỗi để người dùng có thể thử lại
         }
       )
     );
   };
 
-  // Calculate totals
-  const subtotal = cart.reduce((total, item) => total + (item.productPrice * item.quantity), 0);
+  // Calculate totals (chỉ tính cho các sản phẩm đã chọn)
+  const subtotal = itemsToUse.reduce((total, item) => total + (item.productPrice * item.quantity), 0);
   const shippingFee = 375000; // Fixed shipping fee
   const discount = appliedVoucher ? subtotal * 0.1 : 0; // 10% discount if voucher applied
   const total = subtotal + shippingFee - discount;
@@ -227,13 +295,13 @@ const Checkout = () => {
     <>
       <style jsx global>{`
         select {
-          font-size: 15px;
+          font-size: 14px;
         }
         select option {
-          padding: 12px 16px;
+          padding: 8px 12px;
           background-color: white;
           color: #1F2937;
-          font-size: 15px;
+          font-size: 14px;
           transition: background-color 0.2s ease;
         }
         select option:hover {
@@ -249,7 +317,7 @@ const Checkout = () => {
         }
       `}</style>
       <Breadcrumb title={"Đặt hàng"} pages={["Đặt hàng"]} />
-      <section className="overflow-hidden py-20 bg-gray-2">
+      <section className="overflow-hidden py-5 bg-gray-2">
         <div className="max-w-[1170px] w-full mx-auto px-4 sm:px-8 xl:px-0">
           <form onSubmit={handleSubmit}>
             <div className="flex flex-col lg:flex-row gap-7.5 xl:gap-11 items-start">
@@ -257,20 +325,20 @@ const Checkout = () => {
               <div className="lg:max-w-[670px] w-full">
                 {/* <!-- Address Selection --> */}
                 <div className="bg-white shadow-1 rounded-[10px] p-4 sm:p-8.5">
-                  <h3 className="font-medium text-lg text-dark mb-5">
+                  <h3 className="font-bold text-lg text-dark mb-6">
                     Địa chỉ giao hàng
                   </h3>
 
                   {/* Province Dropdown */}
-                  <div className="mb-5">
-                    <label className="block mb-2.5 text-dark font-medium">
+                  <div className="mb-4">
+                    <label className="block mb-2 text-dark font-bold text-sm">
                       Tỉnh/Thành phố <span className="text-red">*</span>
                     </label>
                     <div className="relative">
                       <select
                         value={selectedProvinceIndex}
                         onChange={handleProvinceChange}
-                        className="w-full rounded-lg border border-gray-3 bg-white text-dark py-3 px-4 pr-10 appearance-none outline-none transition-all duration-300 hover:border-gray-4 hover:bg-gray-1 hover:shadow-sm focus:border-gray-4 focus:bg-white focus:shadow-md focus:ring-2 focus:ring-gray-200 cursor-pointer text-base"
+                        className="w-full rounded-md border border-gray-3 bg-white text-dark py-2 px-3 pr-9 appearance-none outline-none transition-all duration-200 hover:border-gray-4 hover:bg-gray-1 focus:border-gray-4 focus:bg-white focus:shadow-sm focus:ring-1 focus:ring-gray-300 cursor-pointer text-sm"
                         required
                       >
                         <option value="" className="text-dark-5 py-2">-- Chọn Tỉnh/Thành phố --</option>
@@ -280,11 +348,11 @@ const Checkout = () => {
                           </option>
                         ))}
                       </select>
-                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-dark-4 pointer-events-none transition-transform duration-200">
+                      <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-dark-4 pointer-events-none transition-transform duration-200">
                         <svg
                           className="fill-current"
-                          width="18"
-                          height="18"
+                          width="16"
+                          height="16"
                           viewBox="0 0 16 16"
                           fill="none"
                           xmlns="http://www.w3.org/2000/svg"
@@ -299,8 +367,8 @@ const Checkout = () => {
                   </div>
 
                   {/* District Dropdown */}
-                  <div className="mb-5">
-                    <label className="block mb-2.5 text-dark font-medium">
+                  <div className="mb-4">
+                    <label className="block mb-2 text-dark font-bold text-sm">
                       Quận/Huyện <span className="text-red">*</span>
                     </label>
                     <div className="relative">
@@ -308,7 +376,7 @@ const Checkout = () => {
                         value={selectedDistrictIndex}
                         onChange={handleDistrictChange}
                         disabled={!selectedProvince}
-                        className="w-full rounded-lg border border-gray-3 bg-white text-dark py-3 px-4 pr-10 appearance-none outline-none transition-all duration-300 hover:border-gray-4 hover:bg-gray-1 hover:shadow-sm focus:border-gray-4 focus:bg-white focus:shadow-md focus:ring-2 focus:ring-gray-200 cursor-pointer text-base disabled:bg-gray-1 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-gray-3 disabled:hover:shadow-none"
+                        className="w-full rounded-md border border-gray-3 bg-white text-dark py-2 px-3 pr-9 appearance-none outline-none transition-all duration-200 hover:border-gray-4 hover:bg-gray-1 focus:border-gray-4 focus:bg-white focus:shadow-sm focus:ring-1 focus:ring-gray-300 cursor-pointer text-sm disabled:bg-gray-1 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-gray-3 disabled:hover:shadow-none"
                         required
                       >
                         <option value="" className="text-dark-5 py-2">-- Chọn Quận/Huyện --</option>
@@ -318,11 +386,11 @@ const Checkout = () => {
                           </option>
                         ))}
                       </select>
-                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-dark-4 pointer-events-none transition-transform duration-200">
+                      <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-dark-4 pointer-events-none transition-transform duration-200">
                         <svg
                           className="fill-current"
-                          width="18"
-                          height="18"
+                          width="16"
+                          height="16"
                           viewBox="0 0 16 16"
                           fill="none"
                           xmlns="http://www.w3.org/2000/svg"
@@ -337,8 +405,8 @@ const Checkout = () => {
                   </div>
 
                   {/* Ward Dropdown */}
-                  <div className="mb-5">
-                    <label className="block mb-2.5 text-dark font-medium">
+                  <div className="mb-4">
+                    <label className="block mb-2 text-dark font-bold text-sm">
                       Xã/Phường <span className="text-red">*</span>
                     </label>
                     <div className="relative">
@@ -346,7 +414,7 @@ const Checkout = () => {
                         value={selectedWard}
                         onChange={(e) => setSelectedWard(e.target.value)}
                         disabled={!selectedDistrict}
-                        className="w-full rounded-lg border border-gray-3 bg-white text-dark py-3 px-4 pr-10 appearance-none outline-none transition-all duration-300 hover:border-gray-4 hover:bg-gray-1 hover:shadow-sm focus:border-gray-4 focus:bg-white focus:shadow-md focus:ring-2 focus:ring-gray-200 cursor-pointer text-base disabled:bg-gray-1 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-gray-3 disabled:hover:shadow-none"
+                        className="w-full rounded-md border border-gray-3 bg-white text-dark py-2 px-3 pr-9 appearance-none outline-none transition-all duration-200 hover:border-gray-4 hover:bg-gray-1 focus:border-gray-4 focus:bg-white focus:shadow-sm focus:ring-1 focus:ring-gray-300 cursor-pointer text-sm disabled:bg-gray-1 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-gray-3 disabled:hover:shadow-none"
                         required
                       >
                         <option value="" className="text-dark-5 py-2">-- Chọn Xã/Phường --</option>
@@ -356,11 +424,11 @@ const Checkout = () => {
                           </option>
                         ))}
                       </select>
-                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-dark-4 pointer-events-none transition-transform duration-200">
+                      <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-dark-4 pointer-events-none transition-transform duration-200">
                         <svg
                           className="fill-current"
-                          width="18"
-                          height="18"
+                          width="16"
+                          height="16"
                           viewBox="0 0 16 16"
                           fill="none"
                           xmlns="http://www.w3.org/2000/svg"
@@ -375,8 +443,8 @@ const Checkout = () => {
                   </div>
 
                   {/* Detailed Address Input */}
-                  <div className="mb-5">
-                    <label className="block mb-2.5 text-dark">
+                  <div className="mb-4">
+                    <label className="block mb-2 text-dark font-bold text-sm">
                       Địa chỉ chi tiết <span className="text-red">*</span>
                     </label>
                     <input
@@ -384,31 +452,43 @@ const Checkout = () => {
                       value={detailedAddress}
                       onChange={(e) => setDetailedAddress(e.target.value)}
                       placeholder="Số nhà, tên đường, ..."
-                      className="w-full rounded-md border border-gray-3 bg-white placeholder:text-dark-5 text-dark py-2.5 px-5 outline-none duration-200 hover:border-gray-4 hover:bg-gray-1 focus:border-gray-4 focus:bg-white focus:shadow-input focus:ring-2 focus:ring-gray-300"
+                      className="w-full rounded-md border border-gray-3 bg-white placeholder:text-dark-5 placeholder:text-sm text-dark py-2 px-3 text-sm outline-none duration-200 hover:border-gray-4 hover:bg-gray-1 focus:border-gray-4 focus:bg-white focus:shadow-sm focus:ring-1 focus:ring-gray-300"
                       required
                     />
                   </div>
 
                   {/* Phone Number Input */}
-                  <div className="mb-5">
-                    <label className="block mb-2.5 text-dark">
+                  <div className="mb-4">
+                    <label className="block mb-2 text-dark font-bold text-sm">
                       Số điện thoại <span className="text-red">*</span>
                     </label>
                     <input
                       type="tel"
                       value={phoneNumber}
-                      onChange={(e) => setPhoneNumber(e.target.value)}
-                      placeholder="Nhập số điện thoại"
-                      className="w-full rounded-md border border-gray-3 bg-white placeholder:text-dark-5 text-dark py-2.5 px-5 outline-none duration-200 hover:border-gray-4 hover:bg-gray-1 focus:border-gray-4 focus:bg-white focus:shadow-input focus:ring-2 focus:ring-gray-300"
+                      onChange={(e) => {
+                        // Chỉ cho phép nhập số
+                        const value = e.target.value.replace(/\D/g, '');
+                        // Giới hạn tối đa 10 chữ số
+                        const limitedValue = value.slice(0, 10);
+                        setPhoneNumber(limitedValue);
+                      }}
+                      placeholder="Nhập số điện thoại (VD: 0912345678)"
+                      maxLength={10}
+                      className="w-full rounded-md border border-gray-3 bg-white placeholder:text-dark-5 placeholder:text-sm text-dark py-2 px-3 text-sm outline-none duration-200 hover:border-gray-4 hover:bg-gray-1 focus:border-gray-4 focus:bg-white focus:shadow-sm focus:ring-1 focus:ring-gray-300"
                       required
                     />
+                    {phoneNumber && !validatePhoneNumber(phoneNumber) && (
+                      <p className="text-red text-xs mt-1">
+                        Số điện thoại phải có 10 chữ số và bắt đầu bằng 0
+                      </p>
+                    )}
                   </div>
                 </div>
 
                 {/* <!-- others note box --> */}
-                <div className="bg-white shadow-1 rounded-[10px] p-4 sm:p-8.5 mt-7.5">
+                <div className="bg-white shadow-1 rounded-[10px] p-4 sm:p-8.5 mt-6">
                   <div>
-                    <label htmlFor="notes" className="block mb-2.5">
+                    <label htmlFor="notes" className="block mb-2 text-dark font-bold text-sm">
                       Ghi chú đơn hàng (không bắt buộc)
                     </label>
                     <textarea
@@ -418,7 +498,7 @@ const Checkout = () => {
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
                       placeholder="Ghi chú về đơn hàng của bạn, ví dụ: yêu cầu đặc biệt khi giao hàng."
-                      className="rounded-md border border-gray-3 bg-white placeholder:text-dark-5 w-full p-5 outline-none duration-200 hover:border-gray-4 hover:bg-gray-1 focus:border-gray-4 focus:bg-white focus:shadow-input focus:ring-2 focus:ring-gray-300"
+                      className="rounded-md border border-gray-3 bg-white placeholder:text-dark-5 placeholder:text-sm w-full p-3 text-sm outline-none duration-200 hover:border-gray-4 hover:bg-gray-1 focus:border-gray-4 focus:bg-white focus:shadow-sm focus:ring-1 focus:ring-gray-300"
                     ></textarea>
                   </div>
                 </div>
@@ -448,12 +528,12 @@ const Checkout = () => {
                     </div>
 
                     {/* <!-- product items from cart --> */}
-                    {cart.length === 0 ? (
+                    {itemsToUse.length === 0 ? (
                       <div className="py-5 text-center text-dark-5">
-                        Giỏ hàng trống
+                        Không có sản phẩm nào được chọn
                       </div>
                     ) : (
-                      cart.map((item) => {
+                      itemsToUse.map((item) => {
                         // Get image from state or fallback
                         const productImage = productImages[item.id] || 
                                             item.productImage || 
@@ -474,6 +554,7 @@ const Checkout = () => {
                                   width={64}
                                   height={64}
                                   className="object-contain rounded-[5px]"
+                                  style={{ width: "auto", height: "auto" }}
                                   onError={(e) => {
                                     const target = e.target as HTMLImageElement;
                                     target.src = "/images/products/product-1-1.png";
@@ -549,16 +630,107 @@ const Checkout = () => {
                 {/* <!-- checkout button --> */}
                 <button
                   type="submit"
-                  disabled={loading || cart.length === 0}
-                  className="w-full flex justify-center font-medium text-white bg-blue py-3 px-6 rounded-lg ease-out duration-200 hover:bg-blue-dark mt-7.5 disabled:bg-gray-4 disabled:cursor-not-allowed"
+                  disabled={loading || itemsToUse.length === 0}
+                  className="w-full flex justify-center font-medium text-white bg-blue py-1.5 px-6 rounded-md ease-out duration-200 hover:bg-blue-dark mt-7.5 disabled:bg-gray-4 disabled:cursor-not-allowed"
                 >
-                  {loading ? "Đang xử lý..." : "Đặt hàng"}
+                  {loading ? "Đang xử lý..." : `Đặt hàng (${itemsToUse.length} sản phẩm)`}
                 </button>
               </div>
             </div>
           </form>
         </div>
       </section>
+
+      {/* Confirmation Dialog */}
+      {showConfirmDialog && (
+        <div
+          className="fixed inset-0 z-[9999999] flex items-center justify-center p-4 bg-dark/70 backdrop-blur-sm ease-linear duration-300"
+          onClick={() => !loading && setShowConfirmDialog(false)}
+        >
+          <div
+            className="bg-white shadow-3 rounded-[10px] max-w-lg w-full p-6 sm:p-8.5"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-xl sm:text-2xl font-medium text-dark mb-4 text-center">
+              Xác nhận đặt hàng
+            </h3>
+            
+            {/* Order Summary */}
+            <div className="mb-6 space-y-3">
+              <div className="bg-gray-1 rounded-lg p-4">
+                <h4 className="font-medium text-dark mb-3">Thông tin đơn hàng:</h4>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-dark-4">Số sản phẩm:</span>
+                    <span className="text-dark font-medium">{itemsToUse.length}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-dark-4">Tạm tính:</span>
+                    <span className="text-dark font-medium">{formatCurrency(subtotal)}</span>
+                  </div>
+                  {appliedVoucher && (
+                    <div className="flex justify-between text-green-600">
+                      <span>Giảm giá ({appliedVoucher}):</span>
+                      <span className="font-medium">-{formatCurrency(discount)}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between">
+                    <span className="text-dark-4">Phí vận chuyển:</span>
+                    <span className="text-dark font-medium">{formatCurrency(shippingFee)}</span>
+                  </div>
+                  <div className="border-t border-gray-3 pt-2 mt-2 flex justify-between">
+                    <span className="text-dark font-medium">Tổng cộng:</span>
+                    <span className="text-red-600 font-bold text-lg">{formatCurrency(total)}</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-gray-1 rounded-lg p-4">
+                <h4 className="font-medium text-dark mb-2">Địa chỉ giao hàng:</h4>
+                <p className="text-sm text-dark-4">{buildShippingAddress()}</p>
+              </div>
+              
+              {phoneNumber && (
+                <div className="bg-gray-1 rounded-lg p-4">
+                  <h4 className="font-medium text-dark mb-2">Số điện thoại:</h4>
+                  <p className="text-sm text-dark-4">{phoneNumber}</p>
+                </div>
+              )}
+            </div>
+
+            <p className="text-dark-4 mb-6 text-center">
+              Bạn có chắc chắn muốn đặt hàng không?
+            </p>
+            
+            <div className="flex gap-4 justify-center">
+              <button
+                onClick={handleConfirmOrder}
+                disabled={loading}
+                className="px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white font-medium rounded-md transition-colors duration-200 ease-out disabled:bg-gray-4 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                {loading ? (
+                  <>
+                    <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Đang xử lý...</span>
+                  </>
+                ) : (
+                  'Xác nhận'
+                )}
+              </button>
+              <button
+                onClick={() => setShowConfirmDialog(false)}
+                disabled={loading}
+                className="px-6 py-2.5 bg-gray-300 hover:bg-gray-400 text-dark font-medium rounded-md transition-colors duration-200 ease-out disabled:bg-gray-4 disabled:cursor-not-allowed"
+              >
+                Hủy
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

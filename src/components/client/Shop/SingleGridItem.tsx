@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import { Product } from "@/types/product";
+import { Product } from "@/types/Client/Product/ProductItem";
 import { useModalContext } from "@/app/context/QuickViewModalContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -18,9 +18,12 @@ const SingleGridItem = ({ item }: { item: Product }) => {
   const token = useAppSelector((state) => state.auth.token);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
 
-  const handleAddToCart = async (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const productId = item.originalId || item.id;
 
+  const handleAddToCart = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
     // Kiểm tra đăng nhập
     if (!user || !token) {
       toast.warning("Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng!", {
@@ -31,36 +34,39 @@ const SingleGridItem = ({ item }: { item: Product }) => {
       return;
     }
 
-    // Prevent double click
-    if (isAddingToCart) return;
+    // Kiểm tra nếu đang thêm vào giỏ hàng
+    if (isAddingToCart) {
+      return;
+    }
+
     setIsAddingToCart(true);
 
     try {
-      // Fetch SKUs của sản phẩm
-      const response = await ProductService.getSKUsByProductId(item.id.toString());
-
-      if (!response.data || response.data.length === 0) {
-        toast.error("Sản phẩm hiện không có phiên bản nào!");
+      // Fetch SKU đầu tiên của sản phẩm
+      const skuResponse = await ProductService.getSKUsByProductId(String(productId));
+      
+      if (!skuResponse.data || skuResponse.data.length === 0) {
+        toast.error("Sản phẩm này hiện không có phiên bản nào khả dụng!");
         setIsAddingToCart(false);
         return;
       }
 
-      // Lấy SKU đầu tiên (mặc định)
-      const defaultSKU = response.data[0];
+      // Lấy SKU đầu tiên
+      const firstSKU = skuResponse.data[0];
 
-      // Kiểm tra SKU có sẵn hàng không
-      if (defaultSKU.stock === 0 || !defaultSKU.isActive) {
-        toast.warning("Sản phẩm tạm hết hàng. Vui lòng xem chi tiết để chọn phiên bản khác!");
+      // Kiểm tra tồn kho
+      if (firstSKU.stock < 1) {
+        toast.error("Sản phẩm này đã hết hàng!");
         setIsAddingToCart(false);
         return;
       }
 
-      // Thêm sản phẩm vào giỏ hàng với SKU đầu tiên
+      // Thêm sản phẩm vào giỏ hàng với số lượng mặc định là 1
       dispatch(
         addProductToCartAction(
           {
-            productId: item.id.toString(),
-            skuId: defaultSKU.id,
+            productId: String(productId),
+            skuId: firstSKU.id,
             quantity: 1
           },
           token,
@@ -73,6 +79,7 @@ const SingleGridItem = ({ item }: { item: Product }) => {
           },
           (err) => {
             if (err === "Token hết hạn") {
+              // Clear token và redirect về trang đăng nhập
               dispatch({ type: "LOGOUT" });
               toast.warning("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại!", {
                 autoClose: 3000,
@@ -86,14 +93,12 @@ const SingleGridItem = ({ item }: { item: Product }) => {
           }
         )
       );
-    } catch (error) {
-      console.error("Error fetching SKUs:", error);
-      toast.error("Không thể thêm sản phẩm. Vui lòng thử lại!");
+    } catch (error: any) {
+      console.error("Error adding to cart:", error);
+      toast.error("Không thể thêm sản phẩm vào giỏ hàng. Vui lòng thử lại!");
       setIsAddingToCart(false);
     }
   };
-
-  const productId = item.originalId || item.id;
 
   // Validate productId
   if (!productId || productId === 'undefined' || productId === 'null') {
@@ -112,7 +117,7 @@ const SingleGridItem = ({ item }: { item: Product }) => {
       aria-label={`Xem chi tiết sản phẩm ${item.title}`}
     >
       <div className="relative overflow-hidden flex items-center justify-center rounded-lg bg-white shadow-1 min-h-[270px] mb-4">
-        <Image src={item.imgs.previews[0]} alt="" width={250} height={250} />
+        <Image src={item.imgs.previews[0]} alt="" width={250} height={250} style={{ width: "auto", height: "auto" }} />
 
         <div className="absolute left-0 bottom-0 translate-y-full w-full flex items-center justify-center gap-2.5 pb-5 ease-linear duration-200 group-hover:translate-y-0">
           <button
@@ -149,25 +154,13 @@ const SingleGridItem = ({ item }: { item: Product }) => {
           </button>
 
           <button
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              handleAddToCart(e);
-            }}
+            onClick={handleAddToCart}
             disabled={isAddingToCart}
-            className="inline-flex items-center justify-center font-medium text-custom-sm py-[7px] px-5 rounded-[5px] bg-blue text-white ease-out duration-200 hover:bg-blue-dark disabled:bg-gray-400 disabled:cursor-not-allowed"
+            className={`inline-flex font-medium text-custom-sm py-1 px-5 rounded-md bg-blue text-white ease-out duration-200 hover:bg-blue-dark ${
+              isAddingToCart ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
           >
-            {isAddingToCart ? (
-              <>
-                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Đang thêm...
-              </>
-            ) : (
-              'Thêm vào giỏ'
-            )}
+            {isAddingToCart ? 'Đang thêm...' : 'Thêm vào giỏ'}
           </button>
 
           <button

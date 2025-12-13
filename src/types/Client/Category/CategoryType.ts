@@ -18,3 +18,4 @@ export type Category = {
   rootCategory: boolean;
   leafCategory: boolean;
 };
+

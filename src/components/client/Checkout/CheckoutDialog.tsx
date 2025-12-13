@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useAppSelector, useAppDispatch } from "@/redux/store";
 import { createOrderAction, resetOrderStateAction } from "@/redux/Client/Order/Action";
 import { CreateOrderRequest, OrderItemRequest } from "@/types/Client/Order/order";
+import { CartOrderResponse } from "@/types/Client/CartOrder/cartorder";
 import { toast } from "react-toastify";
 import { BASE_API_CART_URL } from "@/utils/configAPI";
 import addressDataRaw from "@/utils/address.json";
@@ -26,6 +27,29 @@ const CheckoutDialog: React.FC<CheckoutDialogProps> = ({ isOpen, onClose }) => {
   const { token } = useAppSelector((state) => state.auth);
   const { loading } = useAppSelector((state) => state.order);
 
+  // Lấy selectedCartItems từ sessionStorage (các sản phẩm đã được chọn từ giỏ hàng)
+  const [selectedCartItems, setSelectedCartItems] = useState<CartOrderResponse[]>([]);
+
+  // Load selectedCartItems từ sessionStorage khi component mount hoặc isOpen thay đổi
+  useEffect(() => {
+    if (isOpen && typeof window !== 'undefined') {
+      const storedItems = sessionStorage.getItem('selectedCartItems');
+      if (storedItems) {
+        try {
+          const parsedItems = JSON.parse(storedItems) as CartOrderResponse[];
+          setSelectedCartItems(parsedItems);
+        } catch (error) {
+          console.error('Error parsing selectedCartItems:', error);
+          // Fallback to full cart if parsing fails
+          setSelectedCartItems(cart);
+        }
+      } else {
+        // Nếu không có selectedCartItems, sử dụng toàn bộ cart
+        setSelectedCartItems(cart);
+      }
+    }
+  }, [isOpen, cart]);
+
   // Address state
   const [selectedProvinceIndex, setSelectedProvinceIndex] = useState<string>("");
   const [selectedDistrictIndex, setSelectedDistrictIndex] = useState<string>("");
@@ -41,8 +65,11 @@ const CheckoutDialog: React.FC<CheckoutDialogProps> = ({ isOpen, onClose }) => {
   // Address data - import directly (Next.js supports JSON imports)
   const provinces = (addressDataRaw as unknown) as AddressData[];
 
+  // Sử dụng selectedCartItems thay vì cart để tính toán
+  const itemsToUse = selectedCartItems.length > 0 ? selectedCartItems : cart;
+
   // Calculate totals
-  const subtotal = cart.reduce((total, item) => total + (item.productPrice * item.quantity), 0);
+  const subtotal = itemsToUse.reduce((total, item) => total + (item.productPrice * item.quantity), 0);
   const shippingFee = 375000;
   const discount = appliedVoucher ? subtotal * 0.1 : 0;
   const total = subtotal + shippingFee - discount;
@@ -121,8 +148,8 @@ const CheckoutDialog: React.FC<CheckoutDialogProps> = ({ isOpen, onClose }) => {
       return;
     }
 
-    if (cart.length === 0) {
-      toast.error("Giỏ hàng trống");
+    if (itemsToUse.length === 0) {
+      toast.error("Không có sản phẩm nào được chọn");
       return;
     }
 
@@ -139,7 +166,8 @@ const CheckoutDialog: React.FC<CheckoutDialogProps> = ({ isOpen, onClose }) => {
   const handleConfirmOrder = () => {
     const shippingAddress = buildShippingAddress();
 
-    const orderItems: OrderItemRequest[] = cart.map((item) => ({
+    // Sử dụng itemsToUse (selectedCartItems) thay vì cart
+    const orderItems: OrderItemRequest[] = itemsToUse.map((item) => ({
       productId: item.productId,
       skuId: item.skuId,
       quantity: item.quantity,
@@ -158,6 +186,10 @@ const CheckoutDialog: React.FC<CheckoutDialogProps> = ({ isOpen, onClose }) => {
           toast.success("Đặt hàng thành công!");
           dispatch(resetOrderStateAction());
           setShowConfirmDialog(false);
+          // Xóa selectedCartItems khỏi sessionStorage sau khi đặt hàng thành công
+          if (typeof window !== 'undefined') {
+            sessionStorage.removeItem('selectedCartItems');
+          }
           onClose();
           resetForm();
         },
@@ -182,6 +214,10 @@ const CheckoutDialog: React.FC<CheckoutDialogProps> = ({ isOpen, onClose }) => {
   // Close handler
   const handleClose = () => {
     if (!loading) {
+      // Xóa selectedCartItems khỏi sessionStorage khi đóng dialog
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('selectedCartItems');
+      }
       onClose();
       resetForm();
     }
@@ -366,10 +402,10 @@ const CheckoutDialog: React.FC<CheckoutDialogProps> = ({ isOpen, onClose }) => {
               <div className="mb-6">
                 <h4 className="font-medium text-dark mb-3">Sản phẩm</h4>
                 <div className="space-y-3 mb-4">
-                  {cart.length === 0 ? (
-                    <p className="text-dark-5 text-sm">Giỏ hàng trống</p>
+                  {itemsToUse.length === 0 ? (
+                    <p className="text-dark-5 text-sm">Không có sản phẩm nào được chọn</p>
                   ) : (
-                    cart.map((item) => (
+                    itemsToUse.map((item) => (
                       <div
                         key={item.id}
                         className="flex justify-between items-center py-2.5 border-b border-gray-3"
@@ -478,10 +514,10 @@ const CheckoutDialog: React.FC<CheckoutDialogProps> = ({ isOpen, onClose }) => {
               <button
                 type="button"
                 onClick={handlePlaceOrder}
-                disabled={loading || cart.length === 0}
+                disabled={loading || itemsToUse.length === 0}
                 className="w-full flex justify-center font-medium text-white bg-blue py-3 px-6 rounded-md ease-out duration-200 hover:bg-blue-dark mt-7.5 disabled:bg-gray-4 disabled:cursor-not-allowed"
               >
-                {loading ? "Đang xử lý..." : "Đặt hàng"}
+                {loading ? "Đang xử lý..." : `Đặt hàng (${itemsToUse.length} sản phẩm)`}
               </button>
             </div>
           </div>
@@ -492,32 +528,90 @@ const CheckoutDialog: React.FC<CheckoutDialogProps> = ({ isOpen, onClose }) => {
       {showConfirmDialog && (
         <div
           className="fixed inset-0 z-[9999999] flex items-center justify-center p-4 bg-dark/70 backdrop-blur-sm ease-linear duration-300"
-          onClick={() => setShowConfirmDialog(false)}
+          onClick={() => !loading && setShowConfirmDialog(false)}
         >
           <div
-            className="bg-white shadow-3 rounded-[10px] max-w-md w-full p-6 sm:p-8.5 text-center"
+            className="bg-white shadow-3 rounded-[10px] max-w-lg w-full p-6 sm:p-8.5"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-xl font-medium text-dark mb-4">
+            <h3 className="text-xl sm:text-2xl font-medium text-dark mb-4 text-center">
               Xác nhận đặt hàng
             </h3>
-            <p className="text-dark-4 mb-6">
+            
+            {/* Order Summary */}
+            <div className="mb-6 space-y-3">
+              <div className="bg-gray-1 rounded-lg p-4">
+                <h4 className="font-medium text-dark mb-3">Thông tin đơn hàng:</h4>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-dark-4">Số sản phẩm:</span>
+                    <span className="text-dark font-medium">{itemsToUse.length}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-dark-4">Tạm tính:</span>
+                    <span className="text-dark font-medium">{formatCurrency(subtotal)}</span>
+                  </div>
+                  {appliedVoucher && (
+                    <div className="flex justify-between text-green-600">
+                      <span>Giảm giá:</span>
+                      <span className="font-medium">-{formatCurrency(discount)}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between">
+                    <span className="text-dark-4">Phí vận chuyển:</span>
+                    <span className="text-dark font-medium">{formatCurrency(shippingFee)}</span>
+                  </div>
+                  <div className="border-t border-gray-3 pt-2 mt-2 flex justify-between">
+                    <span className="text-dark font-medium">Tổng cộng:</span>
+                    <span className="text-red-600 font-bold text-lg">{formatCurrency(total)}</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-gray-1 rounded-lg p-4">
+                <h4 className="font-medium text-dark mb-2">Địa chỉ giao hàng:</h4>
+                <p className="text-sm text-dark-4">{buildShippingAddress()}</p>
+              </div>
+              
+              <div className="bg-gray-1 rounded-lg p-4">
+                <h4 className="font-medium text-dark mb-2">Phương thức thanh toán:</h4>
+                <p className="text-sm text-dark-4">
+                  {paymentMethod === 'COD' && 'Thanh toán khi nhận hàng (COD)'}
+                  {paymentMethod === 'BANK' && 'Chuyển khoản ngân hàng'}
+                  {paymentMethod === 'EWALLET' && 'Ví điện tử (MoMo, ZaloPay)'}
+                  {paymentMethod === 'CARD' && 'Thẻ tín dụng/Ghi nợ'}
+                </p>
+              </div>
+            </div>
+
+            <p className="text-dark-4 mb-6 text-center">
               Bạn có chắc chắn muốn đặt hàng không?
             </p>
+            
             <div className="flex gap-4 justify-center">
               <button
                 onClick={handleConfirmOrder}
                 disabled={loading}
-                className="px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white font-medium rounded-md transition-colors duration-200 ease-out disabled:bg-gray-4 disabled:cursor-not-allowed"
+                className="px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white font-medium rounded-md transition-colors duration-200 ease-out disabled:bg-gray-4 disabled:cursor-not-allowed flex items-center gap-2"
               >
-                Có
+                {loading ? (
+                  <>
+                    <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Đang xử lý...</span>
+                  </>
+                ) : (
+                  'Xác nhận'
+                )}
               </button>
               <button
                 onClick={() => setShowConfirmDialog(false)}
                 disabled={loading}
-                className="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white font-medium rounded-md transition-colors duration-200 ease-out disabled:bg-gray-4 disabled:cursor-not-allowed"
+                className="px-6 py-2.5 bg-gray-300 hover:bg-gray-400 text-dark font-medium rounded-md transition-colors duration-200 ease-out disabled:bg-gray-4 disabled:cursor-not-allowed"
               >
-                Không
+                Hủy
               </button>
             </div>
           </div>

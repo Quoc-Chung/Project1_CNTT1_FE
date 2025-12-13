@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 export default function InventoryPage() {
   return (
-    <main className="p-8">
+    <main className="w-full">
       <InventoryManagement />
     </main>
   );

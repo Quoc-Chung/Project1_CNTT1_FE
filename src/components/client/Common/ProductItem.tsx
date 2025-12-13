@@ -1,13 +1,23 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import Image from "next/image";
-import { Product } from "@/types/product";
+import { Product } from "@/types/Client/Product/ProductItem";
 import { useModalContext } from "@/app/context/QuickViewModalContext";
 import Link from "next/link";
 import { formatPrice } from "@/utils/helpers";
+import { useRouter } from "next/navigation";
+import { useAppDispatch, useAppSelector } from "@/redux/store";
+import { addProductToCartAction } from "@/redux/Client/CartOrder/Action";
+import { toast } from "react-toastify";
+import { ProductService } from "@/services/ProductService";
 
 const ProductItem = ({ item }: { item: Product }) => {
   const { openModal } = useModalContext();
+  const router = useRouter();
+  const dispatch = useAppDispatch();
+  const user = useAppSelector((state) => state.auth.user);
+  const token = useAppSelector((state) => state.auth.token);
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
   const productId = item.originalId || item.id;
 
   // Validate productId
@@ -16,9 +26,89 @@ const ProductItem = ({ item }: { item: Product }) => {
     return null;
   }
 
+  const handleAddToCart = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Kiểm tra đăng nhập
+    if (!user || !token) {
+      toast.warning("Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng!", {
+        autoClose: 2000,
+        position: "top-right"
+      });
+      router.push('/signin');
+      return;
+    }
+
+    // Kiểm tra nếu đang thêm vào giỏ hàng
+    if (isAddingToCart) {
+      return;
+    }
+
+    setIsAddingToCart(true);
+
+    try {
+      // Fetch SKU đầu tiên của sản phẩm
+      const skuResponse = await ProductService.getSKUsByProductId(String(productId));
+      
+      if (!skuResponse.data || skuResponse.data.length === 0) {
+        toast.error("Sản phẩm này hiện không có phiên bản nào khả dụng!");
+        setIsAddingToCart(false);
+        return;
+      }
+
+      // Lấy SKU đầu tiên
+      const firstSKU = skuResponse.data[0];
+
+      // Kiểm tra tồn kho
+      if (firstSKU.stock < 1) {
+        toast.error("Sản phẩm này đã hết hàng!");
+        setIsAddingToCart(false);
+        return;
+      }
+
+      // Thêm sản phẩm vào giỏ hàng với số lượng mặc định là 1
+      dispatch(
+        addProductToCartAction(
+          {
+            productId: String(productId),
+            skuId: firstSKU.id,
+            quantity: 1
+          },
+          token,
+          (res) => {
+            toast.success(`Đã thêm sản phẩm "${item.title}" vào giỏ hàng!`, {
+              autoClose: 1500,
+              position: "top-right"
+            });
+            setIsAddingToCart(false);
+          },
+          (err) => {
+            if (err === "Token hết hạn") {
+              // Clear token và redirect về trang đăng nhập
+              dispatch({ type: "LOGOUT" });
+              toast.warning("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại!", {
+                autoClose: 3000,
+                position: "top-right"
+              });
+              router.push('/signin');
+            } else {
+              toast.error("Thêm sản phẩm thất bại: " + err);
+            }
+            setIsAddingToCart(false);
+          }
+        )
+      );
+    } catch (error: any) {
+      console.error("Error adding to cart:", error);
+      toast.error("Không thể thêm sản phẩm vào giỏ hàng. Vui lòng thử lại!");
+      setIsAddingToCart(false);
+    }
+  };
+
   return (
-    <Link 
-      href={`/shop-details/${String(productId)}`} 
+    <Link
+      href={`/shop-details/${String(productId)}`}
       prefetch={true}
       scroll={true}
       className="group cursor-pointer block"
@@ -27,21 +117,24 @@ const ProductItem = ({ item }: { item: Product }) => {
       aria-label={`Xem chi tiết sản phẩm ${item.title}`}
     >
       <div className="relative overflow-hidden flex items-center justify-center rounded-lg bg-[#F6F7FB] min-h-[270px] mb-4">
-        <Image 
-          src={item.imgs?.previews?.[0] || "/images/products/product-1-bg-1.png"} 
-          alt={item.title} 
-          width={250} 
+        <Image
+          src={item.imgs?.previews?.[0]}
+          alt={item.title}
+          width={250}
           height={250}
           className="object-contain"
+          style={{ width: "auto", height: "auto" }}
           unoptimized
         />
 
         <div className="absolute left-0 bottom-0 translate-y-full w-full flex items-center justify-center gap-2.5 pb-5 ease-linear duration-200 group-hover:translate-y-0">
+         
+         
           <button
             onClick={(e) => {
-              e.preventDefault(); 
-              e.stopPropagation(); 
-              openModal();
+              e.preventDefault();
+              e.stopPropagation();
+              openModal(item);
             }}
             id="newOne"
             aria-label="button for quick view"
@@ -70,21 +163,21 @@ const ProductItem = ({ item }: { item: Product }) => {
             </svg>
           </button>
 
-        
+
           <button
-            onClick={(e) => {
-              e.preventDefault(); 
-              e.stopPropagation(); 
-            }}
-            className="inline-flex font-medium text-custom-sm py-[7px] px-5 rounded-[5px] bg-blue text-white ease-out duration-200 hover:bg-blue-dark"
+            onClick={handleAddToCart}
+            disabled={isAddingToCart}
+            className={`inline-flex font-medium text-custom-sm py-1 px-5 rounded-md bg-blue text-white ease-out duration-200 hover:bg-blue-dark ${
+              isAddingToCart ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
           >
-            Thêm vào giỏ
+            {isAddingToCart ? 'Đang thêm...' : 'Thêm vào giỏ'}
           </button>
 
           <button
             onClick={(e) => {
-              e.preventDefault(); 
-              e.stopPropagation(); 
+              e.preventDefault();
+              e.stopPropagation();
 
             }}
             aria-label="button for favorite select"
@@ -128,14 +221,26 @@ const ProductItem = ({ item }: { item: Product }) => {
 
       {item.price > 0 ? (
         <span className="flex items-center gap-2 font-medium text-lg">
-          <span className="text-dark">{formatPrice(item.discountedPrice)}</span>
-          {item.price !== item.discountedPrice && (
-            <span className="text-dark-4 line-through">{formatPrice(item.price)}</span>
+          {item.discountedPrice > 0 && item.discountedPrice !== item.price ? (
+            <>
+              <span className="text-dark">
+                {formatPrice(item.discountedPrice)}
+              </span>
+
+              <span className="text-dark-4 line-through">
+                {formatPrice(item.price)}
+              </span>
+            </>
+          ) : (
+            <span className="text-dark">
+              {formatPrice(item.price)}
+            </span>
           )}
         </span>
       ) : (
         <span className="text-dark font-medium text-lg">Liên hệ</span>
       )}
+
     </Link>
   );
 };

@@ -40,7 +40,9 @@ const DataLoader = () => {
     }, 100);
 
     return () => clearTimeout(timer);
-  }, [brands.length, brandsLastFetched, categories.length, categoriesLastFetched, dispatch]);
+  }, [brandsLastFetched, categoriesLastFetched, dispatch]); 
+  // Loại bỏ brands.length và categories.length khỏi dependencies
+  // Chỉ trigger khi lastFetched thay đổi (khi cache hết hạn) hoặc khi dispatch thay đổi
   return null;
 };
 

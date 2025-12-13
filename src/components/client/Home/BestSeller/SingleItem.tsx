@@ -1,14 +1,23 @@
 "use client";
-import React from "react";
-import { Product } from "@/types/product";
+import React, { useState } from "react";
+import { Product } from "@/types/Client/Product/ProductItem";
 import { useModalContext } from "@/app/context/QuickViewModalContext";
-import { useDispatch } from "react-redux";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
+import { useAppDispatch, useAppSelector } from "../../../../redux/store";
+import { addProductToCartAction } from "../../../../redux/Client/CartOrder/Action";
+import { toast } from "react-toastify";
+import { ProductService } from "@/services/ProductService";
 
 
 const SingleItem = ({ item }: { item: Product }) => {
   const { openModal } = useModalContext();
+  const router = useRouter();
+  const dispatch = useAppDispatch();
+  const user = useAppSelector((state) => state.auth.user);
+  const token = useAppSelector((state) => state.auth.token);
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
   const productId = item.originalId || item.id;
 
   // Validate productId
@@ -16,6 +25,86 @@ const SingleItem = ({ item }: { item: Product }) => {
     console.error('Invalid product ID:', productId, item);
     return null;
   }
+
+  const handleAddToCart = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Kiểm tra đăng nhập
+    if (!user || !token) {
+      toast.warning("Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng!", {
+        autoClose: 2000,
+        position: "top-right"
+      });
+      router.push('/signin');
+      return;
+    }
+
+    // Kiểm tra nếu đang thêm vào giỏ hàng
+    if (isAddingToCart) {
+      return;
+    }
+
+    setIsAddingToCart(true);
+
+    try {
+      // Fetch SKU đầu tiên của sản phẩm
+      const skuResponse = await ProductService.getSKUsByProductId(String(productId));
+      
+      if (!skuResponse.data || skuResponse.data.length === 0) {
+        toast.error("Sản phẩm này hiện không có phiên bản nào khả dụng!");
+        setIsAddingToCart(false);
+        return;
+      }
+
+      // Lấy SKU đầu tiên
+      const firstSKU = skuResponse.data[0];
+
+      // Kiểm tra tồn kho
+      if (firstSKU.stock < 1) {
+        toast.error("Sản phẩm này đã hết hàng!");
+        setIsAddingToCart(false);
+        return;
+      }
+
+      // Thêm sản phẩm vào giỏ hàng với số lượng mặc định là 1
+      dispatch(
+        addProductToCartAction(
+          {
+            productId: String(productId),
+            skuId: firstSKU.id,
+            quantity: 1
+          },
+          token,
+          (res) => {
+            toast.success(`Đã thêm sản phẩm "${item.title}" vào giỏ hàng!`, {
+              autoClose: 1500,
+              position: "top-right"
+            });
+            setIsAddingToCart(false);
+          },
+          (err) => {
+            if (err === "Token hết hạn") {
+              // Clear token và redirect về trang đăng nhập
+              dispatch({ type: "LOGOUT" });
+              toast.warning("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại!", {
+                autoClose: 3000,
+                position: "top-right"
+              });
+              router.push('/signin');
+            } else {
+              toast.error("Thêm sản phẩm thất bại: " + err);
+            }
+            setIsAddingToCart(false);
+          }
+        )
+      );
+    } catch (error: any) {
+      console.error("Error adding to cart:", error);
+      toast.error("Không thể thêm sản phẩm vào giỏ hàng. Vui lòng thử lại!");
+      setIsAddingToCart(false);
+    }
+  };
 
   return (
     <div className="group">
@@ -46,7 +135,7 @@ const SingleItem = ({ item }: { item: Product }) => {
         </div>
 
         <div className="flex justify-center items-center">
-          <Image src={item.imgs.previews[0]} alt="" width={280} height={280} />
+          <Image src={item.imgs.previews[0]} alt="" width={280} height={280} style={{ width: "auto", height: "auto" }} />
         </div>
 
         <div className="absolute right-0 bottom-0 translate-x-full u-w-full flex flex-col gap-2 p-5.5 ease-linear duration-300 group-hover:translate-x-0">
@@ -82,9 +171,14 @@ const SingleItem = ({ item }: { item: Product }) => {
           </button>
 
           <button
+            onClick={handleAddToCart}
+            disabled={isAddingToCart}
             aria-label="button for add to cart"
             id="addCartOne"
-            className="flex items-center justify-center w-9 h-9 rounded-[5px] shadow-1 ease-out duration-200 text-dark bg-white hover:text-white hover:bg-blue"
+            className={`flex items-center justify-center w-9 h-9 rounded-[5px] shadow-1 ease-out duration-200 text-dark bg-white hover:text-white hover:bg-blue ${
+              isAddingToCart ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
+            title={isAddingToCart ? 'Đang thêm...' : 'Thêm vào giỏ'}
           >
             <svg
               className="fill-current"

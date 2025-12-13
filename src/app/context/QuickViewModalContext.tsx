@@ -1,9 +1,11 @@
 "use client"
 import React, { createContext, useContext, useState } from "react";
+import { Product } from "@/types/Client/Product/ProductItem";
 
 interface ModalContextType {
   isModalOpen: boolean;
-  openModal: () => void;
+  product: Product | null;
+  openModal: (product?: Product) => void;
   closeModal: () => void;
 }
 
@@ -19,17 +21,22 @@ export const useModalContext = () => {
 
 export const ModalProvider = ({ children }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [product, setProduct] = useState<Product | null>(null);
 
-  const openModal = () => {
+  const openModal = (productData?: Product) => {
+    if (productData) {
+      setProduct(productData);
+    }
     setIsModalOpen(true);
   };
 
   const closeModal = () => {
     setIsModalOpen(false);
+    setProduct(null);
   };
 
   return (
-    <ModalContext.Provider value={{ isModalOpen, openModal, closeModal }}>
+    <ModalContext.Provider value={{ isModalOpen, product, openModal, closeModal }}>
       {children}
     </ModalContext.Provider>
   );

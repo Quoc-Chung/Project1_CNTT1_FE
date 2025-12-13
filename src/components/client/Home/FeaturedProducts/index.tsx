@@ -48,7 +48,7 @@ const FeaturedProducts = () => {
                 <div className="bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden h-full flex flex-col">
                   <div className="relative w-full h-[250px] sm:h-[280px] bg-gray-100 overflow-hidden">
                     {index < 4 && (
-                      <div className="absolute top-4 right-4 z-10 bg-red-500 text-white font-bold text-sm sm:text-base px-3 py-1.5 rounded-lg shadow-lg">
+                      <div className="absolute top-4 right-4 z-10 bg-red-500 text-white font-bold text-sm sm:text-base px-3 py-1 rounded-md shadow-lg">
                         -{20 + index * 5}%
                       </div>
                     )}
@@ -71,7 +71,7 @@ const FeaturedProducts = () => {
                       <motion.button
                         initial={{ scale: 0 }}
                         animate={hoveredId === product.id ? { scale: 1 } : { scale: 0 }}
-                        className="bg-white text-blue-600 font-semibold px-6 py-3 rounded-lg shadow-lg hover:bg-blue-600 hover:text-white transition-colors duration-200"
+                        className="bg-white text-blue-600 font-semibold px-6 py-1.5 rounded-md shadow-lg hover:bg-blue-600 hover:text-white transition-colors duration-200"
                       >
                         Xem chi tiết
                       </motion.button>
@@ -123,7 +123,7 @@ const FeaturedProducts = () => {
           <Link
             href="/shop-with-sidebar"
             prefetch={true}
-            className="inline-flex items-center gap-2 font-semibold text-white bg-blue-600 hover:bg-blue-700 px-8 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+            className="inline-flex items-center gap-2 font-semibold text-white bg-blue-600 hover:bg-blue-700 px-8 py-1.5 rounded-md shadow-lg hover:shadow-xl transition-all duration-300"
           >
             Xem tất cả sản phẩm
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

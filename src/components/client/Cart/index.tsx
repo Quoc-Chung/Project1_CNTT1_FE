@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import Discount from "./Discount";
 import OrderSummary from "./OrderSummary";
 import SingleItem from "./SingleItem";
@@ -9,18 +9,22 @@ import { useAppDispatch, useAppSelector } from "../../../redux/store";
 import { getAllCartAction } from "../../../redux/Client/CartOrder/Action";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
+import { CartOrderResponse } from "../../../types/Client/CartOrder/cartorder";
 
 const Cart = () => {
    const dispatch = useAppDispatch();
    const token = useAppSelector((state) => state.auth.token);
    const router = useRouter();
+   const cartItems = useAppSelector((state) => state.cart.cart);
+   
+   // State để quản lý các sản phẩm được chọn
+   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
    
   useEffect(() => {
     if(token) {
       dispatch(getAllCartAction(
         token,
         (res) => {
-          // Success callback - không cần làm gì
         },
         (err) => {
           if (err === "Token hết hạn") {
@@ -37,7 +41,61 @@ const Cart = () => {
       ));
     }
   }, [token, dispatch, router]);
-   const cartItems = useAppSelector((state) => state.cart.cart);
+
+  // Tự động chọn tất cả khi cartItems được load lần đầu
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  
+  useEffect(() => {
+    if (cartItems.length > 0 && isInitialLoad) {
+      const allItemIds = new Set(cartItems.map(item => `${item.productId}-${item.skuId}`));
+      setSelectedItems(allItemIds);
+      setIsInitialLoad(false);
+    } else if (cartItems.length === 0) {
+      // Reset khi giỏ hàng trống
+      setSelectedItems(new Set());
+      setIsInitialLoad(true);
+    }
+  }, [cartItems.length, isInitialLoad]); // Chỉ trigger khi length thay đổi
+
+  // Tạo key duy nhất cho mỗi item
+  const getItemKey = (item: CartOrderResponse) => {
+    return `${item.productId}-${item.skuId}`;
+  };
+
+  // Xử lý chọn/bỏ chọn từng sản phẩm
+  const handleItemSelect = (itemKey: string, isSelected: boolean) => {
+    setSelectedItems(prev => {
+      const newSet = new Set(prev);
+      if (isSelected) {
+        newSet.add(itemKey);
+      } else {
+        newSet.delete(itemKey);
+      }
+      return newSet;
+    });
+  };
+
+  // Xử lý chọn tất cả
+  const handleSelectAll = (isSelected: boolean) => {
+    if (isSelected) {
+      const allItemIds = new Set(cartItems.map(item => getItemKey(item)));
+      setSelectedItems(allItemIds);
+    } else {
+      setSelectedItems(new Set());
+    }
+  };
+
+  // Kiểm tra tất cả đã được chọn chưa
+  const isAllSelected = useMemo(() => {
+    if (cartItems.length === 0) return false;
+    return cartItems.every(item => selectedItems.has(getItemKey(item)));
+  }, [cartItems, selectedItems]);
+
+  // Lấy danh sách sản phẩm được chọn
+  const selectedCartItems = useMemo(() => {
+    return cartItems.filter(item => selectedItems.has(getItemKey(item)));
+  }, [cartItems, selectedItems]);
+
    console.log("GIO HANG DAY ", cartItems);
   return (
     <>
@@ -47,51 +105,63 @@ const Cart = () => {
       </section>
       {/* <!-- ===== Breadcrumb Section End ===== --> */}
       {cartItems.length > 0 ? (
-        <section className="overflow-hidden py-20 bg-gray-2 ">
+        <section className="overflow-hidden py-5 bg-gray-2 ">
           <div className="max-w-[1170px] w-full mx-auto px-4 sm:px-8 xl:px-0">
-            <div className="flex flex-wrap items-center justify-between gap-5 mb-7.5">
-              <h2 className="font-medium text-dark text-2xl">Your Cart</h2>
-              <button className="text-blue">Clear Shopping Cart</button>
-            </div>
-
-            <div className="bg-white rounded-[10px] shadow-1">
+            <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
               <div className="w-full overflow-x-auto">
                 <div className="min-w-[1170px]">
                   {/* <!-- table header --> */}
-                  <div className="flex items-center py-5.5 px-7.5">
-                    <div className="min-w-[400px]">
-                      <p className="text-dark">Product</p>
+                  <div className="flex items-center py-6 px-7.5 bg-gradient-to-r from-gray-50 to-gray-100 border-b-2 border-gray-200">
+                    <div className="min-w-[50px] flex items-center justify-center pr-4">
+                      <input
+                        type="checkbox"
+                        checked={isAllSelected}
+                        onChange={(e) => handleSelectAll(e.target.checked)}
+                        className="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 cursor-pointer"
+                        aria-label="Chọn tất cả"
+                      />
+                    </div>
+                    <div className="min-w-[350px]">
+                      <p className="text-black font-bold text-base">Sản phẩm</p>
                     </div>
 
                     <div className="min-w-[180px]">
-                      <p className="text-dark">Price</p>
+                      <p className="text-black font-bold text-base">Giá</p>
                     </div>
 
                     <div className="min-w-[275px]">
-                      <p className="text-dark">Quantity</p>
+                      <p className="text-black font-bold text-base">Số lượng</p>
                     </div>
 
                     <div className="min-w-[200px]">
-                      <p className="text-dark">Subtotal</p>
+                      <p className="text-black font-bold text-base">Tổng tiền</p>
                     </div>
 
                     <div className="min-w-[50px]">
-                      <p className="text-dark text-right">Action</p>
+                      <p className="text-black font-bold text-base text-right">Thao tác</p>
                     </div>
                   </div>
 
                   {/* <!-- cart item --> */}
                   {cartItems.length > 0 &&
-                    cartItems.map((item, key) => (
-                      <SingleItem item={item} key={key} />
-                    ))}
+                    cartItems.map((item, key) => {
+                      const itemKey = getItemKey(item);
+                      return (
+                        <SingleItem 
+                          item={item} 
+                          key={key}
+                          isSelected={selectedItems.has(itemKey)}
+                          onSelectChange={(isSelected) => handleItemSelect(itemKey, isSelected)}
+                        />
+                      );
+                    })}
                 </div>
               </div>
             </div>
 
             <div className="flex flex-col lg:flex-row gap-7.5 xl:gap-11 mt-9">
               <Discount />
-              <OrderSummary />
+              <OrderSummary selectedItems={selectedCartItems} />
             </div>
           </div>
         </section>
@@ -133,7 +203,7 @@ const Cart = () => {
 
             <Link
               href="/shop-with-sidebar"
-              className="w-96 mx-auto flex justify-center font-medium text-white bg-dark py-[13px] px-6 rounded-md ease-out duration-200 hover:bg-opacity-95"
+              className="w-96 mx-auto flex justify-center font-medium text-white bg-dark py-1.5 px-6 rounded-md ease-out duration-200 hover:bg-opacity-95"
             >
               Continue Shopping
             </Link>

@@ -178,7 +178,7 @@ const FAQ = () => {
             </p>
             <button
               onClick={() => setShowForm(!showForm)}
-              className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+              className="bg-blue-600 text-white px-8 py-1.5 rounded-md hover:bg-blue-700 transition-colors font-medium"
             >
               {showForm ? "Ẩn form" : "Đặt câu hỏi"}
             </button>
@@ -237,7 +237,7 @@ const FAQ = () => {
                   />
                   {imagePreview && (
                     <div className="mt-4 relative w-full h-48 rounded-lg overflow-hidden">
-                      <Image src={imagePreview} alt="Preview" fill className="object-cover" />
+                      <Image src={imagePreview} alt="Preview" fill className="object-cover" style={{ width: "auto", height: "auto" }} />
                     </div>
                   )}
                 </div>
@@ -245,7 +245,7 @@ const FAQ = () => {
                 <div className="flex gap-4">
                   <button
                     type="submit"
-                    className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                    className="bg-blue-600 text-white px-8 py-1.5 rounded-md hover:bg-blue-700 transition-colors font-medium"
                   >
                     Đăng câu hỏi
                   </button>
@@ -256,7 +256,7 @@ const FAQ = () => {
                       setFormData({ title: "", content: "", category: "Chung", image: null });
                       setImagePreview(null);
                     }}
-                    className="bg-gray-200 text-dark px-8 py-3 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+                    className="bg-gray-200 text-dark px-8 py-1.5 rounded-md hover:bg-gray-300 transition-colors font-medium"
                   >
                     Hủy
                   </button>
@@ -364,7 +364,7 @@ const FAQ = () => {
                       rows={3}
                       className="w-full px-4 py-3 border border-gray-3 rounded-lg focus:outline-none focus:border-blue-600 resize-none mb-3"
                     />
-                    <button className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium">
+                    <button className="bg-blue-600 text-white px-6 py-1 rounded-md hover:bg-blue-700 transition-colors font-medium">
                       Gửi câu trả lời
                     </button>
                   </div>

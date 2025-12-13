@@ -153,7 +153,7 @@ const Signup: React.FC = () => {
               {/* Submit button */}
               <button
                 type="submit"
-                className="w-full flex justify-center font-medium text-white bg-dark py-3 px-6 rounded-lg hover:bg-blue mt-7.5"
+                className="w-full flex justify-center font-medium text-white bg-dark py-1.5 px-6 rounded-md hover:bg-blue mt-7.5"
                 suppressHydrationWarning
               >
                 Create Account
@@ -175,7 +175,7 @@ const Signup: React.FC = () => {
               group relative w-full flex items-center justify-center gap-3 
               bg-gradient-to-r from-red-500 to-orange-400 
               hover:from-red-600 hover:to-orange-500
-              text-white font-semibold py-4 px-6 rounded-xl
+              text-white font-semibold py-1.5 px-6 rounded-md
               transform transition-all duration-300 ease-out
               hover:scale-105 hover:shadow-2xl hover:-translate-y-1
               active:scale-95 active:translate-y-0

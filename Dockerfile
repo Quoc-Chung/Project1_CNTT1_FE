@@ -2,7 +2,6 @@
 # 1️⃣ Stage build (builder)
 # ===============================
 FROM node:20-alpine AS builder
-
 WORKDIR /app
 
 # Copy package files (bao gồm cả package-lock.json nếu có)

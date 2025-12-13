@@ -2,23 +2,34 @@
 import React from "react";
 import { useAppSelector } from "../../../redux/store";
 import { useRouter } from "next/navigation";
+import { CartOrderResponse } from "../../../types/Client/CartOrder/cartorder";
 
-const OrderSummary = () => {
+interface OrderSummaryProps {
+  selectedItems?: CartOrderResponse[];
+}
+
+const OrderSummary = ({ selectedItems }: OrderSummaryProps) => {
   const router = useRouter();
   const cartItems = useAppSelector((state) => state.cart.cart);
   const token = useAppSelector((state) => state.auth.token);
   
-  // Tính tổng tiền
-  const totalPrice = cartItems.reduce((total, item) => {
+  // Sử dụng selectedItems nếu có, nếu không thì dùng tất cả cartItems
+  const itemsToCalculate = selectedItems && selectedItems.length > 0 ? selectedItems : cartItems;
+  
+  // Tính tổng tiền chỉ cho các sản phẩm được chọn
+  const totalPrice = itemsToCalculate.reduce((total, item) => {
     return total + (item.productPrice * item.quantity);
   }, 0);
 
   // Handle checkout click
   const handleCheckout = () => {
-    console.log("Checkout clicked", { cartItemsLength: cartItems.length, hasToken: !!token });
+    console.log("Checkout clicked", { 
+      selectedItemsLength: itemsToCalculate.length, 
+      hasToken: !!token 
+    });
     
-    if (cartItems.length === 0) {
-      console.log("Cart is empty, cannot checkout");
+    if (itemsToCalculate.length === 0) {
+      console.log("No items selected, cannot checkout");
       return;
     }
     
@@ -26,6 +37,11 @@ const OrderSummary = () => {
       console.log("No token, redirecting to signin");
       router.push("/signin");
       return;
+    }
+    
+    // Lưu selectedItems vào sessionStorage để checkout page có thể sử dụng
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('selectedCartItems', JSON.stringify(itemsToCalculate));
     }
     
     console.log("Navigating to checkout page");
@@ -52,7 +68,7 @@ const OrderSummary = () => {
           </div>
 
           {/* <!-- product item --> */}
-          {cartItems.map((item, key) => (
+          {itemsToCalculate.map((item, key) => (
             <div key={key} className="flex items-center justify-between py-5 border-b border-gray-3">
               <div>
                 <p className="text-dark">{item.productName}</p>
@@ -64,6 +80,12 @@ const OrderSummary = () => {
               </div>
             </div>
           ))}
+          
+          {itemsToCalculate.length === 0 && (
+            <div className="py-5 text-center text-gray-500">
+              <p>Vui lòng chọn ít nhất một sản phẩm để đặt hàng</p>
+            </div>
+          )}
 
           {/* <!-- total --> */}
           <div className="flex items-center justify-between pt-5">
@@ -81,10 +103,10 @@ const OrderSummary = () => {
           <button
             type="button"
             onClick={handleCheckout}
-            disabled={cartItems.length === 0}
-            className="w-full flex justify-center font-medium text-white bg-blue py-3 px-6 rounded-md ease-out duration-200 hover:bg-blue-dark mt-7.5 disabled:bg-gray-4 disabled:cursor-not-allowed"
+            disabled={itemsToCalculate.length === 0}
+            className="w-full flex justify-center font-medium text-white bg-blue py-1.5 px-6 rounded-md ease-out duration-200 hover:bg-blue-dark mt-7.5 disabled:bg-gray-4 disabled:cursor-not-allowed"
           >
-            Đặt hàng
+            Đặt hàng ({itemsToCalculate.length} sản phẩm)
           </button>
         </div>
       </div>

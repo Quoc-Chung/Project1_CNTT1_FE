@@ -12,6 +12,8 @@ import {
   User,
   Tag,
   Folder,
+  Ticket,
+  Percent,
 } from "lucide-react";
 import { useSelector } from "react-redux";
 import { RootState, useAppDispatch, persistor } from "../../redux/store";
@@ -101,14 +103,16 @@ const Sidebar: React.FC = () => {
     { href: "/admin-app/inventorys/management", icon: Package, label: "Quản Lý Kho Hàng" },
     { href: "/admin-app/orders", icon: ShoppingCart, label: "Quản Lý Đơn Hàng" },
     { href: "/admin-app/customers/management", icon: Users, label: "Quản Lý Khách Hàng" },
+    { href: "/admin-app/vouchers", icon: Ticket, label: "Quản Lý Voucher" },
+    { href: "/admin-app/sales", icon: Percent, label: "Quản Lý Sale" },
   ];
 
   return (
-    <div className="w-72 mt-5 h-[730px] bg-gradient-to-b from-gray-50 to-white shadow-xl flex flex-col relative overflow-hidden transition-all duration-500">
+    <div className="w-72 h-screen bg-gradient-to-b from-gray-50 to-white shadow-xl flex flex-col relative overflow-hidden transition-all duration-500 fixed left-0 top-0 z-50">
       <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 animate-pulse-slow pointer-events-none" />
 
-      {/* User Profile */}
-      <div className="relative z-10 p-4 border-b border-gray-200/30">
+      {/* User Profile - Sticky */}
+      <div className="relative z-10 p-4 border-b border-gray-200/30 bg-white/80 backdrop-blur-sm sticky top-0 flex-shrink-0">
         <div className="flex items-center space-x-3">
           <div className="flex items-center justify-center transition-transform duration-300 rounded-full shadow-md w-14 h-14 bg-gradient-to-r from-blue-500 to-purple-600 group-hover:scale-105">
             <User size={24} className="text-white" />
@@ -134,8 +138,8 @@ const Sidebar: React.FC = () => {
         </div>
       </div>
 
-      {/* Navigation */}
-      <nav className="relative z-20 flex-1 p-4 overflow-y-auto">
+      {/* Navigation - Scrollable */}
+      <nav className="relative z-20 flex-1 p-4 overflow-y-auto custom-scrollbar min-h-0">
         <ul className="pb-6 space-y-2">
           {menuItems.map((item) => {
             const isActive = isHydrated ? pathname === item.href : false;
@@ -165,13 +169,30 @@ const Sidebar: React.FC = () => {
         </ul>
       </nav>
 
-      {/* Footer */}
-      <div className="relative z-10 p-4 border-t border-gray-200/50">
+      {/* Footer - Sticky */}
+      <div className="relative z-10 p-4 border-t border-gray-200/50 bg-white/80 backdrop-blur-sm sticky bottom-0 flex-shrink-0">
         <div className="text-[11px] text-gray-500 text-center leading-snug opacity-0 animate-fade-in delay-500">
           <p className="font-medium">Laptop Store Admin v2.0</p>
           <p>© 2024 All rights reserved</p>
         </div>
       </div>
+      
+      <style jsx>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: rgba(243, 244, 246, 0.5);
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: linear-gradient(to bottom, #3b82f6, #8b5cf6);
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: linear-gradient(to bottom, #2563eb, #7c3aed);
+        }
+      `}</style>
     </div>
   );
 };
