@@ -28,6 +28,7 @@ import {
   RESET_PASSWORD_FAILURE,
 } from "./ActionType";
 import { setCookie, deleteCookie, getCookie } from "../../../utils/cookies";
+import { startAutoRefresh, stopAutoRefresh } from "../../../utils/refreshToken";
 
 
 const initialState = {
@@ -61,7 +62,6 @@ export const authReducer = (state = initialState, action: any) => {
   switch (action.type) {
 
     case 'persist/REHYDRATE':
-      // action.payload có structure: { auth: {...}, cart: {...}, ... }
       const rehydratedAuthState = action.payload?.auth;
       
       if (rehydratedAuthState) {
@@ -73,7 +73,6 @@ export const authReducer = (state = initialState, action: any) => {
           }
         }
         
-        // Set isLogin dựa trên token hoặc isLogin flag đã lưu
         const shouldBeLogin = !!(rehydratedAuthState.token || rehydratedAuthState.isLogin === true || rehydratedAuthState.isLogin === 'true');
         
         console.log('AuthReducer REHYDRATE:', {
@@ -82,6 +81,17 @@ export const authReducer = (state = initialState, action: any) => {
           shouldBeLogin,
           hasUser: !!rehydratedAuthState.user
         });
+        
+        // Khởi động auto-refresh token nếu có token và refreshToken
+        if (shouldBeLogin && typeof window !== 'undefined') {
+          const refreshToken = getCookie('refreshToken');
+          if (rehydratedAuthState.token && refreshToken) {
+            // Đợi một chút để đảm bảo cookie đã được set
+            setTimeout(() => {
+              startAutoRefresh();
+            }, 1000);
+          }
+        }
         
         return {
           ...state,
@@ -208,6 +218,14 @@ export const authReducer = (state = initialState, action: any) => {
         userKeys: newState.user ? Object.keys(newState.user) : []
       });
       
+      // Khởi động auto-refresh token sau khi login thành công
+      if (action.payload?.token && action.payload?.refreshToken && typeof window !== 'undefined') {
+        // Đợi một chút để đảm bảo cookie đã được set
+        setTimeout(() => {
+          startAutoRefresh();
+        }, 500);
+      }
+      
       return newState;
     case LOGIN_FAILURE:
       return { ...state, loading: false, error: action.payload };
@@ -263,9 +281,15 @@ export const authReducer = (state = initialState, action: any) => {
     case LOGOUT_REQUEST:
       return { ...state, loading: true, error: null };
     case LOGOUT_SUCCESS:
+      // Dừng auto-refresh token
+      stopAutoRefresh();
+      
       // Xóa token khỏi cookie khi logout
       if (typeof window !== 'undefined') {
         deleteCookie('token');
+        deleteCookie('refreshToken');
+        localStorage.removeItem('tokenExpiresAt');
+        localStorage.removeItem('tokenExpiresIn');
       }
       return { ...state, loading: false, user: null, token: null, isLogin: false, roleNames: [] };
     case LOGOUT_FAILURE:

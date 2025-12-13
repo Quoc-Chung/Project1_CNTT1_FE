@@ -13,12 +13,17 @@ const Signup: React.FC = () => {
   const dispatch = useAppDispatch();
   const router = useRouter(); 
 
+  // ban đầu đăng ký gửi lên 4 trường này : 
   const [formData, setFormData] = useState<Register>({
     account: "",
     password: "",
     email: "",
     fullname: "",
   });
+  // Hydration = quá trình Next.js:
+  // Render HTML ở server (SSR)
+  // Gửi HTML xuống trình duyệt
+  // React gắn sự kiện + state ở client → gọi là hydrate
   const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {

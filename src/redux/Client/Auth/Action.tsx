@@ -1,6 +1,7 @@
 import { BASE_API_URL } from "@/utils/configAPI";
 import { getAllCartAction } from "../CartOrder/Action";
 import { persistor, store } from "../../store";
+import { startAutoRefresh, stopAutoRefresh } from "@/utils/refreshToken";
 import {
   REGISTER_REQUEST,
   REGISTER_SUCCESS,
@@ -106,11 +107,6 @@ export const login = (data: LoginRequest, onSuccess?: any, onError?: any) => {
               
               // Kiểm tra localStorage sau khi flush
               const persistedAuth = localStorage.getItem('persist:auth');
-              console.log('Login Action: localStorage after flush:', {
-                hasAuth: !!persistedAuth,
-                authDataLength: persistedAuth?.length || 0,
-                authDataPreview: persistedAuth?.substring(0, 300)
-              });
               
               if (resData.data.token) {
                 dispatch(getAllCartAction(
@@ -121,6 +117,19 @@ export const login = (data: LoginRequest, onSuccess?: any, onError?: any) => {
                     console.warn("Failed to load cart after login:", err);
                   }
                 ));
+              }
+              
+              // Khởi động auto-refresh token sau khi login thành công
+              if (resData.data.token && resData.data.refreshToken) {
+                // Lưu expiresIn vào localStorage nếu có
+                if (resData.data.expiresIn && typeof window !== 'undefined') {
+                  const expiresIn = resData.data.expiresIn; // seconds
+                  const refreshTime = Date.now(); // milliseconds
+                  localStorage.setItem('tokenExpiresAt', (refreshTime + expiresIn * 1000).toString());
+                  localStorage.setItem('tokenExpiresIn', expiresIn.toString());
+                }
+                // Khởi động auto-refresh
+                startAutoRefresh();
               }
               
               // Gọi onSuccess sau khi đảm bảo dữ liệu đã được persist
@@ -248,10 +257,15 @@ export const logoutAction = (logoutRequest: LogoutRequest, onSuccess?: any, onEr
     const statusCode = resData.status?.code;
     const isSuccess = statusCode === 200 || statusCode === "200";
     
+    // Dừng auto-refresh token
+    stopAutoRefresh();
+    
     if (typeof window !== 'undefined') {
       sessionStorage.clear();
       localStorage.removeItem('persist:auth');
       localStorage.removeItem('persist:root');
+      localStorage.removeItem('tokenExpiresAt');
+      localStorage.removeItem('tokenExpiresIn');
       Object.keys(localStorage).forEach(key => {
         if (key.startsWith('persist:')) {
           localStorage.removeItem(key);
@@ -265,11 +279,16 @@ export const logoutAction = (logoutRequest: LogoutRequest, onSuccess?: any, onEr
   } catch (error: any) {
     console.error('Logout API error:', error);
     
+    // Dừng auto-refresh token
+    stopAutoRefresh();
+    
     // Vẫn xóa dữ liệu local
     if (typeof window !== 'undefined') {
       sessionStorage.clear();
       localStorage.removeItem('persist:auth');
       localStorage.removeItem('persist:root');
+      localStorage.removeItem('tokenExpiresAt');
+      localStorage.removeItem('tokenExpiresIn');
       Object.keys(localStorage).forEach(key => {
         if (key.startsWith('persist:')) {
           localStorage.removeItem(key);

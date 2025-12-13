@@ -12,6 +12,7 @@ import { toast } from "react-toastify";
 import addressDataRaw from "@/utils/address.json";
 import { ProductService } from "@/services/ProductService";
 import { CartOrderResponse } from "@/types/Client/CartOrder/cartorder";
+import { VoucherResponse } from "@/services/VoucherService";
 
 interface AddressData {
   name: string;
@@ -64,7 +65,7 @@ const Checkout = () => {
   const [notes, setNotes] = useState("");
   const [phoneNumber, setPhoneNumber] = useState<string>("");
   const [voucherCode, setVoucherCode] = useState<string>("");
-  const [appliedVoucher, setAppliedVoucher] = useState<string | null>(null);
+  const [appliedVoucher, setAppliedVoucher] = useState<VoucherResponse | null>(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   
   // Product images state
@@ -163,24 +164,17 @@ const Checkout = () => {
     setSelectedWard("");
   };
 
-  // Handle voucher apply
-  const handleApplyVoucher = (code: string) => {
-    if (code.trim()) {
-      // Simple validation (replace with actual API call)
-      const codeUpper = code.trim().toUpperCase();
-      const validCodes = ["SALE10", "SALE20", "FREESHIP", "NEWUSER"];
-      
-      if (validCodes.includes(codeUpper)) {
-        setAppliedVoucher(codeUpper);
-        setVoucherCode(codeUpper);
-        toast.success("Mã giảm giá đã được áp dụng!");
-      } else {
-        toast.error("Mã giảm giá không hợp lệ");
-      }
+  // Handle voucher apply - nhận voucher object từ Coupon component
+  const handleApplyVoucher = (voucher: VoucherResponse | null) => {
+    setAppliedVoucher(voucher);
+    if (voucher) {
+      setVoucherCode(voucher.code);
+    } else {
+      setVoucherCode("");
     }
   };
 
-  // Handle voucher change
+  // Handle voucher code change
   const handleVoucherChange = (code: string) => {
     setVoucherCode(code);
     if (!code) {
@@ -283,7 +277,36 @@ const Checkout = () => {
   // Calculate totals (chỉ tính cho các sản phẩm đã chọn)
   const subtotal = itemsToUse.reduce((total, item) => total + (item.productPrice * item.quantity), 0);
   const shippingFee = 375000; // Fixed shipping fee
-  const discount = appliedVoucher ? subtotal * 0.1 : 0; // 10% discount if voucher applied
+  
+  // Calculate discount based on applied voucher
+  const calculateDiscount = (): number => {
+    if (!appliedVoucher) return 0;
+    
+    // Kiểm tra minOrderValue
+    if (appliedVoucher.minOrderValue > 0 && subtotal < appliedVoucher.minOrderValue) {
+      return 0;
+    }
+    
+    let discountAmount = 0;
+    
+    if (appliedVoucher.discountType === 'FIXED_AMOUNT') {
+      // Giảm số tiền cố định
+      discountAmount = appliedVoucher.discountValue;
+    } else if (appliedVoucher.discountType === 'PERCENTAGE') {
+      // Giảm theo phần trăm
+      discountAmount = (subtotal * appliedVoucher.discountValue) / 100;
+      
+      // Áp dụng maxDiscountAmount nếu có
+      if (appliedVoucher.maxDiscountAmount > 0 && discountAmount > appliedVoucher.maxDiscountAmount) {
+        discountAmount = appliedVoucher.maxDiscountAmount;
+      }
+    }
+    
+    // Đảm bảo discount không vượt quá subtotal
+    return Math.min(discountAmount, subtotal);
+  };
+  
+  const discount = calculateDiscount();
   const total = subtotal + shippingFee - discount;
 
   // Format currency
@@ -585,7 +608,8 @@ const Checkout = () => {
                     {appliedVoucher && discount > 0 && (
                       <div className="flex items-center justify-between py-5 border-b border-gray-3">
                         <div>
-                          <p className="text-dark">Giảm giá ({appliedVoucher})</p>
+                          <p className="text-dark">Giảm giá ({appliedVoucher.code})</p>
+                          <p className="text-xs text-dark-5">{appliedVoucher.name}</p>
                         </div>
                         <div>
                           <p className="text-green-600 text-right">-{formatCurrency(discount)}</p>
@@ -622,6 +646,7 @@ const Checkout = () => {
                   value={voucherCode}
                   onChange={handleVoucherChange}
                   onApply={handleApplyVoucher}
+                  subtotal={subtotal}
                 />
 
                 {/* <!-- payment box --> */}
@@ -670,7 +695,7 @@ const Checkout = () => {
                   </div>
                   {appliedVoucher && (
                     <div className="flex justify-between text-green-600">
-                      <span>Giảm giá ({appliedVoucher}):</span>
+                      <span>Giảm giá ({appliedVoucher.code}):</span>
                       <span className="font-medium">-{formatCurrency(discount)}</span>
                     </div>
                   )}
