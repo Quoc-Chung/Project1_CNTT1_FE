@@ -553,8 +553,7 @@ const Checkout = () => {
                                   alt={item.productName || "product"}
                                   width={64}
                                   height={64}
-                                  className="object-contain rounded-[5px]"
-                                  style={{ width: "auto", height: "auto" }}
+                                  className="object-contain rounded-[5px] w-full h-auto"
                                   onError={(e) => {
                                     const target = e.target as HTMLImageElement;
                                     target.src = "/images/products/product-1-1.png";

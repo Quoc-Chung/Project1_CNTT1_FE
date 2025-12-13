@@ -94,8 +94,7 @@ const PostCard: React.FC<PostCardProps> = ({ post, onReaction, onComment, onShar
               alt="Post image"
               width={800}
               height={384}
-              className="w-full max-h-96 object-cover rounded-lg"
-              style={{ width: "auto", height: "auto" }}
+              className="w-full h-auto max-h-96 object-cover rounded-lg"
               unoptimized
             />
           ) : (
@@ -108,7 +107,6 @@ const PostCard: React.FC<PostCardProps> = ({ post, onReaction, onComment, onShar
                   width={400}
                   height={192}
                   className="w-full h-48 object-cover rounded-lg"
-                  style={{ width: "auto", height: "auto" }}
                   unoptimized
                 />
               ))}
@@ -120,7 +118,6 @@ const PostCard: React.FC<PostCardProps> = ({ post, onReaction, onComment, onShar
                     width={400}
                     height={192}
                     className="w-full h-48 object-cover rounded-lg"
-                    style={{ width: "auto", height: "auto" }}
                     unoptimized
                   />
                   <div className="absolute inset-0 bg-black bg-opacity-50 rounded-lg flex items-center justify-center">

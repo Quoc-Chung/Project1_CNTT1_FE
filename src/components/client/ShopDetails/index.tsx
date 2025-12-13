@@ -352,8 +352,7 @@ const ShopDetails = ({ productData }: ShopDetailsProps) => {
                         alt={safeProduct.name}
                         width={570}
                         height={512}
-                        className="object-contain w-full h-full"
-                        style={{ width: "auto", height: "auto" }}
+                        className="object-contain w-full h-auto"
                         unoptimized={(selectedImage || safeProduct.thumbnailUrl)?.startsWith('http://') || (selectedImage || safeProduct.thumbnailUrl)?.startsWith('https://')}
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;

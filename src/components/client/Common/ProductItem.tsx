@@ -122,8 +122,7 @@ const ProductItem = ({ item }: { item: Product }) => {
           alt={item.title}
           width={250}
           height={250}
-          className="object-contain"
-          style={{ width: "auto", height: "auto" }}
+          className="object-contain w-full h-auto"
           unoptimized
         />
 

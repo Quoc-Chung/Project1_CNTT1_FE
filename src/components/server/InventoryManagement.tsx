@@ -84,8 +84,7 @@ export const InventoryManagement = () => {
                           alt={product.name}
                           width={48}
                           height={48}
-                          className="rounded-lg object-cover mr-3"
-                          style={{ width: "auto", height: "auto" }}
+                          className="rounded-lg object-cover mr-3 w-12 h-12"
                         />
                         <div>
                           <div className="text-sm font-semibold text-gray-900">

@@ -39,7 +39,7 @@ const SingleItem = ({ item, onRemove }: SingleItemProps) => {
             alt={item.productName || "product"}
             width={100}
             height={100}
-            style={{ width: "auto", height: "auto" }}
+            className="w-full h-auto object-contain"
             onError={(e) => {
               const target = e.target as HTMLImageElement;
               target.src = "/images/products/product-1-1.png";

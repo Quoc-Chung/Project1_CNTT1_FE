@@ -49,8 +49,7 @@ const ProductImageCell: React.FC<{ product: Product }> = ({ product }) => {
         alt={product.name}
         width={56}
         height={40}
-        className={`object-cover rounded-md ${imageLoaded ? 'opacity-100' : 'opacity-0'} transition-opacity`}
-        style={{ width: "auto", height: "auto" }}
+        className={`object-cover rounded-md w-14 h-10 ${imageLoaded ? 'opacity-100' : 'opacity-0'} transition-opacity`}
         onError={() => {
           setImageError(true);
           setImageLoaded(false);

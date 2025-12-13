@@ -119,8 +119,7 @@ export const CustomerDetails: React.FC<CustomerDetailsProps> = ({
                         alt={p.name}
                         width={48}
                         height={48}
-                        className="rounded-lg object-cover"
-                        style={{ width: "auto", height: "auto" }}
+                        className="rounded-lg object-cover w-12 h-12"
                       />
                       <div className="flex-1 text-xs">
                         <h5 className="font-semibold text-black">{p.name}</h5>
