@@ -7,6 +7,7 @@ import { CartOrderResponse } from "@/types/Client/CartOrder/cartorder";
 import { toast } from "react-toastify";
 import { BASE_API_CART_URL } from "@/utils/configAPI";
 import addressDataRaw from "@/utils/address.json";
+import { useRouter } from "next/navigation";
 
 interface AddressData {
   name: string;
@@ -23,6 +24,7 @@ interface CheckoutDialogProps {
 
 const CheckoutDialog: React.FC<CheckoutDialogProps> = ({ isOpen, onClose }) => {
   const dispatch = useAppDispatch();
+  const router = useRouter();
   const { cart } = useAppSelector((state) => state.cart);
   const { token } = useAppSelector((state) => state.auth);
   const { loading } = useAppSelector((state) => state.order);
@@ -192,6 +194,8 @@ const CheckoutDialog: React.FC<CheckoutDialogProps> = ({ isOpen, onClose }) => {
           }
           onClose();
           resetForm();
+          // Redirect to order history page
+          router.push(`/my-account?tab=orders`);
         },
         (error) => {
           toast.error(`Đặt hàng thất bại: ${error}`);

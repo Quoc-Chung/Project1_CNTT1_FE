@@ -9,16 +9,25 @@ import { RootState, useAppDispatch, persistor } from "../../../redux/store";
 import { useSelector } from "react-redux";
 import { logoutAction } from "../../../redux/Client/Auth/Action";
 import { toast } from "react-toastify";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 const UserDashboard = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const dispatch = useAppDispatch();
   const [activeTab, setActiveTab] = useState("information");
   const [showAddressModal, setShowAddressModal] = useState(false);
   const [avatar, setAvatar] = useState("/avatar.jpg");
 
   const { user, token } = useSelector((state: RootState) => state.auth);
+  
+  // Đọc query parameter từ URL để set activeTab
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab && ['information', 'orders', 'change-password'].includes(tab)) {
+      setActiveTab(tab);
+    }
+  }, [searchParams]);
   
   useEffect(()=>{
      if(user && user.avatarUrl && user.avatarUrl.trim() !== ""){

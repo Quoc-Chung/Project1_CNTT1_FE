@@ -61,8 +61,8 @@ const ShopWithSidebar = () => {
   
   // Search and Filter states
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null); // Single category only
-  const [selectedBrand, setSelectedBrand] = useState<string | null>(null); // Single brand only
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]); // Multiple categories (IDs)
+  const [selectedBrands, setSelectedBrands] = useState<string[]>([]); // Multiple brands (IDs)
   const [priceRange, setPriceRange] = useState<{ min: number | null; max: number | null }>({
     min: null,
     max: null,
@@ -82,22 +82,19 @@ const ShopWithSidebar = () => {
       params.append('name', searchTerm.trim());
     }
     
-    // category parameter - API chỉ nhận 1 category (String)
-    if (selectedCategory && categories.length > 0) {
-      const category = categories.find(cat => cat.id === selectedCategory);
-      if (category?.name) {
-        params.append('category', category.name);
+    // categories parameter - multiple values using same key (IDs)
+    selectedCategories.forEach(categoryId => {
+      if (categoryId) {
+        params.append('categories', categoryId);
       }
-    }
+    });
     
-    // brand parameter (brand name, not ID) - need to get brand name from selectedBrand
-    // We'll need to find brand name from brands array
-    if (selectedBrand && brands.length > 0) {
-      const brand = brands.find(b => b.id === selectedBrand);
-      if (brand?.name) {
-        params.append('brand', brand.name);
+    // brands parameter - multiple values using same key (IDs)
+    selectedBrands.forEach(brandId => {
+      if (brandId) {
+        params.append('brands', brandId);
       }
-    }
+    });
     
     // Price range - only add if set
     if (priceRange.min !== null && priceRange.min !== undefined) {
@@ -108,17 +105,17 @@ const ShopWithSidebar = () => {
     }
     
     return `${BASE_API_PRODUCT_URL}/api/product/search?${params.toString()}`;
-  }, [searchTerm, selectedCategory, selectedBrand, priceRange, categories, brands]);
+  }, [searchTerm, selectedCategories, selectedBrands, priceRange]);
 
   // Fetch products from API with search and filters
   const fetchProducts = useCallback(async (page: number = 1) => {
-    const cacheKey = `${page}-${searchTerm}-${selectedCategory || 'null'}-${selectedBrand || 'null'}-${priceRange.min}-${priceRange.max}`;
+    const cacheKey = `${page}-${searchTerm}-${selectedCategories.join(',')}-${selectedBrands.join(',')}-${priceRange.min}-${priceRange.max}`;
     
     console.log("🔍 Fetching products - Filters:", {
       page,
       searchTerm,
-      selectedCategory,
-      selectedBrand,
+      selectedCategories,
+      selectedBrands,
       priceRange,
       cacheKey
     });
@@ -134,48 +131,11 @@ const ShopWithSidebar = () => {
     try {
       setLoading(true);
       
-      // Build URL safely - only include filters if categories/brands are available when needed
-      let url: string;
-      if ((selectedCategory && categories.length === 0) || (selectedBrand && brands.length === 0)) {
-        // If filter is selected but data not loaded yet, build URL without that filter for now
-        const params = new URLSearchParams();
-        params.append('page', String(page - 1));
-        params.append('size', '6');
-        
-        if (searchTerm && searchTerm.trim()) {
-          params.append('name', searchTerm.trim());
-        }
-        
-        // Only add category if categories are loaded - API chỉ nhận 1 category
-        if (selectedCategory && categories.length > 0) {
-          const category = categories.find(cat => cat.id === selectedCategory);
-          if (category?.name) {
-            params.append('category', category.name);
-          }
-        }
-        
-        // Only add brand if brands are loaded
-        if (selectedBrand && brands.length > 0) {
-          const brand = brands.find(b => b.id === selectedBrand);
-          if (brand?.name) {
-            params.append('brand', brand.name);
-          }
-        }
-        
-        if (priceRange.min !== null && priceRange.min !== undefined) {
-          params.append('minPrice', String(priceRange.min));
-        }
-        if (priceRange.max !== null && priceRange.max !== undefined) {
-          params.append('maxPrice', String(priceRange.max));
-        }
-        
-        url = `${BASE_API_PRODUCT_URL}/api/product/search?${params.toString()}`;
-      } else {
-        url = buildSearchUrl(page, 6);
-      }
+      const url = buildSearchUrl(page, 6);
       
       console.log("🔍 Fetching products from:", url);
-      console.log("🔍 Selected category:", selectedCategory);
+      console.log("🔍 Selected categories:", selectedCategories);
+      console.log("🔍 Selected brands:", selectedBrands);
       console.log("🔍 URL params:", new URL(url).searchParams.toString());
       
       const response = await fetch(url, {
@@ -202,10 +162,8 @@ const ShopWithSidebar = () => {
       if (data.status.code === "200") {
         const productsList = data.data.content || [];
         console.log("✅ Products found:", productsList.length);
-        console.log("✅ Filter applied - Selected category:", selectedCategory);
-        if (selectedCategory) {
-          console.log("✅ Expected filtered results by category:", selectedCategory);
-        }
+        console.log("✅ Filter applied - Selected categories:", selectedCategories);
+        console.log("✅ Filter applied - Selected brands:", selectedBrands);
         
         setProducts(productsList);
         setCurrentPage(data.data.current_page !== undefined ? data.data.current_page + 1 : page);
@@ -226,16 +184,16 @@ const ShopWithSidebar = () => {
     } catch (error) {
       console.error("❌ Error fetching products:", error);
       setProducts([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [buildSearchUrl, productsCache, searchTerm, selectedCategory, selectedBrand, priceRange, categories, brands]);
+      } finally {
+        setLoading(false);
+      }
+    }, [buildSearchUrl, productsCache, searchTerm, selectedCategories, selectedBrands, priceRange]);
 
   // Prefetch next page
   const prefetchNextPage = useCallback(async (currentPage: number) => {
     const nextPage = currentPage + 1;
     if (nextPage <= totalPages) {
-      const cacheKey = `${nextPage}-${searchTerm}-${selectedCategory || 'null'}-${selectedBrand || 'null'}-${priceRange.min}-${priceRange.max}`;
+      const cacheKey = `${nextPage}-${searchTerm}-${selectedCategories.join(',')}-${selectedBrands.join(',')}-${priceRange.min}-${priceRange.max}`;
       if (!productsCache[cacheKey]) {
         try {
           const url = buildSearchUrl(nextPage, 6); // 6 products per page
@@ -253,7 +211,7 @@ const ShopWithSidebar = () => {
         }
       }
     }
-  }, [totalPages, productsCache, buildSearchUrl, searchTerm, selectedCategory, selectedBrand, priceRange]);
+  }, [totalPages, productsCache, buildSearchUrl, searchTerm, selectedCategories, selectedBrands, priceRange]);
 
   const handlePageChange = (page: number) => {
     if (page >= 1 && page <= totalPages) {
@@ -347,17 +305,10 @@ const ShopWithSidebar = () => {
 
   useEffect(() => {
     if (isInitialLoad || !hasMounted) return; 
-
-    const needsCategories = selectedCategory && categories.length === 0;
-    const needsBrands = selectedBrand && brands.length === 0;
-    
-    if (needsCategories || needsBrands) {
-      return; // Wait for data to load
-    }
     
     console.log("🔄 Filter changed, fetching products with:", {
-      selectedCategory,
-      selectedBrand,
+      selectedCategories,
+      selectedBrands,
       searchTerm,
       priceRange
     });
@@ -367,7 +318,7 @@ const ShopWithSidebar = () => {
     setCurrentPage(1);
     fetchProducts(1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchTerm, selectedCategory, selectedBrand, priceRange.min, priceRange.max, hasMounted, isInitialLoad]);
+  }, [searchTerm, selectedCategories.join(','), selectedBrands.join(','), priceRange.min, priceRange.max, hasMounted, isInitialLoad]);
   // Loại bỏ categories và brands khỏi dependencies để tránh trigger không cần thiết
 
 
@@ -472,8 +423,8 @@ const ShopWithSidebar = () => {
                       <button 
                         onClick={() => {
                           setSearchTerm("");
-                          setSelectedCategory(null);
-                          setSelectedBrand(null);
+                          setSelectedCategories([]);
+                          setSelectedBrands([]);
                           setPriceRange({ min: null, max: null });
                         }}
                         className="text-blue hover:text-blue-700 transition-colors"
@@ -487,16 +438,16 @@ const ShopWithSidebar = () => {
                   <CategoryDropdown 
                     categories={categories} 
                     loading={categoriesLoading}
-                    selectedCategory={selectedCategory}
-                    onCategoryChange={(categoryId: string | null) => setSelectedCategory(categoryId)}
+                    selectedCategories={selectedCategories}
+                    onCategoryChange={(categoryIds: string[]) => setSelectedCategories(categoryIds)}
                   />
 
                   {/* <!-- brand box (using GenderDropdown component) --> */}
                   <GenderDropdown 
                     genders={brands} 
                     loading={brandsLoading}
-                    selectedBrand={selectedBrand}
-                    onBrandChange={(brandId: string | null) => setSelectedBrand(brandId)}
+                    selectedBrands={selectedBrands}
+                    onBrandChange={(brandIds: string[]) => setSelectedBrands(brandIds)}
                   />
                   {/* // <!-- price range box --> */}
                   <PriceDropdown 
@@ -563,7 +514,7 @@ const ShopWithSidebar = () => {
                         {products.length} of {totalElements}
                       </span>{" "}
                       Products
-                      {(searchTerm || selectedCategory || selectedBrand || priceRange.min !== null || priceRange.max !== null) && (
+                      {(searchTerm || selectedCategories.length > 0 || selectedBrands.length > 0 || priceRange.min !== null || priceRange.max !== null) && (
                         <span className="text-gray-500 text-sm ml-2">
                           (đã lọc)
                         </span>
@@ -681,8 +632,8 @@ const ShopWithSidebar = () => {
                       <button
                         onClick={() => {
                           setSearchTerm("");
-                          setSelectedCategory(null);
-                          setSelectedBrand(null);
+                          setSelectedCategories([]);
+                          setSelectedBrands([]);
                           setPriceRange({ min: null, max: null });
                         }}
                         className="mt-4 text-blue-600 hover:text-blue-800 underline"

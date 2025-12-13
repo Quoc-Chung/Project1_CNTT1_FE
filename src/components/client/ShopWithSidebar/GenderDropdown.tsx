@@ -1,7 +1,17 @@
 "use client";
 import React, { useState } from "react";
 
-const GenderItem = ({ category, isSelected, onToggle }) => {
+interface GenderItemProps {
+  category: {
+    id: string;
+    name: string;
+    products: number;
+  };
+  isSelected: boolean;
+  onToggle: (brandId: string) => void;
+}
+
+const GenderItem = ({ category, isSelected, onToggle }: GenderItemProps) => {
   return (
     <button
       className={`${
@@ -10,17 +20,17 @@ const GenderItem = ({ category, isSelected, onToggle }) => {
       onClick={() => onToggle(category.id)}
     >
       <div className="flex items-center gap-2">
-        {/* Radio button style - circle with dot when selected */}
+        {/* Checkbox style - square with checkmark when selected */}
         <div
-          className={`cursor-pointer flex items-center justify-center rounded-full w-4 h-4 border-2 ${
-            isSelected ? "border-blue bg-white" : "border-gray-3 bg-white"
+          className={`cursor-pointer flex items-center justify-center rounded w-4 h-4 border-2 ${
+            isSelected ? "border-blue bg-blue" : "border-gray-3 bg-white"
           }`}
         >
-          <div
-            className={`w-2 h-2 rounded-full ${
-              isSelected ? "bg-blue" : "bg-transparent"
-            }`}
-          />
+          {isSelected && (
+            <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+            </svg>
+          )}
         </div>
 
         <span>{category.name}</span>
@@ -37,13 +47,26 @@ const GenderItem = ({ category, isSelected, onToggle }) => {
   );
 };
 
-const GenderDropdown = ({ genders, loading = false, selectedBrand = null, onBrandChange }) => {
+interface GenderDropdownProps {
+  genders: Array<{
+    id: string;
+    name: string;
+    products: number;
+  }>;
+  loading?: boolean;
+  selectedBrands?: string[];
+  onBrandChange?: (brandIds: string[]) => void;
+}
+
+const GenderDropdown = ({ genders, loading = false, selectedBrands = [], onBrandChange }: GenderDropdownProps) => {
   const [toggleDropdown, setToggleDropdown] = useState(true);
 
   const handleBrandToggle = (brandId: string) => {
     if (!brandId) return;
-    // Radio button behavior: if clicking the same brand, deselect it; otherwise select the new one
-    const newSelected = selectedBrand === brandId ? null : brandId;
+    // Checkbox behavior: toggle the brand in the array
+    const newSelected = selectedBrands.includes(brandId)
+      ? selectedBrands.filter(id => id !== brandId)
+      : [...selectedBrands, brandId];
     onBrandChange?.(newSelected);
   };
 
@@ -100,7 +123,7 @@ const GenderDropdown = ({ genders, loading = false, selectedBrand = null, onBran
             <GenderItem 
               key={gender.id || key} 
               category={gender}
-              isSelected={gender.id ? selectedBrand === gender.id : false}
+              isSelected={gender.id ? selectedBrands.includes(gender.id) : false}
               onToggle={handleBrandToggle}
             />
           ))

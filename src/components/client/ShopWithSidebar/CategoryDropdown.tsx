@@ -21,14 +21,16 @@ const CategoryItem = ({ category, isSelected, onToggle }: CategoryItemProps) => 
       onClick={() => onToggle(category.id)}
     >
       <div className="flex items-center gap-2">
-        {/* Radio button style - circle with dot when selected */}
+        {/* Checkbox style - square with checkmark when selected */}
         <div
-          className={`cursor-pointer flex items-center justify-center rounded-full w-4 h-4 border-2 ${
-            isSelected ? "border-blue" : "border-gray-3"
+          className={`cursor-pointer flex items-center justify-center rounded w-4 h-4 border-2 ${
+            isSelected ? "border-blue bg-blue" : "border-gray-3 bg-white"
           }`}
         >
           {isSelected && (
-            <div className="w-2 h-2 rounded-full bg-blue"></div>
+            <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+            </svg>
           )}
         </div>
 
@@ -53,17 +55,19 @@ interface CategoryDropdownProps {
     products: number;
   }>;
   loading?: boolean;
-  selectedCategory?: string | null;
-  onCategoryChange?: (categoryId: string | null) => void;
+  selectedCategories?: string[];
+  onCategoryChange?: (categoryIds: string[]) => void;
 }
 
-const CategoryDropdown = ({ categories, loading = false, selectedCategory = null, onCategoryChange }: CategoryDropdownProps) => {
+const CategoryDropdown = ({ categories, loading = false, selectedCategories = [], onCategoryChange }: CategoryDropdownProps) => {
   const [toggleDropdown, setToggleDropdown] = useState(true);
 
   const handleCategoryToggle = (categoryId: string) => {
     if (!categoryId) return;
-    // Radio button behavior: if clicking the same category, deselect it; otherwise select the new one
-    const newSelected = selectedCategory === categoryId ? null : categoryId;
+    // Checkbox behavior: toggle the category in the array
+    const newSelected = selectedCategories.includes(categoryId)
+      ? selectedCategories.filter(id => id !== categoryId)
+      : [...selectedCategories, categoryId];
     onCategoryChange?.(newSelected);
   };
 
@@ -123,7 +127,7 @@ const CategoryDropdown = ({ categories, loading = false, selectedCategory = null
             <CategoryItem 
               key={category.id || key} 
               category={category}
-              isSelected={category.id ? selectedCategory === category.id : false}
+              isSelected={category.id ? selectedCategories.includes(category.id) : false}
               onToggle={handleCategoryToggle}
             />
           ))

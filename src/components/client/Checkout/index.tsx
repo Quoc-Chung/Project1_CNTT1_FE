@@ -269,8 +269,8 @@ const Checkout = () => {
           }
           // Đóng dialog
           setShowConfirmDialog(false);
-          // Redirect to order success page or order details
-          router.push(`/my-account`);
+          // Redirect to order history page
+          router.push(`/my-account?tab=orders`);
         },
         (error) => {
           toast.error(`Đặt hàng thất bại: ${error}`);
