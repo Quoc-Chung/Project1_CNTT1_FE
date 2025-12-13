@@ -392,7 +392,7 @@ const BrandManagement = () => {
         <h1 className="text-2xl font-bold text-gray-900">Quản Lý Thương Hiệu</h1>
         <button
           onClick={handleOpenCreateModal}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1.5 rounded-lg flex items-center space-x-2 transition-colors shadow-sm text-sm"
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors shadow-sm"
         >
           <Plus size={18} />
           <span>Thêm Thương Hiệu</span>
@@ -402,11 +402,11 @@ const BrandManagement = () => {
       {/* Search */}
       <div className="bg-white p-4 rounded-xl shadow-md border border-gray-300">
         <div className="relative">
-          <Search className="absolute left-2 top-2 h-4 w-4 text-gray-500" />
+          <Search className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
           <input
             type="text"
             placeholder="Tìm kiếm theo tên hoặc slug..."
-            className="pl-8 pr-2 py-1.5 w-full border border-gray-400 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-800"
+            className="pl-9 pr-3 py-2 w-full border border-gray-400 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-800"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -448,14 +448,14 @@ const BrandManagement = () => {
             <div className="flex justify-center space-x-2">
               <button
                 onClick={() => handleOpenEditModal(brand)}
-                className="flex items-center space-x-1 px-2 py-1.5 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg transition-colors text-sm"
+                className="flex items-center space-x-1 px-3 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg transition-colors text-sm"
               >
                 <Pencil size={14} />
                 <span>Sửa</span>
               </button>
               <button
                 onClick={() => handleDelete(brand)}
-                className="flex items-center space-x-1 px-2 py-1.5 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors text-sm"
+                className="flex items-center space-x-1 px-3 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors text-sm"
               >
                 <Trash2 size={14} />
                 <span>Xóa</span>
@@ -542,7 +542,7 @@ const BrandManagement = () => {
                   name="name"
                   value={formData.name}
                   onChange={handleNameChange}
-                  className={`w-full px-2 py-1.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm ${
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                     formErrors.name ? "border-red-500" : "border-gray-300"
                   }`}
                   placeholder="VD: Apple, Samsung, Dell..."
@@ -562,7 +562,7 @@ const BrandManagement = () => {
                   name="slug"
                   value={formData.slug}
                   onChange={handleInputChange}
-                  className={`w-full px-2 py-1.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm ${
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                     formErrors.slug ? "border-red-500" : "border-gray-300"
                   }`}
                   placeholder="VD: apple, samsung, dell..."
@@ -581,12 +581,11 @@ const BrandManagement = () => {
                   Logo <span className="text-red-500">*</span>
                 </label>
                 <input
-                  type="text"
-                  name="logoUrl"
-                  value={formData.logoUrl}
-                  onChange={handleInputChange}
-                  className={`w-full px-2 py-1.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm ${
-                    formErrors.logoUrl ? "border-red-500" : "border-gray-300"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleLogoFileChange}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                    formErrors.logoFile ? "border-red-500" : "border-gray-300"
                   }`}
                 />
                 {formErrors.logoFile && (
@@ -619,14 +618,14 @@ const BrandManagement = () => {
                 <button
                   type="button"
                   onClick={handleCloseModal}
-                  className="px-2.5 py-1.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors flex items-center space-x-2 text-sm"
+                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors flex items-center space-x-2"
                 >
                   <X size={16} />
                   <span>Hủy</span>
                 </button>
                 <button
                   type="submit"
-                  className="px-2.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center space-x-2 text-sm"
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center space-x-2"
                 >
                   <Check size={16} />
                   <span>{modalMode === "create" ? "Tạo Mới" : "Cập Nhật"}</span>
