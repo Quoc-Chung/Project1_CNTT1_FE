@@ -228,10 +228,10 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
 
                 return (
                   <div key={index} className="flex-1 flex flex-col items-center group relative h-full">
-                    {/* Value Label on Top */}
+                    {/* Value Label on Top - Luôn hiển thị tổng tiền/tháng */}
                     {value > 0 && (
-                      <div className="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none z-10">
-                        <div className="bg-gray-900 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow-lg whitespace-nowrap">
+                      <div className="absolute -top-12 left-1/2 -translate-x-1/2 z-10 mb-2">
+                        <div className="bg-gradient-to-r from-gray-800 to-gray-900 text-white text-xs font-bold px-4 py-2 rounded-lg shadow-xl whitespace-nowrap border border-gray-700">
                           {displayValue}
                           <div className="absolute left-1/2 -translate-x-1/2 bottom-0 translate-y-full w-0 h-0 border-l-[6px] border-r-[6px] border-t-[6px] border-transparent border-t-gray-900"></div>
                         </div>
@@ -271,25 +271,11 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
                       {data.month.split(' ')[1]}
                     </div>
 
-                    {/* Value Label Below (always visible) */}
-                    {value > 0 && (
-                      <div className="text-xs font-bold text-gray-600 text-center mt-1">
-                        {shortValue}
-                      </div>
-                    )}
                   </div>
                 );
               })}
             </div>
 
-            {/* Y-axis labels */}
-            <div className="absolute left-2 top-0 h-full flex flex-col justify-between text-xs font-semibold text-gray-600 pr-2 py-4">
-              <span className="bg-white/80 px-1 rounded">{chartType === 'revenue' ? formatPrice(maxValue) : Math.floor(maxValue).toLocaleString()}</span>
-              <span className="bg-white/80 px-1 rounded">{chartType === 'revenue' ? formatPrice(maxValue * 0.75) : Math.floor(maxValue * 0.75).toLocaleString()}</span>
-              <span className="bg-white/80 px-1 rounded">{chartType === 'revenue' ? formatPrice(maxValue * 0.5) : Math.floor(maxValue * 0.5).toLocaleString()}</span>
-              <span className="bg-white/80 px-1 rounded">{chartType === 'revenue' ? formatPrice(maxValue * 0.25) : Math.floor(maxValue * 0.25).toLocaleString()}</span>
-              <span className="bg-white/80 px-1 rounded">0</span>
-            </div>
           </div>
 
           {/* Chart Animation Styles */}
