@@ -24,4 +24,4 @@ fi
 # Show logs with follow
 echo -e "${YELLOW}Following logs (Press Ctrl+C to exit)...${NC}"
 echo ""
-docker-compose logs -f --tail=100
+docker compose logs -f --tail=100

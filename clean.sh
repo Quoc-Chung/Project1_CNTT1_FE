@@ -31,7 +31,7 @@ fi
 
 # Stop containers
 echo -e "${YELLOW}[1/5] Stopping containers...${NC}"
-docker-compose down 2>/dev/null || true
+docker compose down 2>/dev/null || true
 
 # Remove containers
 echo -e "${YELLOW}[2/5] Removing containers...${NC}"
