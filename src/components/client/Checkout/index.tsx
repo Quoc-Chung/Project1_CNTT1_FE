@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, FormEvent, useEffect, useMemo } from "react";
+import React, { useState, FormEvent, useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Breadcrumb from "../Common/Breadcrumb";
@@ -14,6 +14,7 @@ import addressDataRaw from "@/utils/address.json";
 import { ProductService } from "@/services/ProductService";
 import { CartOrderResponse } from "@/types/Client/CartOrder/cartorder";
 import { VoucherResponse, VoucherService } from "@/services/VoucherService";
+import { normalizeImageUrl } from "@/utils/helpers";
 
 interface AddressData {
   name: string;
@@ -71,6 +72,8 @@ const Checkout = () => {
   
   // Product images state
   const [productImages, setProductImages] = useState<{ [key: string]: string }>({});
+  const [imageLoadingStates, setImageLoadingStates] = useState<{ [key: string]: boolean }>({});
+  const fetchedImagesRef = useRef<Set<string>>(new Set());
 
   // Sử dụng selectedCartItems thay vì cart
   const itemsToUse = selectedCartItems.length > 0 ? selectedCartItems : cart;
@@ -83,41 +86,72 @@ const Checkout = () => {
   useEffect(() => {
     const fetchAllProductImages = async () => {
       const imageMap: { [key: string]: string } = {};
+      const loadingMap: { [key: string]: boolean } = {};
+      const currentItemIds = new Set(itemsToUse.map(item => item.id));
       
-      await Promise.all(
-        itemsToUse.map(async (item) => {
-          // Use existing image if available
-          if (item.productImage || item.thumbnailUrl) {
-            imageMap[item.id] = item.productImage || item.thumbnailUrl || "/images/products/product-1-1.png";
-            return;
-          }
-          
-          // Chỉ fetch nếu chưa có trong productImages
-          if (productImages[item.id]) {
-            imageMap[item.id] = productImages[item.id];
-            return;
-          }
-          
-          // Fetch from API
+      // Clean up fetchedImagesRef to only include current items
+      fetchedImagesRef.current = new Set(
+        Array.from(fetchedImagesRef.current).filter(id => currentItemIds.has(id))
+      );
+      
+      // First, set images from item data if available
+      itemsToUse.forEach((item) => {
+        if (item.productImage || item.thumbnailUrl) {
+          const normalized = normalizeImageUrl(item.productImage || item.thumbnailUrl);
+          imageMap[item.id] = normalized.url;
+          loadingMap[item.id] = false;
+        } else if (productImages[item.id]) {
+          // Use cached image
+          imageMap[item.id] = productImages[item.id];
+          loadingMap[item.id] = false;
+        } else {
+          loadingMap[item.id] = true;
+        }
+      });
+
+      // Update loading states immediately for items with images
+      setImageLoadingStates(loadingMap);
+      
+      // Then fetch missing images
+      const itemsToFetch = itemsToUse.filter(item => !imageMap[item.id] && !fetchedImagesRef.current.has(item.id));
+      
+      if (itemsToFetch.length > 0) {
+        const fetchPromises = itemsToFetch.map(async (item) => {
           try {
+            fetchedImagesRef.current.add(item.id);
             const product = await ProductService.getProductById(item.productId);
-            if (product.thumbnailUrl) {
-              imageMap[item.id] = product.thumbnailUrl;
+            if (product.thumbnailUrl && product.thumbnailUrl.trim() !== '') {
+              const normalized = normalizeImageUrl(product.thumbnailUrl);
+              imageMap[item.id] = normalized.url;
             } else {
               imageMap[item.id] = "/images/products/product-1-1.png";
             }
           } catch (error) {
             console.error(`Error fetching product image for ${item.productId}:`, error);
             imageMap[item.id] = "/images/products/product-1-1.png";
+          } finally {
+            loadingMap[item.id] = false;
           }
-        })
-      );
+        });
+        
+        await Promise.all(fetchPromises);
+      }
       
-      setProductImages(prev => ({ ...prev, ...imageMap }));
+      // Update state only if there are changes
+      setProductImages(prev => {
+        const updated = { ...prev, ...imageMap };
+        return updated;
+      });
+      setImageLoadingStates(prev => ({ ...prev, ...loadingMap }));
     };
     
     if (itemsToUse.length > 0) {
       fetchAllProductImages();
+    } else {
+      // Reset states when no items
+      setProductImages({});
+      setImageLoadingStates({});
+      fetchedImagesRef.current.clear();
     }
   }, [itemsToUseIds]); // Chỉ trigger khi danh sách IDs thay đổi
 
@@ -661,10 +695,12 @@ const Checkout = () => {
                     ) : (
                       itemsToUse.map((item) => {
                         // Get image from state or fallback
-                        const productImage = productImages[item.id] || 
-                                            item.productImage || 
-                                            item.thumbnailUrl || 
-                                            "/images/products/product-1-1.png";
+                        const imageUrl = productImages[item.id] || 
+                                        item.productImage || 
+                                        item.thumbnailUrl || 
+                                        "/images/products/product-1-1.png";
+                        const normalized = normalizeImageUrl(imageUrl);
+                        const isLoading = imageLoadingStates[item.id] === true;
                         
                         return (
                           <div
@@ -673,17 +709,30 @@ const Checkout = () => {
                           >
                             <div className="flex items-center gap-3 flex-1">
                               {/* Product Image */}
-                              <div className="flex items-center justify-center rounded-[5px] bg-gray-2 w-16 h-16 flex-shrink-0">
+                              <div className="flex items-center justify-center rounded-[5px] bg-gray-2 w-16 h-16 flex-shrink-0 relative">
+                                {isLoading && (
+                                  <div className="absolute inset-0 flex items-center justify-center bg-gray-100 rounded-[5px]">
+                                    <div className="w-5 h-5 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin"></div>
+                                  </div>
+                                )}
                                 <Image
-                                  src={productImage}
+                                  src={normalized.url}
                                   alt={item.productName || "product"}
                                   width={64}
                                   height={64}
-                                  className="object-contain rounded-[5px]"
+                                  className={`object-contain rounded-[5px] transition-opacity duration-300 ${isLoading ? 'opacity-0' : 'opacity-100'}`}
                                   style={{ width: "auto", height: "auto" }}
+                                  unoptimized={normalized.isExternal}
+                                  onLoad={() => {
+                                    setImageLoadingStates(prev => ({ ...prev, [item.id]: false }));
+                                  }}
                                   onError={(e) => {
                                     const target = e.target as HTMLImageElement;
-                                    target.src = "/images/products/product-1-1.png";
+                                    if (target.src !== "/images/products/product-1-1.png") {
+                                      setImageLoadingStates(prev => ({ ...prev, [item.id]: false }));
+                                      setProductImages(prev => ({ ...prev, [item.id]: "/images/products/product-1-1.png" }));
+                                      target.src = "/images/products/product-1-1.png";
+                                    }
                                   }}
                                 />
                               </div>

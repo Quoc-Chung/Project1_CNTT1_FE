@@ -94,3 +94,32 @@ export const getStockStatus = (stock: number): { color: string, text: string, ba
     };
   }
 };
+
+/**
+ * Normalize image URL and check if it's external
+ * @param url - Image URL from API or local path
+ * @returns Object with normalized URL and isExternal flag
+ */
+export const normalizeImageUrl = (url: string | null | undefined): { url: string; isExternal: boolean } => {
+  // Default fallback image
+  const defaultImage = "/images/products/product-1-1.png";
+  
+  if (!url || url.trim() === '') {
+    return { url: defaultImage, isExternal: false };
+  }
+
+  const trimmedUrl = url.trim();
+
+  // Check if it's an external URL (http/https)
+  if (trimmedUrl.startsWith('http://') || trimmedUrl.startsWith('https://')) {
+    return { url: trimmedUrl, isExternal: true };
+  }
+
+  // Check if it's already a local path starting with /
+  if (trimmedUrl.startsWith('/')) {
+    return { url: trimmedUrl, isExternal: false };
+  }
+
+  // If it doesn't start with /, add it
+  return { url: `/${trimmedUrl}`, isExternal: false };
+};

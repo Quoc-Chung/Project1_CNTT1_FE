@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { CartOrderResponse } from "@/types/Client/CartOrder/cartorder";
 import { ProductService } from "@/services/ProductService";
+import { normalizeImageUrl } from "@/utils/helpers";
 
 interface SingleItemProps {
   item: CartOrderResponse;
@@ -10,39 +11,83 @@ interface SingleItemProps {
 
 const SingleItem = ({ item, onRemove }: SingleItemProps) => {
   const [productImage, setProductImage] = useState<string>("/images/products/product-1-1.png");
+  const [isImageLoading, setIsImageLoading] = useState(true);
+  const [imageError, setImageError] = useState(false);
+  const fetchedImageRef = useRef<string | null>(null);
 
-  // Fetch product image from Product API
+  // Fetch product image from Product API - chỉ fetch một lần
   useEffect(() => {
+    // Nếu đã có thumbnailUrl từ item, sử dụng luôn
+    if (item.thumbnailUrl && item.thumbnailUrl.trim() !== '') {
+      const normalized = normalizeImageUrl(item.thumbnailUrl);
+      setProductImage(normalized.url);
+      setIsImageLoading(false);
+      fetchedImageRef.current = normalized.url;
+      return;
+    }
+
+    // Nếu đã fetch rồi, không fetch lại
+    if (fetchedImageRef.current) {
+      return;
+    }
+
     const fetchProductImage = async () => {
       try {
+        setIsImageLoading(true);
+        setImageError(false);
         const product = await ProductService.getProductById(item.productId);
-        if (product.thumbnailUrl) {
-          setProductImage(product.thumbnailUrl);
+        if (product.thumbnailUrl && product.thumbnailUrl.trim() !== '') {
+          const normalized = normalizeImageUrl(product.thumbnailUrl);
+          setProductImage(normalized.url);
+          fetchedImageRef.current = normalized.url;
+        } else {
+          setProductImage("/images/products/product-1-1.png");
+          fetchedImageRef.current = "/images/products/product-1-1.png";
         }
       } catch (error) {
         console.error("Error fetching product image:", error);
-        // Keep default image if error
+        setImageError(true);
+        setProductImage("/images/products/product-1-1.png");
+        fetchedImageRef.current = "/images/products/product-1-1.png";
+      } finally {
+        setIsImageLoading(false);
       }
     };
 
     if (item.productId) {
       fetchProductImage();
     }
-  }, [item.productId]);
+  }, [item.productId, item.thumbnailUrl]);
 
   return (
     <div className="flex items-center justify-between gap-5">
       <div className="w-full flex items-center gap-6">
-        <div className="flex items-center justify-center rounded-[10px] bg-gray-3 max-w-[90px] w-full h-22.5">
+        <div className="flex items-center justify-center rounded-[10px] bg-gray-3 max-w-[90px] w-full h-22.5 relative">
+          {isImageLoading && !imageError && (
+            <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+              <div className="w-6 h-6 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin"></div>
+            </div>
+          )}
           <Image
             src={productImage}
             alt={item.productName || "product"}
             width={100}
             height={100}
             style={{ width: "auto", height: "auto" }}
+            className={`transition-opacity duration-300 ${isImageLoading ? 'opacity-0' : 'opacity-100'}`}
+            unoptimized={normalizeImageUrl(productImage).isExternal}
+            onLoad={() => {
+              setIsImageLoading(false);
+              setImageError(false);
+            }}
             onError={(e) => {
               const target = e.target as HTMLImageElement;
-              target.src = "/images/products/product-1-1.png";
+              if (target.src !== "/images/products/product-1-1.png") {
+                setImageError(true);
+                setIsImageLoading(false);
+                setProductImage("/images/products/product-1-1.png");
+                target.src = "/images/products/product-1-1.png";
+              }
             }}
           />
         </div>
