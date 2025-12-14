@@ -237,7 +237,6 @@ const CheckoutDialog: React.FC<CheckoutDialogProps> = ({ isOpen, onClose }) => {
                 console.log('Voucher applied successfully');
                 // Xóa voucher code khỏi localStorage sau khi apply thành công
                 localStorage.removeItem('pendingVoucherCode');
-                toast.success("Voucher đã được áp dụng cho đơn hàng!");
               } catch (voucherError: any) {
                 console.error('Error applying voucher:', voucherError);
                 // Không block flow đặt hàng nếu apply voucher thất bại

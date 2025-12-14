@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { StatisticsService, BestSellerProduct } from "../../../../services/StatisticsService";
+import { StatisticsService } from "../../../../services/StatisticsService";
+import { BestSellerProduct } from "../../../../types/Admin/ProductAPI";
 import { getCookie } from "../../../../utils/cookies";
 import { DashboardOverview } from "../../../../components/server/DashboardOverview";
 import { DashboardStats, Product } from "@/types/Admin";
@@ -43,18 +44,17 @@ export default function DashboardPage() {
         const mappedProducts: Product[] = data.bestSellers.map((item: BestSellerProduct) => ({
           id: item.id,
           name: item.name,
+          description: "",
+          brandName: "",
+          categoryName: "",
+          specs: {},
           price: item.price,
           thumbnailUrl: item.imageUrl,
-          soldCount: item.totalSold,
           stock: 0,
-          isActive: true,
-          categoryId: "",
-          description: "",
-          specifications: {},
-          images: [],
-          variants: [],
+          soldCount: item.totalSold,
           createdAt: "",
-          updatedAt: ""
+          updatedAt: "",
+          isActive: true
         }));
 
         setStats(mappedStats);
