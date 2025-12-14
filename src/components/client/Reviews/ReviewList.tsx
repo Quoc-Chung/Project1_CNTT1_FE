@@ -126,18 +126,20 @@ const ReviewList = ({ productId, limit = 10, showAll = false }: ReviewListProps)
           >
             {/* Header */}
             <div className="flex items-start gap-4 mb-4">
-              <div className="relative w-12 h-12 rounded-full overflow-hidden flex-shrink-0">
-                <Image
-                  src={review.userAvatar || "/images/user/user-default.png"}
-                  alt={review.userName}
-                  fill
-                  className="object-cover"
-                  unoptimized={review.userAvatar?.startsWith("http")}
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.src = "/images/user/user-default.png";
-                  }}
-                />
+              <div className="relative w-12 h-12 rounded-full overflow-hidden flex-shrink-0 bg-gray-200 flex items-center justify-center">
+                {review.userAvatar ? (
+                  <Image
+                    src={review.userAvatar}
+                    alt={review.userName}
+                    fill
+                    className="object-cover"
+                    unoptimized={review.userAvatar?.startsWith("http")}
+                  />
+                ) : (
+                  <span className="text-gray-500 text-lg font-semibold">
+                    {review.userName?.charAt(0)?.toUpperCase() || "U"}
+                  </span>
+                )}
               </div>
               <div className="flex-1">
                 <div className="flex items-center justify-between mb-1">

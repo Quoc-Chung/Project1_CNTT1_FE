@@ -223,18 +223,20 @@ const QuestionDetail = ({ questionId }: QuestionDetailProps) => {
 
           {/* Author Info */}
           <div className="flex items-center gap-4 mb-4 pb-4 border-b border-gray-200">
-            <div className="relative w-12 h-12 rounded-full overflow-hidden flex-shrink-0">
-              <Image
-                src={question.userAvatar || "/images/user/user-default.png"}
-                alt={question.userName}
-                fill
-                className="object-cover"
-                unoptimized={question.userAvatar?.startsWith("http")}
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.src = "/images/user/user-default.png";
-                }}
-              />
+            <div className="relative w-12 h-12 rounded-full overflow-hidden flex-shrink-0 bg-gray-200 flex items-center justify-center">
+              {question.userAvatar ? (
+                <Image
+                  src={question.userAvatar}
+                  alt={question.userName}
+                  fill
+                  className="object-cover"
+                  unoptimized={question.userAvatar?.startsWith("http")}
+                />
+              ) : (
+                <span className="text-gray-500 text-lg font-semibold">
+                  {question.userName?.charAt(0)?.toUpperCase() || "U"}
+                </span>
+              )}
             </div>
             <div>
               <p className="font-semibold text-dark">{question.userName}</p>
@@ -336,18 +338,20 @@ const QuestionDetail = ({ questionId }: QuestionDetailProps) => {
 
                   {/* Author */}
                   <div className="flex items-start gap-4 mb-4">
-                    <div className="relative w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
-                      <Image
-                        src={answer.userAvatar || "/images/user/user-default.png"}
-                        alt={answer.userName}
-                        fill
-                        className="object-cover"
-                        unoptimized={answer.userAvatar?.startsWith("http")}
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.src = "/images/user/user-default.png";
-                        }}
-                      />
+                    <div className="relative w-10 h-10 rounded-full overflow-hidden flex-shrink-0 bg-gray-200 flex items-center justify-center">
+                      {answer.userAvatar ? (
+                        <Image
+                          src={answer.userAvatar}
+                          alt={answer.userName}
+                          fill
+                          className="object-cover"
+                          unoptimized={answer.userAvatar?.startsWith("http")}
+                        />
+                      ) : (
+                        <span className="text-gray-500 text-sm font-semibold">
+                          {answer.userName?.charAt(0)?.toUpperCase() || "U"}
+                        </span>
+                      )}
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center gap-2">

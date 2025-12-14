@@ -34,12 +34,27 @@ const Blog = () => {
         <div className="max-w-[1170px] w-full mx-auto px-4 sm:px-8 xl:px-0">
           {/* Header */}
           <div className="text-center mb-12">
-            <h1 className="font-semibold text-3xl md:text-4xl text-dark mb-4">
-              Blog Công Nghệ
-            </h1>
-            <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-              Khám phá thế giới công nghệ với những bài đánh giá chi tiết, hướng dẫn chọn lựa và so sánh hiệu năng của các sản phẩm máy tính hàng đầu
-            </p>
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+              <div className="flex-1 text-center md:text-left">
+                <h1 className="font-semibold text-3xl md:text-4xl text-dark mb-4">
+                  Blog Công Nghệ
+                </h1>
+                <p className="text-gray-600 text-lg max-w-2xl mx-auto md:mx-0">
+                  Khám phá thế giới công nghệ với những bài đánh giá chi tiết, hướng dẫn chọn lựa và so sánh hiệu năng của các sản phẩm máy tính hàng đầu
+                </p>
+              </div>
+              <div className="flex justify-center md:justify-end">
+                <Link
+                  href="/blog/create"
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg flex items-center gap-2 transition-colors shadow-md font-medium"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  Tạo Blog
+                </Link>
+              </div>
+            </div>
           </div>
 
           {/* Category Filter */}

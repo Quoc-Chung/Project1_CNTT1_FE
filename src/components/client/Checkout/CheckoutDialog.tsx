@@ -72,7 +72,8 @@ const CheckoutDialog: React.FC<CheckoutDialogProps> = ({ isOpen, onClose }) => {
 
   // Calculate totals
   const subtotal = itemsToUse.reduce((total, item) => total + (item.productPrice * item.quantity), 0);
-  const shippingFee = 375000;
+  // Phí vận chuyển: mặc định miễn phí
+  const shippingFee = 0;
   const discount = appliedVoucher ? subtotal * 0.1 : 0;
   const total = subtotal + shippingFee - discount;
 
@@ -443,7 +444,7 @@ const CheckoutDialog: React.FC<CheckoutDialogProps> = ({ isOpen, onClose }) => {
                   )}
                   <div className="flex justify-between text-sm text-dark-4 mb-2">
                     <span>Phí vận chuyển:</span>
-                    <span>{formatCurrency(shippingFee)}</span>
+                    <span className="text-green-600">Miễn phí</span>
                   </div>
                   <div className="flex justify-between font-medium text-lg text-dark pt-2 border-t border-gray-3">
                     <span>Tổng cộng:</span>
@@ -563,7 +564,7 @@ const CheckoutDialog: React.FC<CheckoutDialogProps> = ({ isOpen, onClose }) => {
                   )}
                   <div className="flex justify-between">
                     <span className="text-dark-4">Phí vận chuyển:</span>
-                    <span className="text-dark font-medium">{formatCurrency(shippingFee)}</span>
+                    <span className="font-medium text-green-600">Miễn phí</span>
                   </div>
                   <div className="border-t border-gray-3 pt-2 mt-2 flex justify-between">
                     <span className="text-dark font-medium">Tổng cộng:</span>

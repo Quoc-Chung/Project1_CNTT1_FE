@@ -6,7 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import Breadcrumb from "../Common/Breadcrumb";
 import { BlogPost } from "@/types/Client/Blog/BlogPost";
-import { getBlogPostById, getRelatedPosts } from "@/services/BlogService";
+import { getBlogPostById, getRelatedPosts, incrementBlogView } from "@/services/BlogService";
 
 interface BlogDetailProps {
   blogId: string;
@@ -20,6 +20,9 @@ const BlogDetail: React.FC<BlogDetailProps> = ({ blogId }) => {
   const foundBlog = getBlogPostById(id);
   const relatedPosts = foundBlog ? getRelatedPosts(foundBlog.category, id, 3) : [];
   
+  // State để track view count
+  const [viewCount, setViewCount] = React.useState<number>(foundBlog?.views || 0);
+  
   // Redirect ngay nếu không tìm thấy blog
   React.useEffect(() => {
     if (!foundBlog) {
@@ -27,7 +30,33 @@ const BlogDetail: React.FC<BlogDetailProps> = ({ blogId }) => {
     }
   }, [foundBlog, router]);
 
-  const blog = foundBlog;
+  // Tăng view count khi component mount (người dùng vào trang)
+  React.useEffect(() => {
+    if (!foundBlog) return;
+    
+    // Kiểm tra xem đã view bài này trong session này chưa (dùng sessionStorage để tránh tăng nhiều lần khi refresh)
+    const viewedKey = `blog_viewed_${id}`;
+    const hasViewed = typeof window !== 'undefined' && sessionStorage.getItem(viewedKey);
+    
+    if (!hasViewed) {
+      // Tăng view count
+      const newViews = incrementBlogView(id);
+      setViewCount(newViews);
+      
+      // Đánh dấu đã view trong session này (lưu vào sessionStorage)
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem(viewedKey, 'true');
+      }
+    } else {
+      // Nếu đã view rồi, chỉ load view count từ storage
+      const updatedPost = getBlogPostById(id);
+      if (updatedPost) {
+        setViewCount(updatedPost.views);
+      }
+    }
+  }, [id, foundBlog]);
+
+  const blog = foundBlog ? { ...foundBlog, views: viewCount } : undefined;
   const loading = !foundBlog;
 
   const formatDate = (dateString: string) => {

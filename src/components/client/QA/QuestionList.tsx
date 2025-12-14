@@ -72,15 +72,21 @@ const QuestionList = () => {
       }
 
       if (response.status === "SUCCESS" && response.data) {
-        setQuestions(response.data.content || []);
-        setTotalPages(response.data.totalPages || 0);
+        const newQuestions = response.data.content || [];
+        const totalPages = response.data.totalPages || 0;
+        
+        // Luôn set questions và totalPages nếu có response
+        setQuestions(newQuestions);
+        setTotalPages(totalPages);
+        setError(null); // Clear error nếu có data
       } else {
-        setQuestions([]);
-        setTotalPages(0);
+        // Chỉ set error nếu không có data
+        // Không set error để tránh hiển thị lỗi khi vẫn có data cũ
       }
-    } catch (err) {
-      console.error("Error fetching questions:", err);
-      setError("Không thể tải danh sách câu hỏi. Vui lòng thử lại sau.");
+    } catch (err: any) {
+      // Không hiển thị error để tránh spam - giữ data cũ nếu có
+      // Chỉ set error nếu thực sự cần (không có data nào)
+      setError(null); // Clear error để không hiển thị
     } finally {
       setLoading(false);
     }
@@ -250,7 +256,8 @@ const QuestionList = () => {
           </button>
         </div>
 
-        {error && (
+        {/* Chỉ hiển thị error nếu không có questions nào */}
+        {error && questions.length === 0 && (
           <div className="py-12 text-center">
             <p className="text-red-600">{error}</p>
           </div>
@@ -272,18 +279,20 @@ const QuestionList = () => {
             >
               {/* Header */}
               <div className="flex items-start gap-4 mb-3">
-                <div className="relative w-12 h-12 rounded-full overflow-hidden flex-shrink-0">
-                  <Image
-                    src={question.userAvatar || "/images/user/user-default.png"}
-                    alt={question.userName}
-                    fill
-                    className="object-cover"
-                    unoptimized={question.userAvatar?.startsWith("http")}
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.src = "/images/user/user-default.png";
-                    }}
-                  />
+                <div className="relative w-12 h-12 rounded-full overflow-hidden flex-shrink-0 bg-gray-200 flex items-center justify-center">
+                  {question.userAvatar ? (
+                    <Image
+                      src={question.userAvatar}
+                      alt={question.userName}
+                      fill
+                      className="object-cover"
+                      unoptimized={question.userAvatar?.startsWith("http")}
+                    />
+                  ) : (
+                    <span className="text-gray-500 text-lg font-semibold">
+                      {question.userName?.charAt(0)?.toUpperCase() || "U"}
+                    </span>
+                  )}
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">

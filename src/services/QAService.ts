@@ -12,14 +12,28 @@ interface ApiResponse<T> {
  * so we normalize everything here to keep existing UI logic untouched.
  */
 const normalizeResponse = <T>(raw: any): ApiResponse<T> => {
-  if (raw && typeof raw.status === "undefined" && typeof raw.success === "boolean") {
+  // Handle new API format: { success: true, message: "...", data: {...} }
+  if (raw && typeof raw.success === "boolean") {
     return {
       status: raw.success ? "SUCCESS" : "FAILED",
-      message: raw.message,
-      data: raw.data,
+      message: raw.message || raw.status?.message,
+      data: raw.data || raw,
     };
   }
-  return raw;
+  // Handle old API format: { status: "SUCCESS", data: {...} }
+  if (raw && raw.status && typeof raw.status === "string") {
+    return {
+      status: raw.status,
+      message: raw.message,
+      data: raw.data || raw,
+    };
+  }
+  // Fallback: wrap in standard format
+  return {
+    status: "SUCCESS",
+    message: raw?.message,
+    data: raw?.data || raw,
+  };
 };
 
 interface PageableResponse<T> {
@@ -62,14 +76,23 @@ export class QAService {
         }
       );
 
+      const data = await response.json();
+      
+      // Nếu response không ok nhưng có data, vẫn trả về data (tránh hiển thị lỗi khi vẫn có dữ liệu)
       if (!response.ok) {
+        // Nếu có data trong response, vẫn trả về (có thể là partial success)
+        if (data && data.data) {
+          const normalized = normalizeResponse<PageableResponse<any>>(data);
+          return normalized;
+        }
+        // Chỉ throw error nếu thực sự không có data
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const data = await response.json();
-      return normalizeResponse(data);
+      const normalized = normalizeResponse<PageableResponse<any>>(data);
+      return normalized;
     } catch (error) {
-      console.error("Error fetching questions:", error);
+      console.error("QAService.getAllQuestions - Error:", error);
       throw error;
     }
   }

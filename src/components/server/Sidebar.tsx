@@ -14,6 +14,7 @@ import {
   Folder,
   Ticket,
   Percent,
+  FileText,
 } from "lucide-react";
 import { useSelector } from "react-redux";
 import { RootState, useAppDispatch, persistor } from "../../redux/store";
@@ -105,6 +106,7 @@ const Sidebar: React.FC = () => {
     { href: "/admin-app/customers/management", icon: Users, label: "Quản Lý Khách Hàng" },
     { href: "/admin-app/vouchers", icon: Ticket, label: "Quản Lý Voucher" },
     { href: "/admin-app/sales", icon: Percent, label: "Quản Lý Sale" },
+    { href: "/admin-app/blogs/management", icon: FileText, label: "Quản Lý Blog" },
   ];
 
   return (

@@ -276,7 +276,8 @@ const Checkout = () => {
 
   // Calculate totals (chỉ tính cho các sản phẩm đã chọn)
   const subtotal = itemsToUse.reduce((total, item) => total + (item.productPrice * item.quantity), 0);
-  const shippingFee = 375000; // Fixed shipping fee
+  // Phí vận chuyển: mặc định miễn phí
+  const shippingFee = 0;
   
   // Calculate discount based on applied voucher
   const calculateDiscount = (): number => {
@@ -621,9 +622,10 @@ const Checkout = () => {
                     <div className="flex items-center justify-between py-5 border-b border-gray-3">
                       <div>
                         <p className="text-dark">Phí vận chuyển</p>
+                        <p className="text-xs text-green-600">Miễn phí</p>
                       </div>
                       <div>
-                        <p className="text-dark text-right">{formatCurrency(shippingFee)}</p>
+                        <p className="text-right text-green-600">Miễn phí</p>
                       </div>
                     </div>
 
@@ -701,7 +703,7 @@ const Checkout = () => {
                   )}
                   <div className="flex justify-between">
                     <span className="text-dark-4">Phí vận chuyển:</span>
-                    <span className="text-dark font-medium">{formatCurrency(shippingFee)}</span>
+                    <span className="font-medium text-green-600">Miễn phí</span>
                   </div>
                   <div className="border-t border-gray-3 pt-2 mt-2 flex justify-between">
                     <span className="text-dark font-medium">Tổng cộng:</span>
