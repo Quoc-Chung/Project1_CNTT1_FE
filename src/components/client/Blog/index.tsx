@@ -102,8 +102,6 @@ const Blog = () => {
                   <div className="flex items-center gap-3 text-sm text-gray-600 mb-3">
                     <span>{post.date}</span>
                     <span>•</span>
-                    <span>{post.readTime}</span>
-                    <span>•</span>
                     <span>{post.views} lượt xem</span>
                   </div>
 

@@ -98,7 +98,7 @@ const CreateReview = ({ productId, onReviewCreated }: CreateReviewProps) => {
         await ReviewService.createReview(reviewData, token);
       }
 
-      toast.success("Đánh giá của bạn đã được gửi! Đang chờ duyệt.");
+      toast.success("Đánh giá sản phẩm thành công.");
 
       // Reset form
       setRating(5);

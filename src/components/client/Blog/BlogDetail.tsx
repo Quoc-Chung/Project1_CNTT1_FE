@@ -136,8 +136,6 @@ const BlogDetail: React.FC<BlogDetailProps> = ({ blogId }) => {
                 <span>•</span>
                 <span>{formatDate(blog.date)}</span>
                 <span>•</span>
-                <span>{blog.readTime}</span>
-                <span>•</span>
                 <span>{blog.views.toLocaleString()} lượt xem</span>
               </div>
             </div>

@@ -17,7 +17,7 @@ const CategoryItem = ({ category, isSelected, onToggle }: CategoryItemProps) => 
     <button
       className={`${
         isSelected && "text-blue"
-      } group flex items-center justify-between ease-out duration-200 hover:text-blue `}
+      } group flex items-center ease-out duration-200 hover:text-blue `}
       onClick={() => onToggle(category.id)}
     >
       <div className="flex items-center gap-2">
@@ -36,14 +36,6 @@ const CategoryItem = ({ category, isSelected, onToggle }: CategoryItemProps) => 
 
         <span>{category.name}</span>
       </div>
-
-      <span
-        className={`${
-          isSelected ? "text-white bg-blue" : "bg-gray-2"
-        } inline-flex rounded-[30px] text-custom-xs px-2 ease-out duration-200 group-hover:text-white group-hover:bg-blue`}
-      >
-        {category.products}
-      </span>
     </button>
   );
 };
@@ -82,7 +74,7 @@ const CategoryDropdown = ({ categories, loading = false, selectedCategories = []
           toggleDropdown && "shadow-filter"
         }`}
       >
-        <p className="text-dark">Category</p>
+        <p className="text-dark">Danh mục</p>
         <button
           aria-label="button for category dropdown"
           className={`text-dark ease-out duration-200 ${
@@ -116,11 +108,11 @@ const CategoryDropdown = ({ categories, loading = false, selectedCategories = []
       >
         {loading ? (
           <div className="text-center py-4 text-gray-500 text-sm">
-            Đang tải categories...
+            Đang tải danh mục...
           </div>
         ) : categories.length === 0 ? (
           <div className="text-center py-4 text-gray-500 text-sm">
-            Không có category nào
+            Không có danh mục nào
           </div>
         ) : (
           categories.map((category, key) => (

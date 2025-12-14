@@ -256,6 +256,15 @@ export const authReducer = (state = initialState, action: any) => {
           localStorage.setItem('tokenExpiresIn', expiresIn.toString());
         }
       }
+      
+      // Khởi động auto-refresh token sau khi login Google thành công
+      if (action.payload?.token && action.payload?.refreshToken && typeof window !== 'undefined') {
+        // Đợi một chút để đảm bảo cookie đã được set
+        setTimeout(() => {
+          startAutoRefresh();
+        }, 500);
+      }
+      
       return {
         ...state,
         loading: false,

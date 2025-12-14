@@ -44,18 +44,17 @@ export default function HomePage() {
         const mappedProducts: Product[] = data.bestSellers.map((item: BestSellerProduct) => ({
           id: item.id,
           name: item.name,
+          description: "",
+          brandName: "",
+          categoryName: "",
+          specs: {},
           price: item.price,
           thumbnailUrl: item.imageUrl,
-          soldCount: item.totalSold,
           stock: 0,
-          isActive: true,
-          categoryId: "",
-          description: "",
-          specifications: {},
-          images: [],
-          variants: [],
+          soldCount: item.totalSold,
           createdAt: "",
-          updatedAt: ""
+          updatedAt: "",
+          isActive: true
         }));
 
         setStats(mappedStats);

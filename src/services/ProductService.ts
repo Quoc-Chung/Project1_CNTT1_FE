@@ -3,8 +3,11 @@ import {
   ProductListResponse,
   ProductDetailResponse,
   ProductCreateRequest,
+  BestSellerProduct,
+  BestSellersResponse,
 } from "../types/Admin/ProductAPI";
 import { SKUResponse } from "../types/Client/Product/Product";
+import { fetchWithAuth } from "../utils/refreshToken";
 
 const API_BASE_URL = "http://103.90.225.90:8080/services/product-service/api";
 
@@ -265,6 +268,76 @@ export class ProductService {
       return data;
     } catch (error) {
       console.error("Error fetching SKUs by product ID:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Lấy danh sách sản phẩm bán chạy
+   * @param limit - Số lượng sản phẩm cần lấy (mặc định: 10)
+   */
+  static async getBestSellers(limit: number = 10): Promise<BestSellerProduct[]> {
+    try {
+      const url = `${API_BASE_URL}/products/statistics/best-sellers?limit=${limit}`;
+      
+      console.log('Fetching best sellers from URL:', url);
+
+      const response = await fetchWithAuth(url, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      // Đọc response text trước để có thể parse nhiều lần nếu cần
+      const responseText = await response.text();
+      
+      if (!response.ok) {
+        console.error('Best Sellers API Error:', {
+          status: response.status,
+          statusText: response.statusText,
+          errorText: responseText
+        });
+        throw new Error(`HTTP error! status: ${response.status} - ${responseText}`);
+      }
+
+      let data: BestSellersResponse;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('Error parsing best sellers response:', parseError);
+        throw new Error('Failed to parse best sellers response');
+      }
+      
+      // Debug: Log response để kiểm tra
+      console.log('Best Sellers API Response:', {
+        statusCode: data.status?.code,
+        statusMessage: data.status?.message,
+        totalProducts: data.data?.length || 0,
+        hasData: !!data.data,
+        dataType: Array.isArray(data.data) ? 'array' : typeof data.data,
+        products: data.data?.map(p => ({
+          id: p.id,
+          name: p.name,
+          price: p.price,
+          totalSold: p.totalSold
+        }))
+      });
+
+      // Kiểm tra status code
+      if (data.status?.code === '200' || data.status?.code === 200) {
+        // Đảm bảo data.data là array
+        if (Array.isArray(data.data)) {
+          return data.data;
+        } else {
+          console.warn('Best Sellers API returned non-array data or invalid format:', data);
+          return [];
+        }
+      } else {
+        throw new Error(data.status?.message || 'Failed to fetch best sellers');
+      }
+    } catch (error) {
+      console.error('Error fetching best sellers:', error);
       throw error;
     }
   }

@@ -7,12 +7,13 @@ import PaymentMethod from "./PaymentMethod";
 import Coupon from "./Coupon";
 import { useAppDispatch, useAppSelector } from "@/redux/store";
 import { createOrderAction, resetOrderStateAction } from "@/redux/Client/Order/Action";
+import { removeProductFromCartAction } from "@/redux/Client/CartOrder/Action";
 import { CreateOrderRequest, OrderItemRequest } from "@/types/Client/Order/order";
 import { toast } from "react-toastify";
 import addressDataRaw from "@/utils/address.json";
 import { ProductService } from "@/services/ProductService";
 import { CartOrderResponse } from "@/types/Client/CartOrder/cartorder";
-import { VoucherResponse } from "@/services/VoucherService";
+import { VoucherResponse, VoucherService } from "@/services/VoucherService";
 
 interface AddressData {
   name: string;
@@ -28,7 +29,7 @@ const Checkout = () => {
 
   // Get cart items and auth token from Redux
   const { cart } = useAppSelector((state) => state.cart);
-  const { token } = useAppSelector((state) => state.auth);
+  const { token, user } = useAppSelector((state) => state.auth);
   const { loading, success, error } = useAppSelector((state) => state.order);
 
   const [selectedCartItems, setSelectedCartItems] = useState<CartOrderResponse[]>([]);
@@ -50,7 +51,7 @@ const Checkout = () => {
         setSelectedCartItems(cart);
       }
     }
-  }, []); // Chỉ chạy một lần khi component mount
+  }, []); 
 
   // Address data
   const provinces = (addressDataRaw as unknown) as AddressData[];
@@ -169,8 +170,16 @@ const Checkout = () => {
     setAppliedVoucher(voucher);
     if (voucher) {
       setVoucherCode(voucher.code);
+      // Lưu voucher code vào localStorage để sử dụng sau khi đặt hàng
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('pendingVoucherCode', voucher.code);
+      }
     } else {
       setVoucherCode("");
+      // Xóa voucher code khỏi localStorage khi bỏ áp dụng
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('pendingVoucherCode');
+      }
     }
   };
 
@@ -253,8 +262,101 @@ const Checkout = () => {
       createOrderAction(
         orderRequest,
         cleanToken,
-        (res) => {
+        async (res) => {
+          // Lấy orderId từ response
+          const orderId = res.data?.orderId;
+          const orderValue = res.data?.totalAmount || subtotal;
+          
+          // Lấy userId từ JWT token hoặc user object
+          let userId: number | null = null;
+          
+          // Thử lấy từ user object trước
+          if (user && (user as any).userId) {
+            userId = (user as any).userId;
+          } else if (user && (user as any).id) {
+            userId = (user as any).id;
+          } else if (token) {
+            // Decode JWT để lấy userId
+            try {
+              const parts = token.split('.');
+              if (parts.length === 3) {
+                const payload = JSON.parse(atob(parts[1]));
+                userId = payload.userId || payload.user_id || payload.id || null;
+              }
+            } catch (e) {
+              console.error('Error decoding JWT for userId:', e);
+            }
+          }
+          
+          // Kiểm tra và apply voucher nếu có
+          if (orderId && userId && typeof window !== 'undefined') {
+            const pendingVoucherCode = localStorage.getItem('pendingVoucherCode');
+            
+            if (pendingVoucherCode && appliedVoucher) {
+              try {
+                console.log('Applying voucher to order:', {
+                  code: pendingVoucherCode,
+                  orderId,
+                  orderValue,
+                  userId: userId
+                });
+                
+                await VoucherService.applyVoucher({
+                  code: pendingVoucherCode,
+                  userId: userId,
+                  orderId: orderId,
+                  orderValue: orderValue
+                });
+                
+                console.log('Voucher applied successfully');
+                // Xóa voucher code khỏi localStorage sau khi apply thành công
+                localStorage.removeItem('pendingVoucherCode');
+               
+              } catch (voucherError: any) {
+                console.error('Error applying voucher:', voucherError);
+                // Không block flow đặt hàng nếu apply voucher thất bại
+                toast.warning(`Đặt hàng thành công nhưng không thể áp dụng voucher: ${voucherError.message || 'Lỗi không xác định'}`);
+                // Vẫn xóa voucher code để tránh apply lại lần sau
+                localStorage.removeItem('pendingVoucherCode');
+              }
+            } else {
+              // Xóa voucher code nếu không có voucher
+              localStorage.removeItem('pendingVoucherCode');
+            }
+          } else if (typeof window !== 'undefined') {
+            // Xóa voucher code nếu không có orderId hoặc userId
+            localStorage.removeItem('pendingVoucherCode');
+          }
+          
           toast.success("Đặt hàng thành công!");
+          
+          // Xóa các sản phẩm trong đơn hàng khỏi giỏ hàng
+          if (cleanToken && itemsToUse.length > 0) {
+            // Xóa từng sản phẩm khỏi giỏ hàng
+            const removePromises = itemsToUse.map((item) => {
+              return new Promise<void>((resolve) => {
+                dispatch(
+                  removeProductFromCartAction(
+                    item.productId,
+                    item.skuId,
+                    cleanToken,
+                    () => {
+                      resolve();
+                    },
+                    (error) => {
+                      // Log lỗi nhưng không block flow
+                      console.error(`Lỗi khi xóa sản phẩm ${item.productId} khỏi giỏ hàng:`, error);
+                      resolve(); // Vẫn resolve để không block các sản phẩm khác
+                    }
+                  )
+                );
+              });
+            });
+            
+            // Đợi tất cả các sản phẩm được xóa (hoặc có lỗi)
+            await Promise.all(removePromises);
+          }
+          
           // Reset order state
           dispatch(resetOrderStateAction());
           // Xóa selectedCartItems khỏi sessionStorage sau khi đặt hàng thành công

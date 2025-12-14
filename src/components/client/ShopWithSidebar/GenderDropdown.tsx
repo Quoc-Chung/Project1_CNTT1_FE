@@ -16,7 +16,7 @@ const GenderItem = ({ category, isSelected, onToggle }: GenderItemProps) => {
     <button
       className={`${
         isSelected && "text-blue"
-      } group flex items-center justify-between ease-out duration-200 hover:text-blue `}
+      } group flex items-center ease-out duration-200 hover:text-blue `}
       onClick={() => onToggle(category.id)}
     >
       <div className="flex items-center gap-2">
@@ -35,14 +35,6 @@ const GenderItem = ({ category, isSelected, onToggle }: GenderItemProps) => {
 
         <span>{category.name}</span>
       </div>
-
-      <span
-        className={`${
-          isSelected ? "text-white bg-blue" : "bg-gray-2"
-        } inline-flex rounded-[30px] text-custom-xs px-2 ease-out duration-200 group-hover:text-white group-hover:bg-blue`}
-      >
-        {category.products}
-      </span>
     </button>
   );
 };
@@ -78,7 +70,7 @@ const GenderDropdown = ({ genders, loading = false, selectedBrands = [], onBrand
           toggleDropdown && "shadow-filter"
         }`}
       >
-        <p className="text-dark">Brand</p>
+        <p className="text-dark">Thương hiệu</p>
         <button
           onClick={() => setToggleDropdown(!toggleDropdown)}
           aria-label="button for brand dropdown"
@@ -112,11 +104,11 @@ const GenderDropdown = ({ genders, loading = false, selectedBrands = [], onBrand
       >
         {loading ? (
           <div className="text-center py-4 text-gray-500 text-sm">
-            Đang tải brands...
+            Đang tải thương hiệu...
           </div>
         ) : genders.length === 0 ? (
           <div className="text-center py-4 text-gray-500 text-sm">
-            Không có brand nào
+            Không có thương hiệu nào
           </div>
         ) : (
           genders.map((gender, key) => (

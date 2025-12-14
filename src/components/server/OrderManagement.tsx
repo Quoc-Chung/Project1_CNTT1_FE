@@ -1,10 +1,12 @@
 "use client"
 import React, { useState, useEffect } from "react";
-import { Eye } from "lucide-react";
+import { Eye, CheckCircle, XCircle } from "lucide-react";
 import { Order } from "@/types/Admin";
 import { formatPrice, formatDate, getStatusBadge }  from '../../utils/helpers';
 import { OrderService, AdminOrderResponse } from '@/services/OrderService';
 import { OrderDetailDialog } from './OrderDetailDialog';
+import { UpdateOrderStatusDialog } from './UpdateOrderStatusDialog';
+import { CancelOrderDialog } from './CancelOrderDialog';
 import { toast } from "react-toastify";
 
 interface OrderManagementProps {
@@ -17,6 +19,9 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ orders: initia
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isUpdateStatusDialogOpen, setIsUpdateStatusDialogOpen] = useState(false);
+  const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
+  const [selectedOrderStatus, setSelectedOrderStatus] = useState<string>("");
   const ordersPerPage = 5;
 
   const totalPages = Math.ceil(orders.length / ordersPerPage);
@@ -42,7 +47,8 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ orders: initia
             orderDate: apiOrder.createdAt,
             paymentMethod: 'cash', // Default, có thể fetch từ API sau
             shippingAddress: apiOrder.shippingAddress,
-          }));
+            apiStatus: apiOrder.status, // Lưu status gốc từ API
+          } as Order & { apiStatus: string }));
           
           setOrders(mappedOrders);
         } catch (error: any) {
@@ -62,17 +68,45 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ orders: initia
     const statusMap: { [key: string]: Order['status'] } = {
       'PENDING': 'pending',
       'PROCESSING': 'processing',
+      'CONFIRMED': 'processing',
+      'SHIPPING': 'shipped',
       'SHIPPED': 'shipped',
       'DELIVERED': 'delivered',
+      'COMPLETED': 'delivered',
       'CANCELLED': 'cancelled',
+      'RETURNED': 'cancelled',
     };
     return statusMap[status.toUpperCase()] || 'pending';
+  };
+
+  // Map Order status back to API status format
+  const mapOrderStatusToApiStatus = (order: Order): string => {
+    // Tìm order trong danh sách để lấy status gốc từ API
+    const apiOrder = orders.find(o => o.id === order.id);
+    if (apiOrder) {
+      // Lưu status gốc từ API response
+      return (apiOrder as any).apiStatus || order.status.toUpperCase();
+    }
+    return order.status.toUpperCase();
   };
 
   // Handle view order detail
   const handleViewOrderDetail = (orderId: string) => {
     setSelectedOrderId(orderId);
     setIsDialogOpen(true);
+  };
+
+  // Handle approve order (update status)
+  const handleApproveOrder = (orderId: string, currentStatus: string) => {
+    setSelectedOrderId(orderId);
+    setSelectedOrderStatus(currentStatus);
+    setIsUpdateStatusDialogOpen(true);
+  };
+
+  // Handle cancel order
+  const handleCancelOrder = (orderId: string) => {
+    setSelectedOrderId(orderId);
+    setIsCancelDialogOpen(true);
   };
 
   // Handle order updated (refresh list)
@@ -90,7 +124,8 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ orders: initia
           orderDate: apiOrder.createdAt,
           paymentMethod: 'cash',
           shippingAddress: apiOrder.shippingAddress,
-        }));
+          apiStatus: apiOrder.status, // Lưu status gốc từ API
+        } as Order & { apiStatus: string }));
         setOrders(mappedOrders);
       } catch (error: any) {
         console.error('Error refreshing orders:', error);
@@ -149,26 +184,46 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ orders: initia
       </div>
 
       {/* Thống kê trạng thái */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-        <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 text-center">
-          <p className="text-lg font-bold text-blue-900">{orders.filter(o => o.status === 'pending').length}</p>
-          <p className="text-sm text-blue-600">Chờ xử lý</p>
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
+        {/* PROCESSING - Đang xử lý */}
+        <div className="bg-blue-50 p-3 rounded-lg border border-blue-200 text-center">
+          <p className="text-lg font-bold text-blue-900">{orders.filter(o => ((o as any).apiStatus || o.status.toUpperCase()) === 'PROCESSING').length}</p>
+          <p className="text-xs text-blue-600">Đang xử lý</p>
         </div>
-        <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200 text-center">
-          <p className="text-lg font-bold text-yellow-900">{orders.filter(o => o.status === 'processing').length}</p>
-          <p className="text-sm text-yellow-600">Đang xử lý</p>
+        {/* CONFIRMED - Đã xác nhận */}
+        <div className="bg-indigo-50 p-3 rounded-lg border border-indigo-200 text-center">
+          <p className="text-lg font-bold text-indigo-900">{orders.filter(o => ((o as any).apiStatus || o.status.toUpperCase()) === 'CONFIRMED').length}</p>
+          <p className="text-xs text-indigo-600">Đã xác nhận</p>
         </div>
-        <div className="bg-purple-50 p-4 rounded-lg border border-purple-200 text-center">
-          <p className="text-lg font-bold text-purple-900">{orders.filter(o => o.status === 'shipped').length}</p>
-          <p className="text-sm text-purple-600">Đã gửi</p>
+        {/* CANCELLED - Đã hủy */}
+        <div className="bg-red-50 p-3 rounded-lg border border-red-200 text-center">
+          <p className="text-lg font-bold text-red-900">{orders.filter(o => ((o as any).apiStatus || o.status.toUpperCase()) === 'CANCELLED').length}</p>
+          <p className="text-xs text-red-600">Đã hủy</p>
         </div>
-        <div className="bg-green-50 p-4 rounded-lg border border-green-200 text-center">
-          <p className="text-lg font-bold text-green-900">{orders.filter(o => o.status === 'delivered').length}</p>
-          <p className="text-sm text-green-600">Đã giao</p>
+        {/* PENDING - Đang chờ thanh toán */}
+        <div className="bg-yellow-50 p-3 rounded-lg border border-yellow-200 text-center">
+          <p className="text-lg font-bold text-yellow-900">{orders.filter(o => ((o as any).apiStatus || o.status.toUpperCase()) === 'PENDING').length}</p>
+          <p className="text-xs text-yellow-600">Chờ thanh toán</p>
         </div>
-        <div className="bg-red-50 p-4 rounded-lg border border-red-200 text-center">
-          <p className="text-lg font-bold text-red-900">{orders.filter(o => o.status === 'cancelled').length}</p>
-          <p className="text-sm text-red-600">Đã hủy</p>
+        {/* SHIPPING - Đang giao hàng */}
+        <div className="bg-purple-50 p-3 rounded-lg border border-purple-200 text-center">
+          <p className="text-lg font-bold text-purple-900">{orders.filter(o => ((o as any).apiStatus || o.status.toUpperCase()) === 'SHIPPING').length}</p>
+          <p className="text-xs text-purple-600">Đang giao hàng</p>
+        </div>
+        {/* DELIVERED - Đã giao hàng */}
+        <div className="bg-green-50 p-3 rounded-lg border border-green-200 text-center">
+          <p className="text-lg font-bold text-green-900">{orders.filter(o => ((o as any).apiStatus || o.status.toUpperCase()) === 'DELIVERED').length}</p>
+          <p className="text-xs text-green-600">Đã giao hàng</p>
+        </div>
+        {/* RETURNED - Đã trả hàng */}
+        <div className="bg-orange-50 p-3 rounded-lg border border-orange-200 text-center">
+          <p className="text-lg font-bold text-orange-900">{orders.filter(o => ((o as any).apiStatus || o.status.toUpperCase()) === 'RETURNED').length}</p>
+          <p className="text-xs text-orange-600">Đã trả hàng</p>
+        </div>
+        {/* COMPLETED - Đã hoàn thành */}
+        <div className="bg-emerald-50 p-3 rounded-lg border border-emerald-200 text-center">
+          <p className="text-lg font-bold text-emerald-900">{orders.filter(o => ((o as any).apiStatus || o.status.toUpperCase()) === 'COMPLETED').length}</p>
+          <p className="text-xs text-emerald-600">Đã hoàn thành</p>
         </div>
       </div>
 
@@ -196,21 +251,59 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ orders: initia
                   </td>
                   <td className="px-6 py-4 text-sm font-bold text-red-600">{formatPrice(order.totalAmount)}</td>
                   <td className="px-6 py-4 text-sm">
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${getStatusBadge(order.status).color}`}>
-                      {getStatusBadge(order.status).text}
-                    </span>
+                    {(() => {
+                      // Sử dụng trạng thái gốc từ API nếu có, nếu không thì dùng mapped status
+                      const apiStatus = (order as any).apiStatus || order.status;
+                      const badge = getStatusBadge(apiStatus);
+                      return (
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${badge.color}`}>
+                          {badge.text}
+                        </span>
+                      );
+                    })()}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-600">{formatDate(order.orderDate)}</td>
                   <td className="px-6 py-4">
-                    <div className="flex items-center justify-center">
-                      <button 
-                        onClick={() => handleViewOrderDetail(order.id)}
-                        className="text-blue-600 hover:text-blue-900 transition-colors" 
-                        title="Xem chi tiết"
-                      >
-                        <Eye size={18} />
-                      </button>
-                    </div>
+                    {(() => {
+                      const apiStatus = (order as any).apiStatus || order.status.toUpperCase();
+                      const finalStatuses = ['DELIVERED', 'COMPLETED', 'CANCELLED', 'RETURNED'];
+                      const canEdit = !finalStatuses.includes(apiStatus);
+                      
+                      return (
+                        <div className="flex items-center justify-center space-x-2">
+                          <button 
+                            onClick={() => handleViewOrderDetail(order.id)}
+                            className="px-2 py-1.5 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-md transition-colors flex items-center space-x-1 border border-blue-200"
+                            title="Xem chi tiết"
+                          >
+                            <Eye size={14} />
+                            <span>Xem</span>
+                          </button>
+                          {/* Chỉ hiển thị nút Duyệt khi đơn hàng chưa ở trạng thái cuối cùng */}
+                          {canEdit && (
+                            <button 
+                              onClick={() => handleApproveOrder(order.id, apiStatus)}
+                              className="px-2 py-1.5 text-xs text-green-600 hover:text-green-700 hover:bg-green-50 rounded-md transition-colors flex items-center space-x-1 border border-green-200 font-medium"
+                              title="Duyệt đơn"
+                            >
+                              <CheckCircle size={14} />
+                              <span>Duyệt</span>
+                            </button>
+                          )}
+                          {/* Chỉ hiển thị nút Từ chối khi đơn hàng chưa ở trạng thái cuối cùng */}
+                          {canEdit && (
+                            <button 
+                              onClick={() => handleCancelOrder(order.id)}
+                              className="px-2 py-1.5 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors flex items-center space-x-1 border border-red-200 font-medium"
+                              title="Từ chối đơn hàng"
+                            >
+                              <XCircle size={14} />
+                              <span>Từ chối</span>
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </td>
                 </tr>
               ))}
@@ -263,6 +356,30 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ orders: initia
           setSelectedOrderId(null);
         }}
         onOrderUpdated={handleOrderUpdated}
+      />
+
+      {/* Update Order Status Dialog */}
+      <UpdateOrderStatusDialog
+        orderId={selectedOrderId}
+        currentStatus={selectedOrderStatus}
+        isOpen={isUpdateStatusDialogOpen}
+        onClose={() => {
+          setIsUpdateStatusDialogOpen(false);
+          setSelectedOrderId(null);
+          setSelectedOrderStatus("");
+        }}
+        onStatusUpdated={handleOrderUpdated}
+      />
+
+      {/* Cancel Order Dialog */}
+      <CancelOrderDialog
+        orderId={selectedOrderId}
+        isOpen={isCancelDialogOpen}
+        onClose={() => {
+          setIsCancelDialogOpen(false);
+          setSelectedOrderId(null);
+        }}
+        onOrderCancelled={handleOrderUpdated}
       />
     </div>
   );

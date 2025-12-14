@@ -12,8 +12,6 @@ import { addProductToCartAction } from "../../../redux/Client/CartOrder/Action";
 import { useOptimizedHydration } from "../../../hooks/useOptimizedHydration";
 import { ProductService } from "@/services/ProductService";
 import { SKU } from "@/types/Client/Product/Product";
-import ReviewList from "../Reviews/ReviewList";
-import CreateReview from "../Reviews/CreateReview";
 
 interface ShopDetailsProps {
   productData: ProductDetailResponse | null;
@@ -25,7 +23,6 @@ const ShopDetails = ({ productData }: ShopDetailsProps) => {
   const [skus, setSkus] = useState<SKU[]>([]);
   const [selectedSKU, setSelectedSKU] = useState<SKU | null>(null);
   const [loadingSKUs, setLoadingSKUs] = useState(false);
-  const [refreshReviews, setRefreshReviews] = useState(0);
   const isHydrated = useOptimizedHydration(30); // Sử dụng hook tối ưu hóa
   const { openPreviewModal } = usePreviewSlider();
   const router = useRouter();
@@ -64,49 +61,213 @@ const ShopDetails = ({ productData }: ShopDetailsProps) => {
   // Helper functions - được định nghĩa trước hooks
   const getDetailedSpecs = (prod: typeof product) => {
     if (!prod) return {};
+    
+    // Nếu có specs từ API, ưu tiên dùng specs đó
     if (prod.specs && prod.specs !== null && Object.keys(prod.specs).length > 0) {
       return prod.specs;
     }
+
+    // Lấy categoryName để xác định loại sản phẩm
+    const categoryName = prod.categoryName?.toLowerCase() || '';
+    
+    // Thông số kỹ thuật cho Máy tính/Laptop
+    if (categoryName.includes('laptop') || categoryName.includes('máy tính') || categoryName.includes('laptop')) {
+      return {
+        "Bộ xử lý": "AMD Ryzen 7 6800H (8 nhân, 16 luồng)",
+        "Card đồ họa": "NVIDIA GeForce RTX 4060 (8GB GDDR6)",
+        "RAM": "16GB DDR5 4800MHz",
+        "Ổ cứng": "512GB NVMe PCIe 4.0 SSD",
+        "Màn hình": "15.6 inch Full HD (1920 x 1080) IPS 144Hz",
+        "Pin": "90Wh - 6-8 giờ (Văn phòng), 2-3 giờ (Gaming)",
+        "Kích thước": "354 x 251 x 22.4 mm",
+        "Trọng lượng": "2.2 kg",
+        "Hệ điều hành": "Windows 11 Home",
+        "Bảo hành": "24 tháng",
+        "Công nghệ GPU": "DLSS 3.0, Ray Tracing, NVIDIA Reflex",
+        "Kết nối": "USB-C (Thunderbolt 4), USB-A, HDMI 2.1, Wi-Fi 6E, Bluetooth 5.2",
+        "Tản nhiệt": "Dual Fan + 5 Heat Pipes, Liquid Metal",
+        "Bàn phím": "RGB Backlit, N-key rollover",
+      };
+    }
+
+    // Thông số kỹ thuật cho Bàn phím
+    if (categoryName.includes('bàn phím') || categoryName.includes('keyboard') || categoryName.includes('phím')) {
+      return {
+        "Loại switch": "Mechanical (Cherry MX Red)",
+        "Bố cục": "Full-size (104 phím)",
+        "Kết nối": "USB-C có dây + Bluetooth 5.0",
+        "Đèn LED": "RGB per-key, 16.8 triệu màu",
+        "Phím tắt đa phương tiện": "Có (Volume, Play/Pause, Next/Previous)",
+        "Kích thước": "442 x 132 x 36 mm",
+        "Trọng lượng": "1.2 kg",
+        "Tương thích": "Windows, macOS, Linux, Android, iOS",
+        "Bảo hành": "24 tháng",
+        "Tốc độ phản hồi": "1ms (USB), 2.4ms (Bluetooth)",
+        "Độ bền phím": "50 triệu lần nhấn",
+        "Chống nước": "IPX4 (Chống nước nhẹ)",
+        "Phần mềm": "iCUE (Corsair) / MSI Dragon Center",
+      };
+    }
+
+    // Thông số kỹ thuật cho Tai nghe
+    if (categoryName.includes('tai nghe') || categoryName.includes('headset') || categoryName.includes('headphone')) {
+      return {
+        "Loại": "Tai nghe chơi game có dây/USB",
+        "Driver": "50mm Neodymium",
+        "Tần số đáp ứng": "20Hz - 20kHz",
+        "Trở kháng": "32 Ohm",
+        "Độ nhạy": "111 dB SPL/mW",
+        "Microphone": "Có, có thể gập lại",
+        "Kết nối": "USB-A 3.5mm jack",
+        "Điều khiển": "Nút điều chỉnh âm lượng trên dây",
+        "Kích thước": "190 x 185 x 85 mm",
+        "Trọng lượng": "350g",
+        "Bảo hành": "24 tháng",
+        "Tính năng": "7.1 Surround Sound, RGB Lighting",
+        "Dây cáp": "2m, có thể tháo rời",
+        "Tương thích": "PC, PS4, PS5, Xbox, Nintendo Switch",
+      };
+    }
+
+    // Thông số kỹ thuật cho Chuột
+    if (categoryName.includes('chuột') || categoryName.includes('mouse')) {
+      return {
+        "Loại cảm biến": "Optical (PixArt PMW3360)",
+        "Độ phân giải": "12,000 DPI (có thể điều chỉnh)",
+        "Tốc độ theo dõi": "250 IPS",
+        "Gia tốc": "50G",
+        "Tần số phản hồi": "1000Hz (1ms)",
+        "Số nút": "8 nút có thể lập trình",
+        "Kết nối": "USB-A có dây",
+        "Đèn LED": "RGB 16.8 triệu màu",
+        "Kích thước": "126 x 66 x 38 mm",
+        "Trọng lượng": "85g",
+        "Bảo hành": "24 tháng",
+        "Độ bền click": "50 triệu lần nhấn",
+        "Bề mặt làm việc": "Tương thích mọi bề mặt",
+        "Phần mềm": "Logitech G HUB / Razer Synapse",
+      };
+    }
+
+    // Thông số kỹ thuật cho RAM
+    if (categoryName.includes('ram') || categoryName.includes('memory')) {
+      return {
+        "Dung lượng": "16GB (2x8GB)",
+        "Loại": "DDR5",
+        "Tốc độ": "4800MHz (có thể OC lên 6000MHz)",
+        "Độ trễ": "CL40 (CAS Latency 40)",
+        "Điện áp": "1.1V (JEDEC), 1.35V (XMP)",
+        "Kích thước": "133.35 x 40 mm",
+        "Trọng lượng": "45g/cây",
+        "Bảo hành": "Trọn đời",
+        "Tản nhiệt": "Heatspreader nhôm, RGB",
+        "Tương thích": "Intel 12th/13th Gen, AMD Ryzen 7000",
+        "XMP Profile": "XMP 3.0 (2 profiles)",
+        "Độ bền": "Kiểm tra chất lượng nghiêm ngặt",
+      };
+    }
+
+    // Mặc định: Thông số chung nếu không khớp với loại nào
     return {
-      // Thông số cơ bản
-      "Bộ xử lý": "AMD Ryzen 7 6800H (8 nhân, 16 luồng)",
-      "Card đồ họa": "NVIDIA GeForce RTX 4060 (8GB GDDR6)",
-      "RAM": "16GB DDR5 4800MHz",
-      "Ổ cứng": "512GB NVMe PCIe 4.0 SSD",
-      "Màn hình": "15.6 inch Full HD (1920 x 1080) IPS 144Hz",
-      "Pin": "90Wh - 6-8 giờ (Văn phòng), 2-3 giờ (Gaming)",
-      "Kích thước": "354 x 251 x 22.4 mm",
-      "Trọng lượng": "2.2 kg",
-      "Hệ điều hành": "Windows 11 Home",
-      "Bảo hành": "24 tháng",
-      // Thông số nâng cao
-      "Công nghệ GPU": "DLSS 3.0, Ray Tracing, NVIDIA Reflex",
-      "Kết nối": "USB-C (Thunderbolt 4), USB-A, HDMI 2.1, Wi-Fi 6E, Bluetooth 5.2",
-      "Tản nhiệt": "Dual Fan + 5 Heat Pipes, Liquid Metal",
-      "Bàn phím": "RGB Backlit, N-key rollover",
-      "Hiệu năng Gaming": "Cyberpunk 2077: 65-75 FPS (1080p Ultra)",
-      "Benchmark": "3DMark Time Spy: 9,200 điểm",
-      "Tiêu chuẩn": "MIL-STD-810H (Chuẩn quân đội)",
+      "Thương hiệu": prod.brandName || "Không xác định",
+      "Danh mục": prod.categoryName || "Không xác định",
+      "Mô tả": prod.description || "Sản phẩm chất lượng cao",
+      "Bảo hành": "12 tháng",
+      "Xuất xứ": "Việt Nam",
+      "Trạng thái": "Mới 100%",
     };
   };
 
-  // Tạo danh sách thông số kỹ thuật gộp lại
-  const getMergedSpecs = (specs: { [key: string]: string }) => {
-    // Danh sách các trường cần hiển thị (cơ bản + 2 trường từ nâng cao)
-    const displayKeys = [
-      "Bộ xử lý",
-      "Card đồ họa",
-      "RAM",
-      "Ổ cứng",
-      "Màn hình",
-      "Pin",
-      "Kích thước",
-      "Trọng lượng",
-      "Hệ điều hành",
-      "Bảo hành",
-      "Công nghệ GPU",  // Thêm từ nâng cao
-      "Bàn phím"        // Thêm từ nâng cao
-    ];
+  // Tạo danh sách thông số kỹ thuật gộp lại theo từng loại sản phẩm
+  const getMergedSpecs = (specs: { [key: string]: string }, categoryName?: string) => {
+    const category = categoryName?.toLowerCase() || '';
+    
+    let displayKeys: string[] = [];
+
+    // Xác định các trường cần hiển thị dựa trên loại sản phẩm
+    if (category.includes('laptop') || category.includes('máy tính')) {
+      displayKeys = [
+        "Bộ xử lý",
+        "Card đồ họa",
+        "RAM",
+        "Ổ cứng",
+        "Màn hình",
+        "Pin",
+        "Kích thước",
+        "Trọng lượng",
+        "Hệ điều hành",
+        "Bảo hành",
+        "Công nghệ GPU",
+        "Kết nối",
+      ];
+    } else if (category.includes('bàn phím') || category.includes('keyboard') || category.includes('phím')) {
+      displayKeys = [
+        "Loại switch",
+        "Bố cục",
+        "Kết nối",
+        "Đèn LED",
+        "Phím tắt đa phương tiện",
+        "Kích thước",
+        "Trọng lượng",
+        "Tương thích",
+        "Bảo hành",
+        "Tốc độ phản hồi",
+        "Độ bền phím",
+        "Chống nước",
+      ];
+    } else if (category.includes('tai nghe') || category.includes('headset') || category.includes('headphone')) {
+      displayKeys = [
+        "Loại",
+        "Driver",
+        "Tần số đáp ứng",
+        "Trở kháng",
+        "Độ nhạy",
+        "Microphone",
+        "Kết nối",
+        "Điều khiển",
+        "Kích thước",
+        "Trọng lượng",
+        "Bảo hành",
+        "Tính năng",
+        "Dây cáp",
+        "Tương thích",
+      ];
+    } else if (category.includes('chuột') || category.includes('mouse')) {
+      displayKeys = [
+        "Loại cảm biến",
+        "Độ phân giải",
+        "Tốc độ theo dõi",
+        "Gia tốc",
+        "Tần số phản hồi",
+        "Số nút",
+        "Kết nối",
+        "Đèn LED",
+        "Kích thước",
+        "Trọng lượng",
+        "Bảo hành",
+        "Độ bền click",
+        "Bề mặt làm việc",
+        "Phần mềm",
+      ];
+    } else if (category.includes('ram') || category.includes('memory')) {
+      displayKeys = [
+        "Dung lượng",
+        "Loại",
+        "Tốc độ",
+        "Độ trễ",
+        "Điện áp",
+        "Kích thước",
+        "Trọng lượng",
+        "Bảo hành",
+        "Tản nhiệt",
+        "Tương thích",
+        "XMP Profile",
+        "Độ bền",
+      ];
+    } else {
+      // Mặc định: hiển thị tất cả các trường có sẵn
+      displayKeys = Object.keys(specs);
+    }
 
     const merged: { [key: string]: string } = {};
 
@@ -126,8 +287,8 @@ const ShopDetails = ({ productData }: ShopDetailsProps) => {
   }, [product?.id]);
 
   const mergedSpecs = useMemo(() => {
-    return getMergedSpecs(detailedSpecs);
-  }, [detailedSpecs]);
+    return getMergedSpecs(detailedSpecs, product?.categoryName);
+  }, [detailedSpecs, product?.categoryName]);
 
   if (!productData || !productData.data) {
     console.warn('ShopDetails: No product data available', { productData });
@@ -167,6 +328,8 @@ const ShopDetails = ({ productData }: ShopDetailsProps) => {
 
   const getAllImages = () => {
     const images: string[] = [];
+    
+    // Chỉ lấy ảnh từ API, không thêm ảnh mock
     if (product.thumbnailUrl && product.thumbnailUrl.trim() !== '') {
       images.push(product.thumbnailUrl);
     }
@@ -178,32 +341,8 @@ const ShopDetails = ({ productData }: ShopDetailsProps) => {
       });
     }
     
-    // Mock 4 ảnh từ thư mục images/products nếu không đủ
-    const mockImages = [
-      "/images/products/product-1-1.png",
-      "/images/products/product-2-1.png",
-      "/images/products/product-1-sm-1.png",
-      "/images/products/product-1-sm-2.png"
-    ];
-    
-    // Nếu không có đủ ảnh, thêm ảnh mock
-    while (images.length < 4) {
-      const mockImg = mockImages[images.length];
-      if (mockImg && !images.includes(mockImg)) {
-        images.push(mockImg);
-      } else {
-        // Fallback nếu hết ảnh mock
-        images.push("/images/products/product-1-bg-1.png");
-        break;
-      }
-    }
-    
-    // Đảm bảo có ít nhất 4 ảnh
-    if (images.length === 0) {
-      images.push(...mockImages.slice(0, 4));
-    }
-    
-    return images.slice(0, 4); // Chỉ lấy 4 ảnh đầu tiên
+    // Trả về tất cả ảnh từ API, không giới hạn số lượng
+    return images;
   };
   const handlePreviewSlider = () => {
     openPreviewModal();
@@ -631,23 +770,6 @@ const ShopDetails = ({ productData }: ShopDetailsProps) => {
                 </div>
               </div>
 
-              {/* Reviews Section */}
-              <div className="mt-12 space-y-6">
-                <h2 className="text-3xl font-bold text-dark">Đánh giá sản phẩm</h2>
-
-                {/* Create Review Form */}
-                <CreateReview
-                  productId={safeProduct.id}
-                  onReviewCreated={() => setRefreshReviews(prev => prev + 1)}
-                />
-
-                {/* Reviews List */}
-                <ReviewList
-                  productId={safeProduct.id}
-                  limit={5}
-                  key={refreshReviews}
-                />
-              </div>
 
             </div>
           </section>

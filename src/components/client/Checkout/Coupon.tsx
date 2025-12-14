@@ -110,7 +110,6 @@ const Coupon: React.FC<CouponProps> = ({ value, onChange, onApply, subtotal = 0 
     const discountText = voucher.discountType === 'FIXED_AMOUNT' 
       ? `${voucher.discountValue.toLocaleString('vi-VN')}₫`
       : `${voucher.discountValue}%`;
-    toast.success(`Đã áp dụng voucher "${voucher.name}" - Giảm ${discountText}`);
   };
 
   const handleApply = async () => {
