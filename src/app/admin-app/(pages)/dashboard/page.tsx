@@ -3,8 +3,6 @@
 import { useEffect, useState } from "react";
 import { StatisticsService } from "../../../../services/StatisticsService";
 import { BestSellerProduct } from "../../../../types/Admin/ProductAPI";
-import { StatisticsService } from "../../../../services/StatisticsService";
-import { BestSellerProduct } from "../../../../types/Admin/ProductAPI";
 import { getCookie } from "../../../../utils/cookies";
 import { DashboardOverview } from "../../../../components/server/DashboardOverview";
 import { DashboardStats, Product } from "@/types/Admin";
@@ -14,6 +12,7 @@ export default function DashboardPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [ordersByStatus, setOrdersByStatus] = useState<any>(null);
   const [inventorySummary, setInventorySummary] = useState<any>(null);
+  const [monthlyRevenue, setMonthlyRevenue] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -33,12 +32,14 @@ export default function DashboardPage() {
 
         // Map dữ liệu vào stats
         const mappedStats: DashboardStats = {
-          totalRevenue: data.todayStats.revenue,
+          totalRevenue: data.revenueSummary.totalRevenue, // Tổng doanh thu từ các đơn đã hoàn thành
           revenueGrowth: data.revenueSummary.percentChange,
           totalCustomers: data.userStats.totalUsers,
-          customerGrowth: 0, // API không trả về customer growth
-          totalOrders: data.todayStats.orderCount,
-          orderGrowth: 0, // API không trả về order growth
+          customerGrowth: 0, // Có thể tính sau nếu có dữ liệu tháng trước
+          totalOrders: data.ordersByStatus.COMPLETED + data.ordersByStatus.DELIVERED + 
+                       data.ordersByStatus.PENDING + data.ordersByStatus.PROCESSING + 
+                       data.ordersByStatus.CONFIRMED + data.ordersByStatus.SHIPPING, // Tổng số đơn hàng
+          orderGrowth: 0, // Có thể tính sau nếu có dữ liệu tháng trước
           totalProducts: data.productCount.total
         };
 
@@ -63,6 +64,7 @@ export default function DashboardPage() {
         setProducts(mappedProducts);
         setOrdersByStatus(data.ordersByStatus);
         setInventorySummary(data.inventorySummary);
+        setMonthlyRevenue(data.monthlyRevenue || []);
       } catch (err: any) {
         console.error("Error fetching statistics:", err);
         setError(err.message || "Không thể tải thống kê");
@@ -100,7 +102,13 @@ export default function DashboardPage() {
 
   return (
     <main className="w-full">
-      <DashboardOverview stats={stats} products={products} ordersByStatus={ordersByStatus} inventorySummary={inventorySummary} />
+      <DashboardOverview 
+        stats={stats} 
+        products={products} 
+        ordersByStatus={ordersByStatus} 
+        inventorySummary={inventorySummary}
+        monthlyRevenue={monthlyRevenue}
+      />
     </main>
   );
 }

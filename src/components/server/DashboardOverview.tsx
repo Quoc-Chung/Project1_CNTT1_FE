@@ -1,5 +1,5 @@
 "use client"
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   Calendar,
   TrendingUp,
@@ -36,31 +36,39 @@ interface InventorySummary {
   lowStockThreshold: number;
 }
 
+interface MonthlyRevenueData {
+  month: string;
+  revenue: number;
+  orders: number;
+}
+
 interface DashboardOverviewProps {
   stats: DashboardStats;
   products: Product[];
   ordersByStatus?: OrdersByStatus;
   inventorySummary?: InventorySummary;
+  monthlyRevenue?: MonthlyRevenueData[];
 }
-
-// Mock data cho biểu đồ doanh thu
-const mockChartData = [
-  { month: "Tháng 1", revenue: 125000000, orders: 45 },
-  { month: "Tháng 2", revenue: 185000000, orders: 62 },
-  { month: "Tháng 3", revenue: 142000000, orders: 48 },
-  { month: "Tháng 4", revenue: 210000000, orders: 78 },
-  { month: "Tháng 5", revenue: 275000000, orders: 95 },
-  { month: "Tháng 6", revenue: 320000000, orders: 112 },
-];
 
 export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
   stats,
   products,
   ordersByStatus,
   inventorySummary,
+  monthlyRevenue = [],
 }) => {
+  // Sử dụng dữ liệu thực từ API, nếu không có thì dùng mock data
+  const chartData = monthlyRevenue.length > 0 ? monthlyRevenue : [
+    { month: "Tháng 1", revenue: 0, orders: 0 },
+    { month: "Tháng 2", revenue: 0, orders: 0 },
+    { month: "Tháng 3", revenue: 0, orders: 0 },
+    { month: "Tháng 4", revenue: 0, orders: 0 },
+    { month: "Tháng 5", revenue: 0, orders: 0 },
+    { month: "Tháng 6", revenue: 0, orders: 0 },
+  ];
+
   // Map order status data cho biểu đồ
-  const mockOrderStatusData = ordersByStatus ? [
+  const orderStatusData = ordersByStatus ? [
     { status: "Chờ xử lý", count: ordersByStatus.PENDING || 0, color: "bg-yellow-500" },
     { status: "Đang xử lý", count: ordersByStatus.PROCESSING || 0, color: "bg-blue-500" },
     { status: "Đã xác nhận", count: ordersByStatus.CONFIRMED || 0, color: "bg-indigo-500" },
@@ -70,14 +78,22 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
     { status: "Đã hủy", count: ordersByStatus.CANCELLED || 0, color: "bg-red-500" },
     { status: "Trả hàng", count: ordersByStatus.RETURNED || 0, color: "bg-orange-500" },
   ] : [
-    { status: "Chờ xử lý", count: 15, color: "bg-yellow-500" },
-    { status: "Đang xử lý", count: 28, color: "bg-blue-500" },
-    { status: "Đang giao hàng", count: 42, color: "bg-purple-500" },
-    { status: "Hoàn thành", count: 156, color: "bg-green-500" },
-    { status: "Đã hủy", count: 8, color: "bg-red-500" },
+    { status: "Chờ xử lý", count: 0, color: "bg-yellow-500" },
+    { status: "Đang xử lý", count: 0, color: "bg-blue-500" },
+    { status: "Đang giao hàng", count: 0, color: "bg-purple-500" },
+    { status: "Hoàn thành", count: 0, color: "bg-green-500" },
+    { status: "Đã hủy", count: 0, color: "bg-red-500" },
   ];
+  
   const [chartType, setChartType] = useState<'revenue' | 'orders'>('revenue');
-  const maxValue = Math.max(...mockChartData.map(d => chartType === 'revenue' ? d.revenue : d.orders));
+  
+  // Tính maxValue an toàn
+  const maxValue = useMemo(() => {
+    if (chartData.length === 0) return 1;
+    const values = chartData.map(d => chartType === 'revenue' ? d.revenue : d.orders);
+    const max = Math.max(...values);
+    return max > 0 ? max : 1; // Tránh chia cho 0
+  }, [chartData, chartType]);
 
   return (
     <div className="mt-5 space-y-6">
@@ -167,68 +183,150 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
           </div>
 
           {/* Chart Container */}
-          <div className="h-80 relative">
-            <div className="h-full flex items-end justify-between gap-3 pb-8">
-              {mockChartData.map((data, index) => {
+          <div className="h-80 relative bg-gradient-to-b from-gray-50 to-white rounded-lg p-4">
+            {/* Grid Lines Background */}
+            <div className="absolute inset-0 flex flex-col justify-between px-8 py-4">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="border-t border-gray-200 border-dashed"></div>
+              ))}
+            </div>
+
+            {/* Chart Bars */}
+            <div className="relative h-full flex items-end justify-between gap-2 px-8 pb-6">
+              {chartData.map((data, index) => {
                 const value = chartType === 'revenue' ? data.revenue : data.orders;
-                const height = (value / maxValue) * 100;
+                const height = maxValue > 0 ? (value / maxValue) * 100 : 0;
                 const displayValue = chartType === 'revenue'
                   ? formatPrice(value)
                   : `${value} đơn`;
+                const shortValue = chartType === 'revenue'
+                  ? value >= 1000000 
+                    ? `${(value / 1000000).toFixed(1)}M`
+                    : value >= 1000
+                    ? `${(value / 1000).toFixed(0)}K`
+                    : value.toString()
+                  : `${value}`;
+                
+                // Màu sắc gradient động dựa trên giá trị
+                const getBarGradient = () => {
+                  if (chartType === 'revenue') {
+                    if (height >= 80) return 'bg-gradient-to-t from-emerald-600 via-emerald-500 to-emerald-400';
+                    if (height >= 60) return 'bg-gradient-to-t from-blue-600 via-blue-500 to-blue-400';
+                    if (height >= 40) return 'bg-gradient-to-t from-indigo-600 via-indigo-500 to-indigo-400';
+                    if (height >= 20) return 'bg-gradient-to-t from-purple-600 via-purple-500 to-purple-400';
+                    if (height > 0) return 'bg-gradient-to-t from-gray-500 via-gray-400 to-gray-300';
+                    return 'bg-gray-200';
+                  } else {
+                    if (height >= 80) return 'bg-gradient-to-t from-purple-600 via-purple-500 to-purple-400';
+                    if (height >= 60) return 'bg-gradient-to-t from-indigo-600 via-indigo-500 to-indigo-400';
+                    if (height >= 40) return 'bg-gradient-to-t from-blue-600 via-blue-500 to-blue-400';
+                    if (height >= 20) return 'bg-gradient-to-t from-cyan-600 via-cyan-500 to-cyan-400';
+                    if (height > 0) return 'bg-gradient-to-t from-gray-500 via-gray-400 to-gray-300';
+                    return 'bg-gray-200';
+                  }
+                };
+
                 return (
-                  <div key={index} className="flex-1 flex flex-col items-center group">
-                    {/* Bar */}
-                    <div className="relative w-full flex items-end justify-center mb-2">
-                      <div
-                        className={`w-full rounded-t-lg transition-all duration-500 hover:opacity-90 cursor-pointer ${chartType === 'revenue'
-                          ? 'bg-gradient-to-t from-blue-600 to-blue-400'
-                          : 'bg-gradient-to-t from-purple-600 to-purple-400'
-                          }`}
-                        style={{ height: `${height}%`, minHeight: '8px' }}
-                      >
-                        {/* Tooltip on hover */}
-                        <div className="absolute -top-10 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
-                          <div className="bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap">
-                            {displayValue}
-                            <div className="absolute left-1/2 -translate-x-1/2 bottom-0 translate-y-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
-                          </div>
+                  <div key={index} className="flex-1 flex flex-col items-center group relative h-full">
+                    {/* Value Label on Top */}
+                    {value > 0 && (
+                      <div className="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none z-10">
+                        <div className="bg-gray-900 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow-lg whitespace-nowrap">
+                          {displayValue}
+                          <div className="absolute left-1/2 -translate-x-1/2 bottom-0 translate-y-full w-0 h-0 border-l-[6px] border-r-[6px] border-t-[6px] border-transparent border-t-gray-900"></div>
                         </div>
+                      </div>
+                    )}
+
+                    {/* Bar Container */}
+                    <div className="relative w-full flex-1 flex items-end justify-center mb-1">
+                      <div
+                        className={`w-full rounded-t-xl transition-all duration-700 ease-out cursor-pointer group-hover:scale-105 group-hover:shadow-2xl relative overflow-hidden ${getBarGradient()}`}
+                        style={{ 
+                          height: `${Math.max(height, value > 0 ? 3 : 0)}%`,
+                          minHeight: value > 0 ? '12px' : '0px',
+                          animation: `slideUp 0.6s ease-out ${index * 0.1}s both`,
+                          boxShadow: value > 0 ? '0 4px 12px rgba(0,0,0,0.15)' : 'none'
+                        }}
+                      >
+                        {/* Shine Effect */}
+                        <div className="absolute inset-0 bg-gradient-to-b from-white/30 via-transparent to-transparent pointer-events-none"></div>
+                        
+                        {/* Value Display on Bar (always visible if > 0) */}
+                        {value > 0 && height >= 15 && (
+                          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                            <span className="text-white text-[10px] font-bold drop-shadow-lg">
+                              {shortValue}
+                            </span>
+                          </div>
+                        )}
+
+                        {/* Hover Effect */}
+                        <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"></div>
                       </div>
                     </div>
 
                     {/* Month Label */}
-                    <div className="text-xs text-gray-600 font-medium text-center mt-2">
+                    <div className="text-xs font-semibold text-gray-700 text-center mt-2 min-h-[32px] flex items-center justify-center">
                       {data.month.split(' ')[1]}
                     </div>
 
-                    {/* Value Label */}
-                    <div className="text-xs text-gray-500 text-center mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      {chartType === 'revenue'
-                        ? `${(value / 1000000).toFixed(0)}M`
-                        : `${value}`
-                      }
-                    </div>
+                    {/* Value Label Below (always visible) */}
+                    {value > 0 && (
+                      <div className="text-xs font-bold text-gray-600 text-center mt-1">
+                        {shortValue}
+                      </div>
+                    )}
                   </div>
                 );
               })}
             </div>
 
             {/* Y-axis labels */}
-            <div className="absolute left-0 top-0 h-full flex flex-col justify-between text-xs text-gray-500 pr-2">
-              <span>{chartType === 'revenue' ? formatPrice(maxValue) : maxValue}</span>
-              <span>{chartType === 'revenue' ? formatPrice(maxValue / 2) : Math.floor(maxValue / 2)}</span>
-              <span>0</span>
+            <div className="absolute left-2 top-0 h-full flex flex-col justify-between text-xs font-semibold text-gray-600 pr-2 py-4">
+              <span className="bg-white/80 px-1 rounded">{chartType === 'revenue' ? formatPrice(maxValue) : Math.floor(maxValue).toLocaleString()}</span>
+              <span className="bg-white/80 px-1 rounded">{chartType === 'revenue' ? formatPrice(maxValue * 0.75) : Math.floor(maxValue * 0.75).toLocaleString()}</span>
+              <span className="bg-white/80 px-1 rounded">{chartType === 'revenue' ? formatPrice(maxValue * 0.5) : Math.floor(maxValue * 0.5).toLocaleString()}</span>
+              <span className="bg-white/80 px-1 rounded">{chartType === 'revenue' ? formatPrice(maxValue * 0.25) : Math.floor(maxValue * 0.25).toLocaleString()}</span>
+              <span className="bg-white/80 px-1 rounded">0</span>
             </div>
           </div>
 
-          {/* Chart Legend */}
-          <div className="mt-4 pt-4 border-t border-gray-200 flex items-center justify-center gap-4">
-            <div className="flex items-center gap-2">
-              <div className={`w-3 h-3 rounded ${chartType === 'revenue' ? 'bg-blue-500' : 'bg-purple-500'
+          {/* Chart Animation Styles */}
+          <style jsx>{`
+            @keyframes slideUp {
+              from {
+                height: 0%;
+                opacity: 0;
+                transform: translateY(20px);
+              }
+              to {
+                opacity: 1;
+                transform: translateY(0);
+              }
+            }
+          `}</style>
+
+          {/* Chart Legend & Summary */}
+          <div className="mt-4 pt-4 border-t border-gray-200">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className={`w-4 h-4 rounded-lg shadow-sm ${chartType === 'revenue' 
+                  ? 'bg-gradient-to-br from-blue-500 to-blue-600' 
+                  : 'bg-gradient-to-br from-purple-500 to-purple-600'
                 }`}></div>
-              <span className="text-xs text-gray-600">
-                {chartType === 'revenue' ? 'Doanh Thu (VNĐ)' : 'Số Đơn Hàng'}
-              </span>
+                <span className="text-sm font-semibold text-gray-700">
+                  {chartType === 'revenue' ? 'Doanh Thu (VNĐ)' : 'Số Đơn Hàng'}
+                </span>
+              </div>
+              <div className="text-xs text-gray-500">
+                Tổng: <span className="font-bold text-gray-700">
+                  {chartType === 'revenue' 
+                    ? formatPrice(chartData.reduce((sum, d) => sum + d.revenue, 0))
+                    : chartData.reduce((sum, d) => sum + d.orders, 0).toLocaleString() + ' đơn'
+                  }
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -297,8 +395,8 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
             </div>
 
             <div className="h-full flex items-end justify-between gap-6 relative z-10">
-              {mockOrderStatusData.map((data, index) => {
-                const maxCount = Math.max(...mockOrderStatusData.map(d => d.count));
+              {orderStatusData.map((data, index) => {
+                const maxCount = Math.max(...orderStatusData.map(d => d.count), 1);
                 const height = maxCount > 0 ? (data.count / maxCount) * 100 : 0;
 
                 return (
@@ -353,7 +451,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
 
         {/* Legend */}
         <div className="mt-6 grid grid-cols-4 gap-3">
-          {mockOrderStatusData.map((data, index) => (
+          {orderStatusData.map((data, index) => (
             <div key={index} className="flex items-center gap-2 p-2 rounded-lg border border-gray-200 bg-white hover:shadow-md transition-shadow">
               <div className={`w-5 h-5 rounded ${data.color} flex-shrink-0`}></div>
               <div className="flex-1 min-w-0">

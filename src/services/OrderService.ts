@@ -163,11 +163,21 @@ export class OrderService {
 
       if (String(data.status?.code) === '200') {
         if (data.data) {
+          // Đảm bảo status luôn được normalize thành uppercase
+          const normalizedStatus = String(data.data.status).toUpperCase();
+          
+          // Log để debug
+          console.log('OrderService.updateOrderStatus - Response:', {
+            orderId: data.data.orderId,
+            status: normalizedStatus,
+            originalStatus: data.data.status
+          });
+          
           return {
             orderId: data.data.orderId,
             userId: data.data.userId,
             totalAmount: data.data.totalAmount,
-            status: data.data.status,
+            status: normalizedStatus, // Trả về status đã normalize
             createdAt: data.data.createdAt,
             shippingAddress: data.data.shippingAddress,
           };

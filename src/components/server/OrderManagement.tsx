@@ -47,7 +47,7 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ orders: initia
             orderDate: apiOrder.createdAt,
             paymentMethod: 'cash', // Default, có thể fetch từ API sau
             shippingAddress: apiOrder.shippingAddress,
-            apiStatus: apiOrder.status, // Lưu status gốc từ API
+            apiStatus: apiOrder.status.toUpperCase(), // Đảm bảo status luôn uppercase và lưu status gốc từ API
           } as Order & { apiStatus: string }));
           
           setOrders(mappedOrders);
@@ -98,8 +98,10 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ orders: initia
 
   // Handle approve order (update status)
   const handleApproveOrder = (orderId: string, currentStatus: string) => {
+    // Đảm bảo currentStatus luôn là uppercase để match với API
+    const normalizedStatus = String(currentStatus).toUpperCase();
     setSelectedOrderId(orderId);
-    setSelectedOrderStatus(currentStatus);
+    setSelectedOrderStatus(normalizedStatus);
     setIsUpdateStatusDialogOpen(true);
   };
 
@@ -113,6 +115,9 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ orders: initia
   const handleOrderUpdated = async () => {
     if (!initialOrders) {
       try {
+        // Đợi một chút để đảm bảo API đã cập nhật xong
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
         const apiOrders = await OrderService.getAllOrdersForAdmin();
         const mappedOrders: Order[] = apiOrders.map((apiOrder: AdminOrderResponse) => ({
           id: apiOrder.orderId,
@@ -124,11 +129,12 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ orders: initia
           orderDate: apiOrder.createdAt,
           paymentMethod: 'cash',
           shippingAddress: apiOrder.shippingAddress,
-          apiStatus: apiOrder.status, // Lưu status gốc từ API
+          apiStatus: apiOrder.status.toUpperCase(), // Đảm bảo status luôn uppercase và lưu status gốc từ API
         } as Order & { apiStatus: string }));
         setOrders(mappedOrders);
       } catch (error: any) {
         console.error('Error refreshing orders:', error);
+        toast.error('Không thể làm mới danh sách đơn hàng');
       }
     }
   };
@@ -252,8 +258,8 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ orders: initia
                   <td className="px-6 py-4 text-sm font-bold text-red-600">{formatPrice(order.totalAmount)}</td>
                   <td className="px-6 py-4 text-sm">
                     {(() => {
-                      // Sử dụng trạng thái gốc từ API nếu có, nếu không thì dùng mapped status
-                      const apiStatus = (order as any).apiStatus || order.status;
+                      // Luôn sử dụng apiStatus từ API (đã được normalize thành uppercase)
+                      const apiStatus = (order as any).apiStatus ? String((order as any).apiStatus).toUpperCase() : order.status.toUpperCase();
                       const badge = getStatusBadge(apiStatus);
                       return (
                         <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${badge.color}`}>
@@ -265,7 +271,8 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ orders: initia
                   <td className="px-6 py-4 text-sm text-gray-600">{formatDate(order.orderDate)}</td>
                   <td className="px-6 py-4">
                     {(() => {
-                      const apiStatus = (order as any).apiStatus || order.status.toUpperCase();
+                      // Luôn sử dụng apiStatus từ API (đã được normalize thành uppercase)
+                      const apiStatus = (order as any).apiStatus ? String((order as any).apiStatus).toUpperCase() : order.status.toUpperCase();
                       const finalStatuses = ['DELIVERED', 'COMPLETED', 'CANCELLED', 'RETURNED'];
                       const canEdit = !finalStatuses.includes(apiStatus);
                       

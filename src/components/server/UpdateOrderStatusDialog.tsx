@@ -35,7 +35,9 @@ export const UpdateOrderStatusDialog: React.FC<UpdateOrderStatusDialogProps> = (
 
   React.useEffect(() => {
     if (isOpen) {
-      setSelectedStatus(currentStatus);
+      // Đảm bảo currentStatus luôn là uppercase để match với API
+      const normalizedStatus = String(currentStatus).toUpperCase();
+      setSelectedStatus(normalizedStatus);
     }
   }, [isOpen, currentStatus]);
 
@@ -47,17 +49,35 @@ export const UpdateOrderStatusDialog: React.FC<UpdateOrderStatusDialogProps> = (
       return;
     }
 
-    if (selectedStatus === currentStatus) {
+    // Normalize cả hai status để so sánh
+    const normalizedSelected = String(selectedStatus).toUpperCase();
+    const normalizedCurrent = String(currentStatus).toUpperCase();
+    
+    if (normalizedSelected === normalizedCurrent) {
       toast.info("Trạng thái không thay đổi");
       return;
     }
 
     try {
       setLoading(true);
-      await OrderService.updateOrderStatus(orderId, selectedStatus);
+      // Đảm bảo gửi status đúng format (uppercase) đến API
+      const updatedOrder = await OrderService.updateOrderStatus(orderId, normalizedSelected);
+      
+      // Log để debug
+      console.log('Order status updated:', {
+        orderId,
+        oldStatus: normalizedCurrent,
+        newStatus: normalizedSelected,
+        apiResponse: updatedOrder.status
+      });
+      
       toast.success("Cập nhật trạng thái đơn hàng thành công!");
-      onStatusUpdated();
-      onClose();
+      
+      // Đợi một chút trước khi refresh để đảm bảo API đã cập nhật xong
+      setTimeout(() => {
+        onStatusUpdated();
+        onClose();
+      }, 300);
     } catch (error: any) {
       console.error("Error updating order status:", error);
       toast.error(error.message || "Không thể cập nhật trạng thái đơn hàng");

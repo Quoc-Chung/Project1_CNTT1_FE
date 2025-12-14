@@ -33,3 +33,22 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# IDE files
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# XML files (reports, configs)
+*.xml
+coverage.xml
+test-results.xml
+junit.xml
+
+# Build artifacts
+.next/
+out/
+dist/
+build/
