@@ -335,21 +335,22 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
                   {(() => {
                     const normalized = normalizeImageUrl(product.thumbnailUrl || "/images/products/product-1-1.png");
                     return (
-                      <Image
-                        src={normalized.url}
-                        alt={product.name}
-                        width={48}
-                        height={48}
-                        className="rounded-lg object-cover flex-shrink-0"
-                        style={{ width: "auto", height: "auto" }}
-                        unoptimized={normalized.isExternal}
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          if (!target.src.includes('product-1-1.png')) {
-                            target.src = "/images/products/product-1-1.png";
-                          }
-                        }}
-                      />
+                      <div className="relative w-12 h-12 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100">
+                        <Image
+                          src={normalized.url}
+                          alt={product.name}
+                          fill
+                          className="rounded-lg object-cover"
+                          sizes="48px"
+                          unoptimized={normalized.isExternal}
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            if (!target.src.includes('product-1-1.png')) {
+                              target.src = "/images/products/product-1-1.png";
+                            }
+                          }}
+                        />
+                      </div>
                     );
                   })()}
 
