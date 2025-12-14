@@ -147,47 +147,43 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
             <div className="flex space-x-2">
               <button
                 onClick={() => setChartType('revenue')}
-                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
-                  chartType === 'revenue'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
+                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${chartType === 'revenue'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
               >
                 Doanh Thu
               </button>
               <button
                 onClick={() => setChartType('orders')}
-                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
-                  chartType === 'orders'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
+                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${chartType === 'orders'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
               >
                 Đơn Hàng
               </button>
             </div>
           </div>
-          
+
           {/* Chart Container */}
           <div className="h-80 relative">
             <div className="h-full flex items-end justify-between gap-3 pb-8">
               {mockChartData.map((data, index) => {
                 const value = chartType === 'revenue' ? data.revenue : data.orders;
                 const height = (value / maxValue) * 100;
-                const displayValue = chartType === 'revenue' 
-                  ? formatPrice(value) 
+                const displayValue = chartType === 'revenue'
+                  ? formatPrice(value)
                   : `${value} đơn`;
-                
                 return (
                   <div key={index} className="flex-1 flex flex-col items-center group">
                     {/* Bar */}
                     <div className="relative w-full flex items-end justify-center mb-2">
                       <div
-                        className={`w-full rounded-t-lg transition-all duration-500 hover:opacity-90 cursor-pointer ${
-                          chartType === 'revenue'
-                            ? 'bg-gradient-to-t from-blue-600 to-blue-400'
-                            : 'bg-gradient-to-t from-purple-600 to-purple-400'
-                        }`}
+                        className={`w-full rounded-t-lg transition-all duration-500 hover:opacity-90 cursor-pointer ${chartType === 'revenue'
+                          ? 'bg-gradient-to-t from-blue-600 to-blue-400'
+                          : 'bg-gradient-to-t from-purple-600 to-purple-400'
+                          }`}
                         style={{ height: `${height}%`, minHeight: '8px' }}
                       >
                         {/* Tooltip on hover */}
@@ -199,15 +195,15 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
                         </div>
                       </div>
                     </div>
-                    
+
                     {/* Month Label */}
                     <div className="text-xs text-gray-600 font-medium text-center mt-2">
                       {data.month.split(' ')[1]}
                     </div>
-                    
+
                     {/* Value Label */}
                     <div className="text-xs text-gray-500 text-center mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      {chartType === 'revenue' 
+                      {chartType === 'revenue'
                         ? `${(value / 1000000).toFixed(0)}M`
                         : `${value}`
                       }
@@ -216,7 +212,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
                 );
               })}
             </div>
-            
+
             {/* Y-axis labels */}
             <div className="absolute left-0 top-0 h-full flex flex-col justify-between text-xs text-gray-500 pr-2">
               <span>{chartType === 'revenue' ? formatPrice(maxValue) : maxValue}</span>
@@ -224,13 +220,12 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
               <span>0</span>
             </div>
           </div>
-          
+
           {/* Chart Legend */}
           <div className="mt-4 pt-4 border-t border-gray-200 flex items-center justify-center gap-4">
             <div className="flex items-center gap-2">
-              <div className={`w-3 h-3 rounded ${
-                chartType === 'revenue' ? 'bg-blue-500' : 'bg-purple-500'
-              }`}></div>
+              <div className={`w-3 h-3 rounded ${chartType === 'revenue' ? 'bg-blue-500' : 'bg-purple-500'
+                }`}></div>
               <span className="text-xs text-gray-600">
                 {chartType === 'revenue' ? 'Doanh Thu (VNĐ)' : 'Số Đơn Hàng'}
               </span>
@@ -251,15 +246,14 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
                   className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 transition border border-transparent hover:border-gray-200"
                 >
                   <div
-                    className={`w-8 h-8 flex items-center justify-center text-xs font-bold text-white rounded-full flex-shrink-0 ${
-                      index === 0
-                        ? "bg-yellow-500"
-                        : index === 1
+                    className={`w-8 h-8 flex items-center justify-center text-xs font-bold text-white rounded-full flex-shrink-0 ${index === 0
+                      ? "bg-yellow-500"
+                      : index === 1
                         ? "bg-gray-400"
                         : index === 2
-                        ? "bg-orange-500"
-                        : "bg-blue-500"
-                    }`}
+                          ? "bg-orange-500"
+                          : "bg-blue-500"
+                      }`}
                   >
                     {index + 1}
                   </div>
