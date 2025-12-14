@@ -14,7 +14,7 @@ interface UpdateOrderStatusDialogProps {
 
 const ORDER_STATUSES = [
   { value: "COMPLETED", label: "Đã hoàn thành" },
-  { value: "PENDING", label: "Đang chờ thanh toán" },
+  { value: "PENDING", label: "Chờ xử lý" },
   { value: "PROCESSING", label: "Đang xử lý" },
   { value: "CONFIRMED", label: "Đã xác nhận" },
   { value: "SHIPPING", label: "Đang giao hàng" },

@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { DashboardStats, Product } from "@/types/Admin";
 import { formatDate, formatPrice } from '../../utils/helpers';
+import { normalizeImageUrl } from '../../utils/helpers';
 import Image from "next/image";
 
 interface OrdersByStatus {
@@ -67,22 +68,25 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
     { month: "Tháng 6", revenue: 0, orders: 0 },
   ];
 
-  // Map order status data cho biểu đồ
+  // Map order status data cho biểu đồ - Mapping chính xác 100%
   const orderStatusData = ordersByStatus ? [
     { status: "Chờ xử lý", count: ordersByStatus.PENDING || 0, color: "bg-yellow-500" },
     { status: "Đang xử lý", count: ordersByStatus.PROCESSING || 0, color: "bg-blue-500" },
     { status: "Đã xác nhận", count: ordersByStatus.CONFIRMED || 0, color: "bg-indigo-500" },
-    { status: "Đang giao", count: ordersByStatus.SHIPPING || 0, color: "bg-purple-500" },
-    { status: "Đã giao", count: ordersByStatus.DELIVERED || 0, color: "bg-teal-500" },
-    { status: "Hoàn thành", count: ordersByStatus.COMPLETED || 0, color: "bg-green-500" },
+    { status: "Đang giao hàng", count: ordersByStatus.SHIPPING || 0, color: "bg-purple-500" },
+    { status: "Đã giao hàng", count: ordersByStatus.DELIVERED || 0, color: "bg-teal-500" },
+    { status: "Đã hoàn thành", count: ordersByStatus.COMPLETED || 0, color: "bg-green-500" },
     { status: "Đã hủy", count: ordersByStatus.CANCELLED || 0, color: "bg-red-500" },
-    { status: "Trả hàng", count: ordersByStatus.RETURNED || 0, color: "bg-orange-500" },
+    { status: "Đã trả hàng", count: ordersByStatus.RETURNED || 0, color: "bg-orange-500" },
   ] : [
     { status: "Chờ xử lý", count: 0, color: "bg-yellow-500" },
     { status: "Đang xử lý", count: 0, color: "bg-blue-500" },
+    { status: "Đã xác nhận", count: 0, color: "bg-indigo-500" },
     { status: "Đang giao hàng", count: 0, color: "bg-purple-500" },
-    { status: "Hoàn thành", count: 0, color: "bg-green-500" },
+    { status: "Đã giao hàng", count: 0, color: "bg-teal-500" },
+    { status: "Đã hoàn thành", count: 0, color: "bg-green-500" },
     { status: "Đã hủy", count: 0, color: "bg-red-500" },
+    { status: "Đã trả hàng", count: 0, color: "bg-orange-500" },
   ];
 
   const [chartType, setChartType] = useState<'revenue' | 'orders'>('revenue');
@@ -328,14 +332,26 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
                     {index + 1}
                   </div>
 
-                  <Image
-                    src={product.thumbnailUrl}
-                    alt={product.name}
-                    width={48}
-                    height={48}
-                    className="rounded-lg object-cover flex-shrink-0"
-                    style={{ width: "auto", height: "auto" }}
-                  />
+                  {(() => {
+                    const normalized = normalizeImageUrl(product.thumbnailUrl || "/images/products/product-1-1.png");
+                    return (
+                      <Image
+                        src={normalized.url}
+                        alt={product.name}
+                        width={48}
+                        height={48}
+                        className="rounded-lg object-cover flex-shrink-0"
+                        style={{ width: "auto", height: "auto" }}
+                        unoptimized={normalized.isExternal}
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          if (!target.src.includes('product-1-1.png')) {
+                            target.src = "/images/products/product-1-1.png";
+                          }
+                        }}
+                      />
+                    );
+                  })()}
 
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-gray-900 truncate">{product.name}</p>

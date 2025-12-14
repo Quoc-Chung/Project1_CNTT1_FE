@@ -180,11 +180,14 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ orders: initia
         <div className="flex space-x-3">
           <select className="px-2 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm">
             <option value="">Tất cả trạng thái</option>
-            <option value="pending">Chờ xử lý</option>
-            <option value="processing">Đang xử lý</option>
-            <option value="shipped">Đã gửi</option>
-            <option value="delivered">Đã giao</option>
-            <option value="cancelled">Đã hủy</option>
+            <option value="PENDING">Chờ xử lý</option>
+            <option value="PROCESSING">Đang xử lý</option>
+            <option value="CONFIRMED">Đã xác nhận</option>
+            <option value="SHIPPING">Đang giao hàng</option>
+            <option value="DELIVERED">Đã giao hàng</option>
+            <option value="COMPLETED">Đã hoàn thành</option>
+            <option value="CANCELLED">Đã hủy</option>
+            <option value="RETURNED">Đã trả hàng</option>
           </select>
         </div>
       </div>
@@ -206,10 +209,10 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ orders: initia
           <p className="text-lg font-bold text-red-900">{orders.filter(o => ((o as any).apiStatus || o.status.toUpperCase()) === 'CANCELLED').length}</p>
           <p className="text-xs text-red-600">Đã hủy</p>
         </div>
-        {/* PENDING - Đang chờ thanh toán */}
+        {/* PENDING - Chờ xử lý */}
         <div className="bg-yellow-50 p-3 rounded-lg border border-yellow-200 text-center">
           <p className="text-lg font-bold text-yellow-900">{orders.filter(o => ((o as any).apiStatus || o.status.toUpperCase()) === 'PENDING').length}</p>
-          <p className="text-xs text-yellow-600">Chờ thanh toán</p>
+          <p className="text-xs text-yellow-600">Chờ xử lý</p>
         </div>
         {/* SHIPPING - Đang giao hàng */}
         <div className="bg-purple-50 p-3 rounded-lg border border-purple-200 text-center">

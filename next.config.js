@@ -52,6 +52,10 @@ const nextConfig = {
         hostname: "cdn.example.com",
       },
       {
+        protocol: "https",
+        hostname: "example.com",
+      },
+      {
         protocol: "http",
         hostname: "103.90.225.90",
         port: "8080",

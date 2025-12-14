@@ -18,14 +18,24 @@ export const formatDate = (dateString: string): string => {
 /**
  * Get status badge configuration for orders
  * Supports both uppercase API statuses and lowercase mapped statuses
+ * 
+ * Mapping chính xác 100%:
+ * - COMPLETED: Đã hoàn thành
+ * - PENDING: Chờ xử lý
+ * - PROCESSING: Đang xử lý (sau khi payment processing)
+ * - CONFIRMED: Đã xác nhận (sau khi trừ stock)
+ * - SHIPPING: Đang giao hàng
+ * - DELIVERED: Đã giao hàng
+ * - CANCELLED: Đã hủy
+ * - RETURNED: Đã trả hàng
  */
 export const getStatusBadge = (status: string): { color: string, text: string } => {
   const normalizedStatus = status.toUpperCase();
   
   const statusMap: { [key: string]: { color: string, text: string } } = {
-    // API Statuses (uppercase)
+    // API Statuses (uppercase) - Mapping chính xác 100%
     'COMPLETED': { color: 'bg-green-100 text-green-800', text: 'Đã hoàn thành' },
-    'PENDING': { color: 'bg-yellow-100 text-yellow-800', text: 'Đang chờ thanh toán' },
+    'PENDING': { color: 'bg-yellow-100 text-yellow-800', text: 'Chờ xử lý' },
     'PROCESSING': { color: 'bg-blue-100 text-blue-800', text: 'Đang xử lý' },
     'CONFIRMED': { color: 'bg-indigo-100 text-indigo-800', text: 'Đã xác nhận' },
     'SHIPPING': { color: 'bg-purple-100 text-purple-800', text: 'Đang giao hàng' },
@@ -36,9 +46,13 @@ export const getStatusBadge = (status: string): { color: string, text: string } 
     // Legacy lowercase statuses (for backward compatibility)
     'pending': { color: 'bg-yellow-100 text-yellow-800', text: 'Chờ xử lý' },
     'processing': { color: 'bg-blue-100 text-blue-800', text: 'Đang xử lý' },
-    'shipped': { color: 'bg-purple-100 text-purple-800', text: 'Đã gửi' },
-    'delivered': { color: 'bg-green-100 text-green-800', text: 'Đã giao' },
-    'cancelled': { color: 'bg-red-100 text-red-800', text: 'Đã hủy' }
+    'confirmed': { color: 'bg-indigo-100 text-indigo-800', text: 'Đã xác nhận' },
+    'shipping': { color: 'bg-purple-100 text-purple-800', text: 'Đang giao hàng' },
+    'shipped': { color: 'bg-purple-100 text-purple-800', text: 'Đang giao hàng' },
+    'delivered': { color: 'bg-green-100 text-green-800', text: 'Đã giao hàng' },
+    'completed': { color: 'bg-green-100 text-green-800', text: 'Đã hoàn thành' },
+    'cancelled': { color: 'bg-red-100 text-red-800', text: 'Đã hủy' },
+    'returned': { color: 'bg-orange-100 text-orange-800', text: 'Đã trả hàng' }
   };
   
   return statusMap[normalizedStatus] || statusMap[status.toLowerCase()] || { color: 'bg-gray-100 text-gray-800', text: status };
