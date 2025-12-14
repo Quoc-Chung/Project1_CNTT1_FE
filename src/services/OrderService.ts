@@ -1,5 +1,6 @@
 import { BASE_API_CART_URL } from '@/utils/configAPI';
 import { getCookie } from '@/utils/cookies';
+import { fetchWithAuth } from '@/utils/refreshToken';
 
 export interface AdminOrderResponse {
   orderId: string;
@@ -122,6 +123,62 @@ export class OrderService {
       }
     } catch (error) {
       console.error('Error fetching order detail:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Cập nhật trạng thái đơn hàng (Admin)
+   */
+  static async updateOrderStatus(orderId: string, status: string): Promise<AdminOrderResponse> {
+    try {
+      const url = `${BASE_API_CART_URL}/api/order/admin/${orderId}/status`;
+      
+      const response = await fetchWithAuth(url, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status }),
+      });
+
+      const responseText = await response.text();
+      
+      if (!response.ok) {
+        console.error('Update Order Status API Error:', {
+          status: response.status,
+          statusText: response.statusText,
+          errorText: responseText
+        });
+        throw new Error(`HTTP error! status: ${response.status} - ${responseText}`);
+      }
+
+      let data: AdminOrderDetailApiResponse;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('Error parsing update order status response:', parseError);
+        throw new Error('Failed to parse update order status response');
+      }
+
+      if (String(data.status?.code) === '200') {
+        if (data.data) {
+          return {
+            orderId: data.data.orderId,
+            userId: data.data.userId,
+            totalAmount: data.data.totalAmount,
+            status: data.data.status,
+            createdAt: data.data.createdAt,
+            shippingAddress: data.data.shippingAddress,
+          };
+        } else {
+          throw new Error(data.status?.message || 'Failed to update order status: No data returned');
+        }
+      } else {
+        throw new Error(data.status?.message || 'Failed to update order status');
+      }
+    } catch (error) {
+      console.error('Error updating order status:', error);
       throw error;
     }
   }

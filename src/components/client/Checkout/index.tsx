@@ -12,7 +12,7 @@ import { toast } from "react-toastify";
 import addressDataRaw from "@/utils/address.json";
 import { ProductService } from "@/services/ProductService";
 import { CartOrderResponse } from "@/types/Client/CartOrder/cartorder";
-import { VoucherResponse } from "@/services/VoucherService";
+import { VoucherResponse, VoucherService } from "@/services/VoucherService";
 
 interface AddressData {
   name: string;
@@ -28,7 +28,7 @@ const Checkout = () => {
 
   // Get cart items and auth token from Redux
   const { cart } = useAppSelector((state) => state.cart);
-  const { token } = useAppSelector((state) => state.auth);
+  const { token, user } = useAppSelector((state) => state.auth);
   const { loading, success, error } = useAppSelector((state) => state.order);
 
   const [selectedCartItems, setSelectedCartItems] = useState<CartOrderResponse[]>([]);
@@ -169,8 +169,16 @@ const Checkout = () => {
     setAppliedVoucher(voucher);
     if (voucher) {
       setVoucherCode(voucher.code);
+      // Lưu voucher code vào localStorage để sử dụng sau khi đặt hàng
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('pendingVoucherCode', voucher.code);
+      }
     } else {
       setVoucherCode("");
+      // Xóa voucher code khỏi localStorage khi bỏ áp dụng
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('pendingVoucherCode');
+      }
     }
   };
 
@@ -253,7 +261,72 @@ const Checkout = () => {
       createOrderAction(
         orderRequest,
         cleanToken,
-        (res) => {
+        async (res) => {
+          // Lấy orderId từ response
+          const orderId = res.data?.orderId;
+          const orderValue = res.data?.totalAmount || subtotal;
+          
+          // Lấy userId từ JWT token hoặc user object
+          let userId: number | null = null;
+          
+          // Thử lấy từ user object trước
+          if (user && (user as any).userId) {
+            userId = (user as any).userId;
+          } else if (user && (user as any).id) {
+            userId = (user as any).id;
+          } else if (token) {
+            // Decode JWT để lấy userId
+            try {
+              const parts = token.split('.');
+              if (parts.length === 3) {
+                const payload = JSON.parse(atob(parts[1]));
+                userId = payload.userId || payload.user_id || payload.id || null;
+              }
+            } catch (e) {
+              console.error('Error decoding JWT for userId:', e);
+            }
+          }
+          
+          // Kiểm tra và apply voucher nếu có
+          if (orderId && userId && typeof window !== 'undefined') {
+            const pendingVoucherCode = localStorage.getItem('pendingVoucherCode');
+            
+            if (pendingVoucherCode && appliedVoucher) {
+              try {
+                console.log('Applying voucher to order:', {
+                  code: pendingVoucherCode,
+                  orderId,
+                  orderValue,
+                  userId: userId
+                });
+                
+                await VoucherService.applyVoucher({
+                  code: pendingVoucherCode,
+                  userId: userId,
+                  orderId: orderId,
+                  orderValue: orderValue
+                });
+                
+                console.log('Voucher applied successfully');
+                // Xóa voucher code khỏi localStorage sau khi apply thành công
+                localStorage.removeItem('pendingVoucherCode');
+                toast.success("Voucher đã được áp dụng cho đơn hàng!");
+              } catch (voucherError: any) {
+                console.error('Error applying voucher:', voucherError);
+                // Không block flow đặt hàng nếu apply voucher thất bại
+                toast.warning(`Đặt hàng thành công nhưng không thể áp dụng voucher: ${voucherError.message || 'Lỗi không xác định'}`);
+                // Vẫn xóa voucher code để tránh apply lại lần sau
+                localStorage.removeItem('pendingVoucherCode');
+              }
+            } else {
+              // Xóa voucher code nếu không có voucher
+              localStorage.removeItem('pendingVoucherCode');
+            }
+          } else if (typeof window !== 'undefined') {
+            // Xóa voucher code nếu không có orderId hoặc userId
+            localStorage.removeItem('pendingVoucherCode');
+          }
+          
           toast.success("Đặt hàng thành công!");
           // Reset order state
           dispatch(resetOrderStateAction());

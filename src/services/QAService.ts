@@ -1,3 +1,5 @@
+import { fetchWithAuth } from '@/utils/refreshToken';
+
 const API_BASE_URL = "http://103.90.225.90:8080/services/review-service/api";
 
 // Response types
@@ -61,35 +63,49 @@ export class QAService {
     token?: string
   ): Promise<ApiResponse<PageableResponse<any>>> {
     try {
-      const headers: HeadersInit = {
-        "Content-Type": "application/json",
-      };
-      if (token) {
-        headers["Authorization"] = `Bearer ${token}`;
-      }
-
-      const response = await fetch(
+      const response = await fetchWithAuth(
         `${API_BASE_URL}/questions?page=${page}&size=${size}`,
         {
           method: "GET",
-          headers,
+          headers: {
+            "Content-Type": "application/json",
+          },
         }
       );
 
-      const data = await response.json();
+      // Đọc response text trước để có thể parse nhiều lần nếu cần
+      const responseText = await response.text();
       
-      // Nếu response không ok nhưng có data, vẫn trả về data (tránh hiển thị lỗi khi vẫn có dữ liệu)
       if (!response.ok) {
-        // Nếu có data trong response, vẫn trả về (có thể là partial success)
-        if (data && data.data) {
-          const normalized = normalizeResponse<PageableResponse<any>>(data);
-          return normalized;
-        }
-        // Chỉ throw error nếu thực sự không có data
-        throw new Error(`HTTP error! status: ${response.status}`);
+        console.error('QAService.getAllQuestions - HTTP Error:', {
+          status: response.status,
+          statusText: response.statusText,
+          body: responseText
+        });
+        throw new Error(`HTTP error! status: ${response.status} - ${responseText}`);
+      }
+
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('QAService.getAllQuestions - Parse Error:', parseError);
+        console.error('Response text:', responseText);
+        throw new Error('Failed to parse response: ' + (parseError as Error).message);
       }
 
       const normalized = normalizeResponse<PageableResponse<any>>(data);
+      
+      // Debug log
+      console.log('QAService.getAllQuestions - Response:', {
+        normalizedStatus: normalized.status,
+        hasData: !!normalized.data,
+        hasContent: !!normalized.data?.content,
+        contentLength: normalized.data?.content?.length || 0,
+        totalPages: normalized.data?.totalPages,
+        totalElements: normalized.data?.totalElements
+      });
+      
       return normalized;
     } catch (error) {
       console.error("QAService.getAllQuestions - Error:", error);
@@ -144,7 +160,7 @@ export class QAService {
     token: string
   ): Promise<ApiResponse<any>> {
     try {
-      const response = await fetch(`${API_BASE_URL}/questions`, {
+      const response = await fetchWithAuth(`${API_BASE_URL}/questions`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -153,12 +169,37 @@ export class QAService {
         body: JSON.stringify(questionData),
       });
 
+      // Đọc response text trước để có thể parse nhiều lần nếu cần
+      const responseText = await response.text();
+      
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        console.error('QAService.createQuestion - HTTP Error:', {
+          status: response.status,
+          statusText: response.statusText,
+          body: responseText
+        });
+        throw new Error(`HTTP error! status: ${response.status} - ${responseText}`);
       }
 
-      const data = await response.json();
-      return normalizeResponse(data);
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('QAService.createQuestion - Parse Error:', parseError);
+        console.error('Response text:', responseText);
+        throw new Error('Failed to parse response: ' + (parseError as Error).message);
+      }
+
+      const normalized = normalizeResponse(data);
+      
+      // Debug log
+      console.log('QAService.createQuestion - Response:', {
+        normalizedStatus: normalized.status,
+        hasData: !!normalized.data,
+        questionId: (normalized.data as any)?.id
+      });
+      
+      return normalized;
     } catch (error) {
       console.error("Error creating question:", error);
       throw error;
@@ -176,27 +217,49 @@ export class QAService {
     token?: string
   ): Promise<ApiResponse<PageableResponse<any>>> {
     try {
-      const headers: HeadersInit = {
-        "Content-Type": "application/json",
-      };
-      if (token) {
-        headers["Authorization"] = `Bearer ${token}`;
-      }
-
-      const response = await fetch(
+      const response = await fetchWithAuth(
         `${API_BASE_URL}/questions/search?keyword=${encodeURIComponent(keyword)}&page=${page}&size=${size}`,
         {
           method: "GET",
-          headers,
+          headers: {
+            "Content-Type": "application/json",
+          },
         }
       );
 
+      // Đọc response text trước để có thể parse nhiều lần nếu cần
+      const responseText = await response.text();
+      
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        console.error('QAService.searchQuestions - HTTP Error:', {
+          status: response.status,
+          statusText: response.statusText,
+          body: responseText
+        });
+        throw new Error(`HTTP error! status: ${response.status} - ${responseText}`);
       }
 
-      const data = await response.json();
-      return normalizeResponse(data);
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('QAService.searchQuestions - Parse Error:', parseError);
+        console.error('Response text:', responseText);
+        throw new Error('Failed to parse response: ' + (parseError as Error).message);
+      }
+
+      const normalized = normalizeResponse<PageableResponse<any>>(data);
+      
+      // Debug log
+      console.log('QAService.searchQuestions - Response:', {
+        normalizedStatus: normalized.status,
+        hasData: !!normalized.data,
+        hasContent: !!normalized.data?.content,
+        contentLength: normalized.data?.content?.length || 0,
+        keyword: keyword
+      });
+      
+      return normalized;
     } catch (error) {
       console.error("Error searching questions:", error);
       throw error;

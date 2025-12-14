@@ -94,17 +94,34 @@ export class VoucherService {
         },
       });
 
+      // Đọc response text trước để có thể parse nhiều lần nếu cần
+      const responseText = await response.text();
+      
       if (!response.ok) {
-        const errorText = await response.text().catch(() => 'Unknown error');
-        throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+        console.error('Voucher API Error:', {
+          status: response.status,
+          statusText: response.statusText,
+          errorText: responseText
+        });
+        throw new Error(`HTTP error! status: ${response.status} - ${responseText}`);
       }
 
-      const data: VouchersApiResponse = await response.json();
+      let data: VouchersApiResponse;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('Error parsing voucher response:', parseError);
+        console.error('Response text:', responseText);
+        throw new Error('Failed to parse voucher response: ' + (parseError as Error).message);
+      }
       
       // Debug: Log response để kiểm tra
       console.log('Voucher API Response:', {
-        statusCode: data.status.code,
+        statusCode: data.status?.code,
+        statusMessage: data.status?.message,
         totalVouchers: data.data?.length || 0,
+        hasData: !!data.data,
+        dataType: Array.isArray(data.data) ? 'array' : typeof data.data,
         vouchers: data.data?.map(v => ({
           id: v.id,
           code: v.code,
@@ -113,10 +130,29 @@ export class VoucherService {
         }))
       });
 
-      if (data.status.code === '200') {
-        return data.data || [];
+      // Kiểm tra status code (hỗ trợ cả string và number)
+      const statusCode = data.status?.code;
+      const isSuccess = statusCode === '200' || (typeof statusCode === 'number' && statusCode === 200) || String(statusCode) === '200';
+      if (isSuccess) {
+        // Đảm bảo data.data là array
+        if (Array.isArray(data.data)) {
+          return data.data;
+        } else if (data.data && typeof data.data === 'object') {
+          // Nếu data.data không phải array, có thể là object đơn lẻ hoặc có structure khác
+          console.warn('Voucher API returned non-array data:', data.data);
+          return [];
+        } else {
+          console.warn('Voucher API returned invalid data format:', data);
+          return [];
+        }
       } else {
-        throw new Error(data.status.message || 'Failed to fetch vouchers');
+        const errorMessage = data.status?.message || data.error || 'Failed to fetch vouchers';
+        console.error('Voucher API returned error:', {
+          statusCode: data.status?.code,
+          message: errorMessage,
+          fullResponse: data
+        });
+        throw new Error(errorMessage);
       }
     } catch (error) {
       console.error('Error fetching vouchers:', error);
@@ -241,6 +277,76 @@ export class VoucherService {
       }
     } catch (error) {
       console.error('Error creating voucher:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Áp dụng voucher cho đơn hàng
+   * POST /api/v1/vouchers/apply
+   */
+  static async applyVoucher(request: {
+    code: string;
+    userId: number;
+    orderId: string;
+    orderValue: number;
+  }): Promise<{
+    voucherUsageId: number;
+    voucherId: number;
+    userId: number;
+    orderId: string;
+    orderValue: number;
+    discountAmount: number;
+    finalOrderValue: number;
+    appliedAt: string;
+  }> {
+    try {
+      const response = await fetchWithAuth(`${BASE_API_SALE_SERVICE_URL}/api/v1/vouchers/apply`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(request),
+      });
+
+      // Đọc response text trước để có thể parse nhiều lần nếu cần
+      const responseText = await response.text();
+      
+      if (!response.ok) {
+        console.error('Voucher Apply API Error:', {
+          status: response.status,
+          statusText: response.statusText,
+          errorText: responseText
+        });
+        throw new Error(`HTTP error! status: ${response.status} - ${responseText}`);
+      }
+
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('Error parsing voucher apply response:', parseError);
+        console.error('Response text:', responseText);
+        throw new Error('Failed to parse response: ' + (parseError as Error).message);
+      }
+
+      // Kiểm tra status code (hỗ trợ cả string và number)
+      const statusCode = data.status?.code;
+      const isSuccess = statusCode === '200' || (typeof statusCode === 'number' && statusCode === 200) || (statusCode && String(statusCode) === '200');
+      
+      if (isSuccess) {
+        return data.data;
+      } else {
+        const errorMessage = data.status?.message || data.error || 'Failed to apply voucher';
+        console.error('Voucher Apply API returned error:', {
+          statusCode: data.status?.code,
+          message: errorMessage,
+          fullResponse: data
+        });
+        throw new Error(errorMessage);
+      }
+    } catch (error) {
+      console.error('Error applying voucher:', error);
       throw error;
     }
   }

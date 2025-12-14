@@ -178,18 +178,24 @@ export const startAutoRefresh = (): void => {
   stopAutoRefresh();
 
   // Chỉ chạy trên client side
-  if (typeof window === 'undefined') return;
+  if (typeof window === 'undefined') {
+    console.log('startAutoRefresh: Skipping (server-side)');
+    return;
+  }
 
   const token = getCookie('token');
   const refreshToken = getCookie('refreshToken');
 
   // Nếu không có token hoặc refreshToken, không cần auto-refresh
   if (!token || !refreshToken) {
-    console.log('No token or refreshToken found, skipping auto-refresh');
+    console.log('startAutoRefresh: No token or refreshToken found, skipping auto-refresh', {
+      hasToken: !!token,
+      hasRefreshToken: !!refreshToken
+    });
     return;
   }
 
-  console.log('Starting auto-refresh token interval...');
+  console.log('✅ Starting auto-refresh token interval...');
 
   // Kiểm tra mỗi phút (60 giây)
   autoRefreshInterval = setInterval(async () => {
@@ -198,14 +204,16 @@ export const startAutoRefresh = (): void => {
 
     // Nếu không còn token hoặc refreshToken, dừng auto-refresh
     if (!currentToken || !currentRefreshToken) {
-      console.log('Token or refreshToken missing, stopping auto-refresh');
+      console.log('Auto-refresh: Token or refreshToken missing, stopping auto-refresh');
       stopAutoRefresh();
       return;
     }
 
     // Kiểm tra xem có cần refresh không
-    if (shouldRefreshToken(currentToken)) {
-      console.log('Token will expire soon, auto-refreshing...');
+    const needsRefresh = shouldRefreshToken(currentToken);
+    
+    if (needsRefresh) {
+      console.log('🔄 Token will expire soon, auto-refreshing...');
       try {
         const newToken = await refreshAccessToken();
         if (newToken) {
@@ -216,18 +224,18 @@ export const startAutoRefresh = (): void => {
           stopAutoRefresh();
         }
       } catch (error) {
-        console.error('Error in auto-refresh:', error);
+        console.error('❌ Error in auto-refresh:', error);
         stopAutoRefresh();
       }
     } else {
-      // Log để debug (có thể comment lại sau)
+      // Log để debug - chỉ log khi còn <= 10 phút
       const expiresAt = localStorage.getItem('tokenExpiresAt');
       if (expiresAt) {
         const expiresAtTime = parseInt(expiresAt, 10);
         const now = Date.now();
         const minutesLeft = Math.ceil((expiresAtTime - now) / (60 * 1000));
         if (minutesLeft > 0 && minutesLeft <= 10) {
-          console.log(`Token still valid, ${minutesLeft} minutes left`);
+          console.log(`⏰ Token still valid, ${minutesLeft} minutes left until refresh needed`);
         }
       }
     }
@@ -235,10 +243,25 @@ export const startAutoRefresh = (): void => {
 
   // Kiểm tra ngay lập tức khi khởi động
   if (shouldRefreshToken(token)) {
-    console.log('Token needs immediate refresh');
-    refreshAccessToken().catch(error => {
-      console.error('Error in immediate refresh:', error);
+    console.log('🔄 Token needs immediate refresh on startup');
+    refreshAccessToken().then(newToken => {
+      if (newToken) {
+        console.log('✅ Immediate token refresh successful');
+      } else {
+        console.warn('⚠️ Immediate token refresh failed');
+      }
+    }).catch(error => {
+      console.error('❌ Error in immediate refresh:', error);
     });
+  } else {
+    // Log thông tin token khi khởi động
+    const expiresAt = localStorage.getItem('tokenExpiresAt');
+    if (expiresAt) {
+      const expiresAtTime = parseInt(expiresAt, 10);
+      const now = Date.now();
+      const minutesLeft = Math.ceil((expiresAtTime - now) / (60 * 1000));
+      console.log(`⏰ Auto-refresh started. Token valid for ${minutesLeft} more minutes`);
+    }
   }
 };
 
@@ -249,7 +272,29 @@ export const fetchWithAuth = async (
   url: string,
   options: RequestInit = {}
 ): Promise<Response> => {
-  let token = getCookie('token');
+  // Ưu tiên token từ Authorization header trong options, nếu không có thì lấy từ cookie
+  let existingAuthHeader: string | undefined;
+  if (options.headers) {
+    if (options.headers instanceof Headers) {
+      existingAuthHeader = options.headers.get('Authorization') || undefined;
+    } else if (Array.isArray(options.headers)) {
+      const authEntry = options.headers.find(([key]) => key.toLowerCase() === 'authorization');
+      existingAuthHeader = authEntry ? authEntry[1] : undefined;
+    } else {
+      existingAuthHeader = (options.headers as Record<string, string>)['Authorization'] || 
+                          (options.headers as Record<string, string>)['authorization'];
+    }
+  }
+  
+  // Lấy token từ header hoặc cookie
+  let token = existingAuthHeader?.replace(/^Bearer\s+/i, '') || getCookie('token');
+  
+  // Debug log để kiểm tra token
+  if (!token) {
+    console.warn('fetchWithAuth: No token found in header or cookie for URL:', url);
+  } else {
+    console.debug('fetchWithAuth: Using token from', existingAuthHeader ? 'header' : 'cookie', 'for URL:', url);
+  }
 
   // Kiểm tra và refresh token nếu cần
   if (token && isTokenExpired(token)) {
@@ -263,8 +308,28 @@ export const fetchWithAuth = async (
     ...(options.headers || {}),
   };
 
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
+  // Chỉ override Authorization nếu có token mới hoặc chưa có Authorization header
+  if (token && !existingAuthHeader) {
+    if (headers instanceof Headers) {
+      headers.set('Authorization', `Bearer ${token}`);
+    } else if (Array.isArray(headers)) {
+      headers.push(['Authorization', `Bearer ${token}`]);
+    } else {
+      (headers as Record<string, string>)['Authorization'] = `Bearer ${token}`;
+    }
+  } else if (token && existingAuthHeader) {
+    if (headers instanceof Headers) {
+      headers.set('Authorization', existingAuthHeader);
+    } else if (Array.isArray(headers)) {
+      const authIndex = headers.findIndex(([key]) => key.toLowerCase() === 'authorization');
+      if (authIndex >= 0) {
+        headers[authIndex] = ['Authorization', existingAuthHeader];
+      } else {
+        headers.push(['Authorization', existingAuthHeader]);
+      }
+    } else {
+      (headers as Record<string, string>)['Authorization'] = existingAuthHeader;
+    }
   }
 
   // Thực hiện request
@@ -293,14 +358,60 @@ export const fetchWithAuth = async (
     return response;
   };
 
-  // Nếu nhận được 401 (Unauthorized), thử refresh token và retry
-  if (response.status === 401 && token) {
-    console.log('Received 401, attempting to refresh token...');
+  // Helper function để check response body cho các error codes cần refresh token
+  // GEN01, PMS03 (Unauthorized) - các lỗi này thường do token hết hạn hoặc không hợp lệ
+  const checkForTokenError = async (res: Response): Promise<{ needsRefresh: boolean; errorCode?: string }> => {
+    try {
+      // Clone response để không consume body gốc
+      const clonedResponse = res.clone();
+      const contentType = clonedResponse.headers.get('content-type');
+      
+      // Chỉ check JSON responses
+      if (contentType && contentType.includes('application/json')) {
+        const text = await clonedResponse.text();
+        if (!text) return { needsRefresh: false };
+        
+        try {
+          const data = JSON.parse(text);
+          
+          // Check các error codes: GEN01, PMS03 (và các mã khác có thể cần refresh token)
+          const statusCode = data?.status?.code || data?.statusCode;
+          
+          if (statusCode === 'GEN01' || statusCode === 'PMS03') {
+            console.log(`Detected ${statusCode} error code, token may be expired or invalid`);
+            return { needsRefresh: true, errorCode: statusCode };
+          }
+        } catch (parseError) {
+          // Nếu không parse được JSON, không phải token error
+          console.debug('Could not parse JSON for token error check:', parseError);
+        }
+      }
+    } catch (error) {
+      // Nếu có lỗi khi clone hoặc đọc response
+      console.debug('Could not check for token error:', error);
+    }
+    
+    return { needsRefresh: false };
+  };
+
+  // Helper function để handle token refresh và retry
+  const handleTokenRefreshAndRetry = async (): Promise<Response> => {
+    console.log('Attempting to refresh token due to error...');
     const newToken = await refreshAccessToken();
 
     if (newToken) {
-      response = await retryWithNewToken(newToken);
+      console.log('Token refreshed successfully, retrying request...');
+      const retriedResponse = await retryWithNewToken(newToken);
+      
+      // Check lại token error sau khi retry
+      const stillTokenError = await checkForTokenError(retriedResponse);
+      if (stillTokenError.needsRefresh) {
+        console.warn(`Still receiving ${stillTokenError.errorCode} after token refresh, might be a server issue or invalid refresh token`);
+      }
+      
+      return retriedResponse;
     } else {
+      console.warn('Failed to refresh token');
       // Nếu refresh thất bại, có thể redirect đến login
       if (typeof window !== 'undefined') {
         // Xóa tất cả auth data
@@ -308,34 +419,35 @@ export const fetchWithAuth = async (
         setCookie('refreshToken', '', -1);
         localStorage.removeItem('persist:auth');
         localStorage.removeItem('persist:root');
-        
-        // Redirect đến login page nếu không phải đang ở đó
-        if (!window.location.pathname.includes('/login')) {
-          window.location.href = '/login';
+
+        if (!window.location.pathname.includes('/login') && !window.location.pathname.includes('/signin')) {
+          window.location.href = '/signin';
         }
       }
+      return response;
     }
+  };
+
+  const tokenError = await checkForTokenError(response);
+  if (tokenError.needsRefresh && token) {
+    console.log(`${tokenError.errorCode} error detected, refreshing token and retrying...`);
+    response = await handleTokenRefreshAndRetry();
+    return response;
   }
 
-  // Nếu nhận được 500 (Internal Server Error), thử refresh token và retry
-  // Lỗi 500 có thể do token không hợp lệ hoặc server issue
+  if (response.status === 401 && token) {
+    console.log('Received 401, attempting to refresh token...');
+    response = await handleTokenRefreshAndRetry();
+    return response;
+  }
+
   if (response.status === 500 && token) {
     console.log('Received 500, attempting to refresh token and retry...');
-    const newToken = await refreshAccessToken();
-
-    if (newToken) {
-      console.log('Token refreshed successfully, retrying request...');
-      response = await retryWithNewToken(newToken);
-      
-      // Nếu vẫn lỗi 500 sau khi refresh, có thể là lỗi server thật sự
-      if (response.status === 500) {
-        console.warn('Still receiving 500 after token refresh, might be a server issue');
-      }
-    } else {
-      console.warn('Failed to refresh token on 500 error');
-    }
+    response = await handleTokenRefreshAndRetry();
+    return response;
   }
 
   return response;
 };
+
 

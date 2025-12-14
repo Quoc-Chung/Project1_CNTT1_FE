@@ -77,6 +77,7 @@ export const login = (data: LoginRequest, onSuccess?: any, onError?: any) => {
         body: JSON.stringify(data),
       });
 
+      // Trả về access token và refresh token
       const resData = await res.json();
       console.log(resData)
       if (resData.status?.code !== "200") {
@@ -162,6 +163,10 @@ export const login = (data: LoginRequest, onSuccess?: any, onError?: any) => {
     }
   };
 };
+
+
+
+
 export const loginWithGoogleCallback = (data: any, onSuccess?: any, onError?: any) => {
   return async (dispatch) => {
     dispatch({ type: LOGIN_GOOGLE_REQUEST });

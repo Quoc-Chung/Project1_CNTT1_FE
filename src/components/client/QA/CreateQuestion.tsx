@@ -49,6 +49,7 @@ const CreateQuestion = () => {
     setLoading(true);
 
     try {
+
       const response = await QAService.createQuestion(
         {
           title: title.trim(),
@@ -59,17 +60,19 @@ const CreateQuestion = () => {
         token
       );
 
-      if (response.status === "SUCCESS") {
-        toast.success("Câu hỏi của bạn đã được gửi! Đang chờ duyệt.");
+     
 
-        // Redirect to question list
+      if (response.status === "SUCCESS") {
+        toast.success(response.message || "Câu hỏi của bạn đã được gửi! Đang chờ duyệt.");
         router.push("/qa");
       } else {
         toast.error(response.message || "Không thể gửi câu hỏi!");
       }
     } catch (error: any) {
       console.error("Error creating question:", error);
-      toast.error("Không thể gửi câu hỏi. Vui lòng thử lại sau!");
+      // Hiển thị error message chi tiết hơn
+      const errorMessage = error?.message || "Không thể gửi câu hỏi. Vui lòng thử lại sau!";
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
