@@ -1,6 +1,9 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
 import { useChatAIModalContext } from "@/app/context/ChatAIModalContext";
+import { ChatAIService } from "@/services/ChatAIService";
+import { useAppSelector } from "@/redux/store";
+import { toast } from "react-toastify";
 import Image from "next/image";
 
 interface Message {
@@ -13,9 +16,11 @@ interface Message {
 
 const ChatAIModal = () => {
   const { isOpen, closeChatAIModal } = useChatAIModalContext();
+  const { token } = useAppSelector((state) => state.auth);
   const [message, setMessage] = useState("");
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [conversationId, setConversationId] = useState<string | undefined>(undefined);
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
@@ -66,22 +71,62 @@ const ChatAIModal = () => {
     setMessages(prev => [...prev, userMessage]);
     setIsLoading(true);
     
-    console.log("Sending message:", message);
-    console.log("With image:", uploadedImage);
+    const messageText = message.trim();
+    const imageBase64 = uploadedImage || undefined;
     
-    setTimeout(() => {
-      const aiMessage: Message = {
+    // Clear input immediately
+    setMessage("");
+    setUploadedImage(null);
+    
+    try {
+      // Gọi API Chat AI
+      const response = await ChatAIService.sendMessage(
+        {
+          message: messageText,
+          image: imageBase64,
+          conversationId: conversationId,
+        },
+        token || undefined
+      );
+
+      if (response.status === "SUCCESS" && response.data) {
+        // Cập nhật conversationId nếu có
+        if (response.data.conversationId) {
+          setConversationId(response.data.conversationId);
+        }
+
+        const aiMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          text: response.data.response,
+          isUser: false,
+          timestamp: new Date(),
+        };
+        
+        setMessages(prev => [...prev, aiMessage]);
+      } else {
+        throw new Error(response.message || "Không thể nhận phản hồi từ AI");
+      }
+    } catch (error: any) {
+      console.error("Error sending message to AI:", error);
+      
+      // Hiển thị thông báo lỗi
+      toast.error("Không thể kết nối với AI. Vui lòng thử lại sau.", {
+        autoClose: 3000,
+        position: "top-right"
+      });
+
+      // Hiển thị thông báo lỗi trong chat
+      const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: "Cảm ơn bạn đã hỏi! Tôi đang xử lý câu hỏi của bạn. Đây là một tính năng demo, trong thực tế sẽ có AI thật để trả lời.",
+        text: "Xin lỗi, tôi không thể kết nối với hệ thống AI lúc này. Vui lòng thử lại sau hoặc liên hệ hỗ trợ.",
         isUser: false,
         timestamp: new Date(),
       };
       
-      setMessages(prev => [...prev, aiMessage]);
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
       setIsLoading(false);
-      setMessage("");
-      setUploadedImage(null);
-    }, 1500);
+    }
   };
 
   const removeImage = () => {
