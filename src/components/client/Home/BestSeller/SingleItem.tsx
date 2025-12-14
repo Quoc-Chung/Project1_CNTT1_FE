@@ -145,10 +145,10 @@ const SingleItem = ({ item }: { item: Product }) => {
 
   return (
     <div className="group">
-      <div className="relative overflow-hidden rounded-lg bg-[#F6F7FB] min-h-[403px]">
+      <div className="relative overflow-hidden rounded-lg bg-[#F6F7FB] min-h-[403px] flex flex-col">
         {/* Ảnh sản phẩm - đưa lên trên cùng */}
-        <div className="flex justify-center items-center pt-7.5 pb-4 px-4">
-          <div className="relative w-full h-[280px] flex items-center justify-center">
+        <div className="flex justify-center items-center pt-7.5 pb-4 px-4 flex-shrink-0">
+          <div className="relative w-full h-[280px] flex items-center justify-center bg-white rounded-lg overflow-hidden" style={{ minHeight: '280px', maxHeight: '280px' }}>
             {imageLoading && !imageError && (
               <div className="absolute inset-0 flex items-center justify-center bg-gray-100 rounded-lg z-10">
                 <div className="w-12 h-12 border-4 border-gray-300 border-t-blue-600 rounded-full animate-spin"></div>
@@ -159,6 +159,13 @@ const SingleItem = ({ item }: { item: Product }) => {
               alt={item.title || "Sản phẩm"}
               fill
               className={`object-contain transition-opacity duration-300 ${imageLoading ? 'opacity-0' : 'opacity-100'}`}
+              style={{
+                objectFit: 'contain',
+                width: '100%',
+                height: '100%',
+                maxWidth: '100%',
+                maxHeight: '100%'
+              }}
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               unoptimized={isExternalUrl(getImageUrl())}
               onLoad={() => {
@@ -179,7 +186,7 @@ const SingleItem = ({ item }: { item: Product }) => {
         </div>
 
         {/* Thông tin sản phẩm - đưa xuống dưới */}
-        <div className="text-center px-4 pb-7.5">
+        <div className="text-center px-4 pb-7.5 flex-1 flex flex-col justify-end">
           <div className="flex items-center justify-center gap-2.5 mb-2">
             <div className="flex items-center gap-1">
               {[...Array(5)].map((_, i) => (
