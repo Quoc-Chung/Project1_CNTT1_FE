@@ -324,8 +324,8 @@ export class ProductService {
         }))
       });
 
-      // Kiểm tra status code
-      if (data.status?.code === '200' || data.status?.code === 200) {
+      // Kiểm tra status code (code là string theo ApiStatus type)
+      if (data.status?.code === '200') {
         // Đảm bảo data.data là array
         if (Array.isArray(data.data)) {
           return data.data;
