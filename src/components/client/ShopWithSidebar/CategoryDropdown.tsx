@@ -74,7 +74,7 @@ const CategoryDropdown = ({ categories, loading = false, selectedCategories = []
           toggleDropdown && "shadow-filter"
         }`}
       >
-        <p className="text-dark">Category</p>
+        <p className="text-dark">Danh mục</p>
         <button
           aria-label="button for category dropdown"
           className={`text-dark ease-out duration-200 ${
@@ -108,11 +108,11 @@ const CategoryDropdown = ({ categories, loading = false, selectedCategories = []
       >
         {loading ? (
           <div className="text-center py-4 text-gray-500 text-sm">
-            Đang tải categories...
+            Đang tải danh mục...
           </div>
         ) : categories.length === 0 ? (
           <div className="text-center py-4 text-gray-500 text-sm">
-            Không có category nào
+            Không có danh mục nào
           </div>
         ) : (
           categories.map((category, key) => (

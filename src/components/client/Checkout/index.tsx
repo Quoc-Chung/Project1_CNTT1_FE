@@ -7,6 +7,7 @@ import PaymentMethod from "./PaymentMethod";
 import Coupon from "./Coupon";
 import { useAppDispatch, useAppSelector } from "@/redux/store";
 import { createOrderAction, resetOrderStateAction } from "@/redux/Client/Order/Action";
+import { removeProductFromCartAction } from "@/redux/Client/CartOrder/Action";
 import { CreateOrderRequest, OrderItemRequest } from "@/types/Client/Order/order";
 import { toast } from "react-toastify";
 import addressDataRaw from "@/utils/address.json";
@@ -50,7 +51,7 @@ const Checkout = () => {
         setSelectedCartItems(cart);
       }
     }
-  }, []); // Chỉ chạy một lần khi component mount
+  }, []); 
 
   // Address data
   const provinces = (addressDataRaw as unknown) as AddressData[];
@@ -310,7 +311,7 @@ const Checkout = () => {
                 console.log('Voucher applied successfully');
                 // Xóa voucher code khỏi localStorage sau khi apply thành công
                 localStorage.removeItem('pendingVoucherCode');
-                toast.success("Voucher đã được áp dụng cho đơn hàng!");
+               
               } catch (voucherError: any) {
                 console.error('Error applying voucher:', voucherError);
                 // Không block flow đặt hàng nếu apply voucher thất bại
@@ -328,6 +329,34 @@ const Checkout = () => {
           }
           
           toast.success("Đặt hàng thành công!");
+          
+          // Xóa các sản phẩm trong đơn hàng khỏi giỏ hàng
+          if (cleanToken && itemsToUse.length > 0) {
+            // Xóa từng sản phẩm khỏi giỏ hàng
+            const removePromises = itemsToUse.map((item) => {
+              return new Promise<void>((resolve) => {
+                dispatch(
+                  removeProductFromCartAction(
+                    item.productId,
+                    item.skuId,
+                    cleanToken,
+                    () => {
+                      resolve();
+                    },
+                    (error) => {
+                      // Log lỗi nhưng không block flow
+                      console.error(`Lỗi khi xóa sản phẩm ${item.productId} khỏi giỏ hàng:`, error);
+                      resolve(); // Vẫn resolve để không block các sản phẩm khác
+                    }
+                  )
+                );
+              });
+            });
+            
+            // Đợi tất cả các sản phẩm được xóa (hoặc có lỗi)
+            await Promise.all(removePromises);
+          }
+          
           // Reset order state
           dispatch(resetOrderStateAction());
           // Xóa selectedCartItems khỏi sessionStorage sau khi đặt hàng thành công

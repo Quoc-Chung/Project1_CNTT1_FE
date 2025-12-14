@@ -49,19 +49,19 @@ const SKUDetailDialog: React.FC<SKUDetailDialogProps> = ({ sku, isOpen, onClose 
           {/* Basic Info */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">SKU ID</label>
+              <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">Mã SKU</label>
               <div className="mt-1 text-sm text-gray-900 font-mono break-all">{sku.id}</div>
             </div>
             <div>
-              <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">SKU Code</label>
+              <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">Mã hàng</label>
               <div className="mt-1 text-sm text-gray-900 font-medium">{sku.skuCode || <span className="text-gray-400 italic">N/A</span>}</div>
             </div>
             <div>
-              <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">Product ID</label>
+              <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">Mã sản phẩm</label>
               <div className="mt-1 text-sm text-gray-900 font-mono break-all">{sku.productId}</div>
             </div>
             <div>
-              <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">Barcode</label>
+              <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">Mã vạch</label>
               <div className="mt-1 text-sm text-gray-900 font-mono">{sku.barcode || <span className="text-gray-400 italic">N/A</span>}</div>
             </div>
           </div>
@@ -89,7 +89,7 @@ const SKUDetailDialog: React.FC<SKUDetailDialogProps> = ({ sku, isOpen, onClose 
             </div>
             {sku.saleId && (
               <div className="mt-3">
-                <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">Sale ID</label>
+                <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">Mã khuyến mãi</label>
                 <div className="mt-1 text-sm text-gray-900 font-mono break-all">{sku.saleId}</div>
               </div>
             )}

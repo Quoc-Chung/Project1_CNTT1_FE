@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useAppSelector, useAppDispatch } from "@/redux/store";
 import { createOrderAction, resetOrderStateAction } from "@/redux/Client/Order/Action";
+import { removeProductFromCartAction } from "@/redux/Client/CartOrder/Action";
 import { CreateOrderRequest, OrderItemRequest } from "@/types/Client/Order/order";
 import { CartOrderResponse } from "@/types/Client/CartOrder/cartorder";
 import { toast } from "react-toastify";
@@ -136,7 +137,7 @@ const CheckoutDialog: React.FC<CheckoutDialogProps> = ({ isOpen, onClose }) => {
         if (typeof window !== 'undefined') {
           localStorage.setItem('pendingVoucherCode', code);
         }
-        toast.success("Mã giảm giá đã được áp dụng");
+     
       }
     }
   };
@@ -254,6 +255,34 @@ const CheckoutDialog: React.FC<CheckoutDialogProps> = ({ isOpen, onClose }) => {
           }
           
           toast.success("Đặt hàng thành công!");
+          
+          // Xóa các sản phẩm trong đơn hàng khỏi giỏ hàng
+          if (token && itemsToUse.length > 0) {
+            // Xóa từng sản phẩm khỏi giỏ hàng
+            const removePromises = itemsToUse.map((item) => {
+              return new Promise<void>((resolve) => {
+                dispatch(
+                  removeProductFromCartAction(
+                    item.productId,
+                    item.skuId,
+                    token,
+                    () => {
+                      resolve();
+                    },
+                    (error) => {
+                      // Log lỗi nhưng không block flow
+                      console.error(`Lỗi khi xóa sản phẩm ${item.productId} khỏi giỏ hàng:`, error);
+                      resolve(); // Vẫn resolve để không block các sản phẩm khác
+                    }
+                  )
+                );
+              });
+            });
+            
+            // Đợi tất cả các sản phẩm được xóa (hoặc có lỗi)
+            await Promise.all(removePromises);
+          }
+          
           dispatch(resetOrderStateAction());
           setShowConfirmDialog(false);
           // Xóa selectedCartItems khỏi sessionStorage sau khi đặt hàng thành công

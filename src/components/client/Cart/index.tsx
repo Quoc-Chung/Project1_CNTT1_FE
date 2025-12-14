@@ -101,7 +101,7 @@ const Cart = () => {
     <>
       {/* <!-- ===== Breadcrumb Section Start ===== --> */}
       <section>
-        <Breadcrumb title={"Cart"} pages={["Cart"]} />
+        <Breadcrumb title={"Giỏ hàng"} pages={["Giỏ hàng"]} />
       </section>
       {/* <!-- ===== Breadcrumb Section End ===== --> */}
       {cartItems.length > 0 ? (
@@ -199,7 +199,7 @@ const Cart = () => {
               </svg>
             </div>
 
-            <p className="pb-6">Your cart is empty!</p>
+            <p className="pb-6">Giỏ hàng của bạn đang trống!</p>
 
             <Link
               href="/shop-with-sidebar"

@@ -70,7 +70,7 @@ const GenderDropdown = ({ genders, loading = false, selectedBrands = [], onBrand
           toggleDropdown && "shadow-filter"
         }`}
       >
-        <p className="text-dark">Brand</p>
+        <p className="text-dark">Thương hiệu</p>
         <button
           onClick={() => setToggleDropdown(!toggleDropdown)}
           aria-label="button for brand dropdown"
@@ -104,11 +104,11 @@ const GenderDropdown = ({ genders, loading = false, selectedBrands = [], onBrand
       >
         {loading ? (
           <div className="text-center py-4 text-gray-500 text-sm">
-            Đang tải brands...
+            Đang tải thương hiệu...
           </div>
         ) : genders.length === 0 ? (
           <div className="text-center py-4 text-gray-500 text-sm">
-            Không có brand nào
+            Không có thương hiệu nào
           </div>
         ) : (
           genders.map((gender, key) => (
