@@ -427,11 +427,6 @@ const ShopDetails = ({ productData }: ShopDetailsProps) => {
     );
   };
 
-  console.log('ShopDetails: Component rendering');
-  console.log('ShopDetails: productData:', productData);
-  console.log('ShopDetails: product:', product);
-  console.log('ShopDetails: product?.name:', product?.name);
-
   // Early return nếu không có productData hoặc product
   if (!productData || !productData.data || !product) {
     console.warn('ShopDetails: Missing product data, showing fallback');
@@ -458,8 +453,6 @@ const ShopDetails = ({ productData }: ShopDetailsProps) => {
     images: product.images || [],
     specs: product.specs || null,
   };
-
-  console.log('ShopDetails: Rendering with safeProduct:', safeProduct);
 
   return (
     <>

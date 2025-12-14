@@ -125,7 +125,7 @@ const SingleListItem = ({ item }: { item: Product }) => {
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                openModal();
+                openModal(item);
               }}
               aria-label="button for quick view"
               className="flex items-center justify-center w-9 h-9 rounded-[5px] shadow-1 ease-out duration-200 text-dark bg-white hover:text-blue"

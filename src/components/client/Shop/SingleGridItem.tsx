@@ -124,7 +124,7 @@ const SingleGridItem = ({ item }: { item: Product }) => {
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation(); 
-              openModal();
+              openModal(item);
             }}
             id="newOne"
             aria-label="button for quick view"

@@ -68,7 +68,7 @@ const Header = () => {
     });
   };
 
-  const handleAccountClick = (e) => {
+  const handleAccountClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (isHydrated && !isLogin) {
       e.preventDefault();
       router.push("/signin")
@@ -77,7 +77,7 @@ const Header = () => {
 
   const dispatch = useAppDispatch();
 
-  const handleLogout = (e) => {
+  const handleLogout = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     dispatch(
       logoutAction(
