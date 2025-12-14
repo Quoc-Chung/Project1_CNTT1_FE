@@ -1,4 +1,4 @@
-#!/bin/bash
+
 set -e
 
 GREEN='\033[0;32m'
@@ -31,4 +31,7 @@ docker compose build --no-cache
 echo -e "${YELLOW}[3/3] Cleaning unused images...${NC}"
 docker image prune -f
 
-echo -e "${GREEN}================================
+echo -e "${GREEN}========================================${NC}"
+echo -e "${GREEN}  Build completed successfully!${NC}"
+echo -e "${GREEN}========================================${NC}"
+echo -e "${YELLOW}Run app with:${NC} ${GREEN}./start.sh${NC}"
