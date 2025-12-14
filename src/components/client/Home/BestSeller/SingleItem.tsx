@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Product } from "@/types/Client/Product/ProductItem";
 import { useModalContext } from "@/app/context/QuickViewModalContext";
 import { useRouter } from "next/navigation";
@@ -18,7 +18,44 @@ const SingleItem = ({ item }: { item: Product }) => {
   const user = useAppSelector((state) => state.auth.user);
   const token = useAppSelector((state) => state.auth.token);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const [imageError, setImageError] = useState(false);
+  const [imageLoading, setImageLoading] = useState(true);
   const productId = item.originalId || item.id;
+
+  // Reset image state khi item thay đổi
+  useEffect(() => {
+    setImageLoading(true);
+    setImageError(false);
+  }, [item.id, item.imgs?.previews?.[0], item.imgs?.thumbnails?.[0]]);
+
+  // Kiểm tra URL ảnh có hợp lệ không
+  const isValidImageUrl = (url: string): boolean => {
+    if (!url || url.trim() === "" || url === "undefined" || url === "null") {
+      return false;
+    }
+    // Loại bỏ các URL mẫu hoặc không hợp lệ
+    if (url.includes("example.com") || url.includes("placeholder") || url.includes("dummy")) {
+      return false;
+    }
+    return true;
+  };
+
+  // Lấy URL ảnh với fallback
+  const getImageUrl = () => {
+    if (imageError) {
+      return "/images/products/product-1-bg-1.png";
+    }
+    const imageUrl = item.imgs?.previews?.[0] || item.imgs?.thumbnails?.[0] || "";
+    if (!isValidImageUrl(imageUrl)) {
+      return "/images/products/product-1-bg-1.png";
+    }
+    return imageUrl.trim();
+  };
+
+  // Kiểm tra xem URL có phải external URL không
+  const isExternalUrl = (url: string): boolean => {
+    return url.startsWith('http://') || url.startsWith('https://');
+  };
 
   // Validate productId
   if (!productId || productId === 'undefined' || productId === 'null') {
@@ -29,7 +66,7 @@ const SingleItem = ({ item }: { item: Product }) => {
   const handleAddToCart = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     // Kiểm tra đăng nhập
     if (!user || !token) {
       toast.warning("Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng!", {
@@ -50,7 +87,7 @@ const SingleItem = ({ item }: { item: Product }) => {
     try {
       // Fetch SKU đầu tiên của sản phẩm
       const skuResponse = await ProductService.getSKUsByProductId(String(productId));
-      
+
       if (!skuResponse.data || skuResponse.data.length === 0) {
         toast.error("Sản phẩm này hiện không có phiên bản nào khả dụng!");
         setIsAddingToCart(false);
@@ -112,12 +149,31 @@ const SingleItem = ({ item }: { item: Product }) => {
         {/* Ảnh sản phẩm - đưa lên trên cùng */}
         <div className="flex justify-center items-center pt-7.5 pb-4 px-4">
           <div className="relative w-full h-[280px] flex items-center justify-center">
-            <Image 
-              src={item.imgs.previews[0]} 
-              alt={item.title} 
+            {imageLoading && !imageError && (
+              <div className="absolute inset-0 flex items-center justify-center bg-gray-100 rounded-lg z-10">
+                <div className="w-12 h-12 border-4 border-gray-300 border-t-blue-600 rounded-full animate-spin"></div>
+              </div>
+            )}
+            <Image
+              src={getImageUrl()}
+              alt={item.title || "Sản phẩm"}
               fill
-              className="object-contain"
+              className={`object-contain transition-opacity duration-300 ${imageLoading ? 'opacity-0' : 'opacity-100'}`}
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              unoptimized={isExternalUrl(getImageUrl())}
+              onLoad={() => {
+                setImageLoading(false);
+                setImageError(false);
+              }}
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                setImageError(true);
+                setImageLoading(false);
+                // Chỉ set fallback nếu chưa phải là fallback image
+                if (!target.src.includes("/images/products/product-1-bg-1.png")) {
+                  target.src = "/images/products/product-1-bg-1.png";
+                }
+              }}
             />
           </div>
         </div>
@@ -187,9 +243,8 @@ const SingleItem = ({ item }: { item: Product }) => {
             disabled={isAddingToCart}
             aria-label="button for add to cart"
             id="addCartOne"
-            className={`flex items-center justify-center w-9 h-9 rounded-[5px] shadow-1 ease-out duration-200 text-dark bg-white hover:text-white hover:bg-blue ${
-              isAddingToCart ? 'opacity-50 cursor-not-allowed' : ''
-            }`}
+            className={`flex items-center justify-center w-9 h-9 rounded-[5px] shadow-1 ease-out duration-200 text-dark bg-white hover:text-white hover:bg-blue ${isAddingToCart ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
             title={isAddingToCart ? 'Đang thêm...' : 'Thêm vào giỏ'}
           >
             <svg

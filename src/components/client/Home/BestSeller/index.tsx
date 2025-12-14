@@ -16,23 +16,41 @@ const BestSeller = () => {
       try {
         setLoading(true);
         const apiProducts = await ProductService.getBestSellers(6);
-        
+
         // Map API products to Product format
         const mappedProducts: Product[] = apiProducts.map((apiProduct: BestSellerProduct) => {
+          // Xử lý URL ảnh - đảm bảo không null/undefined và là string hợp lệ
+          let imageUrl = apiProduct.imageUrl || "";
+          if (imageUrl && typeof imageUrl === 'string') {
+            // Loại bỏ khoảng trắng và kiểm tra URL hợp lệ
+            imageUrl = imageUrl.trim();
+            // Loại bỏ các URL mẫu hoặc không hợp lệ
+            if (imageUrl === "null" ||
+              imageUrl === "undefined" ||
+              imageUrl === "" ||
+              imageUrl.includes("example.com") ||
+              imageUrl.includes("placeholder") ||
+              imageUrl.includes("dummy")) {
+              imageUrl = "";
+            }
+          } else {
+            imageUrl = "";
+          }
+
           return {
             id: apiProduct.id,
             originalId: apiProduct.id,
-            title: apiProduct.name,
-            price: apiProduct.price,
-            discountedPrice: apiProduct.price, // Best sellers không có discount, dùng giá gốc
+            title: apiProduct.name || "Sản phẩm",
+            price: apiProduct.price || 0,
+            discountedPrice: apiProduct.price || 0, // Best sellers không có discount, dùng giá gốc
             reviews: Math.floor(Math.random() * 20) + 1, // Random reviews for now
             imgs: {
-              thumbnails: apiProduct.imageUrl ? [apiProduct.imageUrl] : [],
-              previews: apiProduct.imageUrl ? [apiProduct.imageUrl] : [],
+              thumbnails: imageUrl ? [imageUrl] : [],
+              previews: imageUrl ? [imageUrl] : [],
             },
           };
         });
-        
+
         setProducts(mappedProducts);
       } catch (error) {
         console.error("Error fetching best sellers:", error);
