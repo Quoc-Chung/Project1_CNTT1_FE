@@ -328,6 +328,8 @@ const ShopDetails = ({ productData }: ShopDetailsProps) => {
 
   const getAllImages = () => {
     const images: string[] = [];
+    
+    // Chỉ lấy ảnh từ API, không thêm ảnh mock
     if (product.thumbnailUrl && product.thumbnailUrl.trim() !== '') {
       images.push(product.thumbnailUrl);
     }
@@ -339,32 +341,8 @@ const ShopDetails = ({ productData }: ShopDetailsProps) => {
       });
     }
     
-    // Mock 4 ảnh từ thư mục images/products nếu không đủ
-    const mockImages = [
-      "/images/products/product-1-1.png",
-      "/images/products/product-2-1.png",
-      "/images/products/product-1-sm-1.png",
-      "/images/products/product-1-sm-2.png"
-    ];
-    
-    // Nếu không có đủ ảnh, thêm ảnh mock
-    while (images.length < 4) {
-      const mockImg = mockImages[images.length];
-      if (mockImg && !images.includes(mockImg)) {
-        images.push(mockImg);
-      } else {
-        // Fallback nếu hết ảnh mock
-        images.push("/images/products/product-1-bg-1.png");
-        break;
-      }
-    }
-    
-    // Đảm bảo có ít nhất 4 ảnh
-    if (images.length === 0) {
-      images.push(...mockImages.slice(0, 4));
-    }
-    
-    return images.slice(0, 4); // Chỉ lấy 4 ảnh đầu tiên
+    // Trả về tất cả ảnh từ API, không giới hạn số lượng
+    return images;
   };
   const handlePreviewSlider = () => {
     openPreviewModal();

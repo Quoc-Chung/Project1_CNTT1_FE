@@ -17,7 +17,7 @@ const CategoryItem = ({ category, isSelected, onToggle }: CategoryItemProps) => 
     <button
       className={`${
         isSelected && "text-blue"
-      } group flex items-center justify-between ease-out duration-200 hover:text-blue `}
+      } group flex items-center ease-out duration-200 hover:text-blue `}
       onClick={() => onToggle(category.id)}
     >
       <div className="flex items-center gap-2">
@@ -36,14 +36,6 @@ const CategoryItem = ({ category, isSelected, onToggle }: CategoryItemProps) => 
 
         <span>{category.name}</span>
       </div>
-
-      <span
-        className={`${
-          isSelected ? "text-white bg-blue" : "bg-gray-2"
-        } inline-flex rounded-[30px] text-custom-xs px-2 ease-out duration-200 group-hover:text-white group-hover:bg-blue`}
-      >
-        {category.products}
-      </span>
     </button>
   );
 };
