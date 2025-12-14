@@ -4,7 +4,7 @@ const API_BASE_URL = "http://103.90.225.90:8080/services/review-service/api";
 
 // Response types
 interface ApiResponse<T> {
-  status: string;
+  status: string | { code: string; message: string; label?: string };
   message?: string;
   data: T;
 }
@@ -50,11 +50,21 @@ export class ReviewService {
         }
       );
 
+      const data = await response.json();
+
+      // Nếu response không ok, kiểm tra lỗi từ backend
       if (!response.ok) {
+        // Kiểm tra nếu có status.code (format mới từ backend)
+        if (data.status && typeof data.status === 'object' && data.status.code) {
+          const error: any = new Error(data.status.message || `HTTP error! status: ${response.status}`);
+          error.code = data.status.code;
+          error.label = data.status.label;
+          throw error;
+        }
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      return await response.json();
+      return data;
     } catch (error) {
       console.error("Error fetching product reviews:", error);
       throw error;

@@ -43,9 +43,15 @@ const ReviewList = ({ productId, limit = 10, showAll = false }: ReviewListProps)
           setReviews([]);
           setTotalPages(0);
         }
-      } catch (err) {
+      } catch (err: any) {
         console.error("Error fetching reviews:", err);
-        setError("Không thể tải đánh giá. Vui lòng thử lại sau.");
+
+        // Xử lý lỗi REV01 - Chưa mua sản phẩm
+        if (err.code === "REV01") {
+          setError(err.message || "Bạn chỉ có thể đánh giá sản phẩm đã mua");
+        } else {
+          setError("Không thể tải đánh giá. Vui lòng thử lại sau.");
+        }
       } finally {
         setLoading(false);
       }
