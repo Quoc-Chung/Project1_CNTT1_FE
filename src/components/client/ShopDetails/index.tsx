@@ -432,7 +432,7 @@ const ShopDetails = ({ productData }: ShopDetailsProps) => {
     console.warn('ShopDetails: Missing product data, showing fallback');
     return (
       <div className="min-h-screen">
-        <Breadcrumb title="Chi tiết sản phẩm" pages={["shop details"]} />
+        <Breadcrumb title="Chi tiết sản phẩm" pages={["chi tiết sản phẩm"]} />
         <div className="text-center py-20">
           <p className="text-gray-600 text-lg">Không tìm thấy thông tin sản phẩm</p>
           <p className="text-sm text-gray-400 mt-2">Vui lòng thử lại sau hoặc quay lại trang chủ</p>
@@ -456,7 +456,7 @@ const ShopDetails = ({ productData }: ShopDetailsProps) => {
 
   return (
     <>
-      <Breadcrumb title={safeProduct.name} pages={["shop details"]} />
+      <Breadcrumb title={safeProduct.name} pages={["chi tiết sản phẩm"]} />
 
       {safeProduct.name ? (
         <>

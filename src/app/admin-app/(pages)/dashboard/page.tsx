@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { StatisticsService } from "../../../../services/StatisticsService";
+import { RevenueService } from "../../../../services/RevenueService";
 import { BestSellerProduct } from "../../../../types/Admin/ProductAPI";
 import { getCookie } from "../../../../utils/cookies";
 import { DashboardOverview } from "../../../../components/server/DashboardOverview";
@@ -28,17 +29,28 @@ export default function DashboardPage() {
           throw new Error("Không tìm thấy token xác thực");
         }
 
-        const data = await StatisticsService.getAllStatistics(token);
+        // Fetch statistics và revenue data song song
+        const [data, revenueData, revenueReport] = await Promise.all([
+          StatisticsService.getAllStatistics(token),
+          RevenueService.getLast6MonthsRevenue().catch((err) => {
+            console.warn("Error fetching last 6 months revenue:", err);
+            return [];
+          }),
+          RevenueService.getRevenueReport().catch((err) => {
+            console.warn("Error fetching revenue report:", err);
+            return null;
+          })
+        ]);
 
-        // Map dữ liệu vào stats
+        // Map dữ liệu vào stats - ưu tiên dữ liệu từ RevenueService
         const mappedStats: DashboardStats = {
-          totalRevenue: data.revenueSummary.totalRevenue, // Tổng doanh thu từ các đơn đã hoàn thành
+          totalRevenue: revenueReport?.totalRevenue || data.revenueSummary.totalRevenue || data.todayStats.revenue,
           revenueGrowth: data.revenueSummary.percentChange,
           totalCustomers: data.userStats.totalUsers,
           customerGrowth: 0, // Có thể tính sau nếu có dữ liệu tháng trước
-          totalOrders: data.ordersByStatus.COMPLETED + data.ordersByStatus.DELIVERED + 
-                       data.ordersByStatus.PENDING + data.ordersByStatus.PROCESSING + 
-                       data.ordersByStatus.CONFIRMED + data.ordersByStatus.SHIPPING, // Tổng số đơn hàng
+          totalOrders: revenueReport?.totalOrders || (data.ordersByStatus.COMPLETED + data.ordersByStatus.DELIVERED +
+                       data.ordersByStatus.PENDING + data.ordersByStatus.PROCESSING +
+                       data.ordersByStatus.CONFIRMED + data.ordersByStatus.SHIPPING),
           orderGrowth: 0, // Có thể tính sau nếu có dữ liệu tháng trước
           totalProducts: data.productCount.total
         };
@@ -64,7 +76,8 @@ export default function DashboardPage() {
         setProducts(mappedProducts);
         setOrdersByStatus(data.ordersByStatus);
         setInventorySummary(data.inventorySummary);
-        setMonthlyRevenue(data.monthlyRevenue || []);
+        // Ưu tiên sử dụng dữ liệu từ RevenueService, fallback về StatisticsService nếu có lỗi
+        setMonthlyRevenue(revenueData.length > 0 ? revenueData : (data.monthlyRevenue || []));
       } catch (err: any) {
         console.error("Error fetching statistics:", err);
         setError(err.message || "Không thể tải thống kê");

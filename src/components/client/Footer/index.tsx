@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
+import Link from "next/link";
 
 const Footer = () => {
   const [year, setYear] = useState<number>(2024);
@@ -210,24 +211,24 @@ const Footer = () => {
 
             <ul className="flex flex-col gap-3.5">
               <li>
-                <a className="ease-out duration-200 hover:text-blue" href="#">
+                <Link className="ease-out duration-200 hover:text-blue" href="/my-account">
                   Tài khoản của tôi
-                </a>
+                </Link>
               </li>
               <li>
-                <a className="ease-out duration-200 hover:text-blue" href="#">
+                <Link className="ease-out duration-200 hover:text-blue" href="/signin">
                   Đăng nhập / Đăng ký
-                </a>
+                </Link>
               </li>
               <li>
-                <a className="ease-out duration-200 hover:text-blue" href="#">
+                <Link className="ease-out duration-200 hover:text-blue" href="/cart">
                   Giỏ hàng
-                </a>
+                </Link>
               </li>
               <li>
-                <a className="ease-out duration-200 hover:text-blue" href="#">
+                <Link className="ease-out duration-200 hover:text-blue" href="/shop-with-sidebar">
                   Cửa hàng
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -239,29 +240,24 @@ const Footer = () => {
 
             <ul className="flex flex-col gap-3">
               <li>
-                <a className="ease-out duration-200 hover:text-blue" href="#">
+                <Link className="ease-out duration-200 hover:text-blue" href="#">
                   Chính sách bảo mật
-                </a>
+                </Link>
               </li>
               <li>
-                <a className="ease-out duration-200 hover:text-blue" href="#">
-                  Chính sách hoàn tiền
-                </a>
-              </li>
-              <li>
-                <a className="ease-out duration-200 hover:text-blue" href="#">
+                <Link className="ease-out duration-200 hover:text-blue" href="#">
                   Điều khoản sử dụng
-                </a>
+                </Link>
               </li>
               <li>
-                <a className="ease-out duration-200 hover:text-blue" href="#">
+                <Link className="ease-out duration-200 hover:text-blue" href="/qa">
                   Câu hỏi thường gặp
-                </a>
+                </Link>
               </li>
               <li>
-                <a className="ease-out duration-200 hover:text-blue" href="#">
+                <Link className="ease-out duration-200 hover:text-blue" href="/contact">
                   Liên hệ
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -276,54 +272,6 @@ const Footer = () => {
             <p className="text-dark font-medium" suppressHydrationWarning>
               &copy; {year}. All rights reserved © ProShop.
             </p>
-
-            <div className="flex flex-wrap items-center gap-4">
-              <p className="font-medium">Chúng tôi chấp nhận:</p>
-
-              <div className="flex flex-wrap items-center gap-6">
-                <a href="#" aria-label="payment system with visa card">
-                  <Image
-                    src="/images/payment/payment-01.svg"
-                    alt="visa card"
-                    width={66}
-                    height={22}
-                  />
-                </a>
-                <a href="#" aria-label="payment system with paypal">
-                  <Image
-                    src="/images/payment/payment-02.svg"
-                    alt="paypal"
-                    width={18}
-                    height={21}
-                  />
-                </a>
-                <a href="#" aria-label="payment system with master card">
-                  <Image
-                    src="/images/payment/payment-03.svg"
-                    alt="master card"
-                    width={33}
-                    height={24}
-                  />
-                </a>
-                <a href="#" aria-label="payment system with apple pay">
-                  <Image
-                    src="/images/payment/payment-04.svg"
-                    alt="apple pay"
-                    width={53}
-                    height={22}
-                    style={{ width: "auto", height: "auto" }}
-                  />
-                </a>
-                <a href="#" aria-label="payment system with google pay">
-                  <Image
-                    src="/images/payment/payment-05.svg"
-                    alt="google pay"
-                    width={56}
-                    height={22}
-                  />
-                </a>
-              </div>
-            </div>
           </div>
         </div>
       </div>

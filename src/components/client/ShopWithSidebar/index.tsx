@@ -369,7 +369,7 @@ const ShopWithSidebar = () => {
     <>
       <Breadcrumb
         title={"Khám phá tất cả sản phẩm"}
-        pages={["shop", "shop with sidebar"]}
+        pages={["cửa hàng", "cửa hàng có sidebar"]}
       />
       <section className="overflow-hidden relative pb-2 pt-5 lg:pt-3 xl:pt-5 bg-[#f3f4f6]">
         <div className="max-w-[1170px] w-full mx-auto px-4 sm:px-8 xl:px-0">

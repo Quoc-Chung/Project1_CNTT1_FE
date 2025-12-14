@@ -84,9 +84,9 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
     { status: "Hoàn thành", count: 0, color: "bg-green-500" },
     { status: "Đã hủy", count: 0, color: "bg-red-500" },
   ];
-  
+
   const [chartType, setChartType] = useState<'revenue' | 'orders'>('revenue');
-  
+
   // Tính maxValue an toàn
   const maxValue = useMemo(() => {
     if (chartData.length === 0) return 1;
@@ -143,10 +143,6 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
               <div>
                 <p className="text-xs opacity-90">{card.title}</p>
                 <p className="text-xl font-bold mt-1">{card.value}</p>
-                <p className="text-xs flex items-center mt-2">
-                  <TrendingUp size={12} className="mr-1" />
-                  {card.trend}
-                </p>
               </div>
               {card.icon}
             </div>
@@ -200,13 +196,13 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
                   ? formatPrice(value)
                   : `${value} đơn`;
                 const shortValue = chartType === 'revenue'
-                  ? value >= 1000000 
+                  ? value >= 1000000
                     ? `${(value / 1000000).toFixed(1)}M`
                     : value >= 1000
-                    ? `${(value / 1000).toFixed(0)}K`
-                    : value.toString()
+                      ? `${(value / 1000).toFixed(0)}K`
+                      : value.toString()
                   : `${value}`;
-                
+
                 // Màu sắc gradient động dựa trên giá trị
                 const getBarGradient = () => {
                   if (chartType === 'revenue') {
@@ -228,21 +224,11 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
 
                 return (
                   <div key={index} className="flex-1 flex flex-col items-center group relative h-full">
-                    {/* Value Label on Top - Luôn hiển thị tổng tiền/tháng */}
-                    {value > 0 && (
-                      <div className="absolute -top-12 left-1/2 -translate-x-1/2 z-10 mb-2">
-                        <div className="bg-gradient-to-r from-gray-800 to-gray-900 text-white text-xs font-bold px-4 py-2 rounded-lg shadow-xl whitespace-nowrap border border-gray-700">
-                          {displayValue}
-                          <div className="absolute left-1/2 -translate-x-1/2 bottom-0 translate-y-full w-0 h-0 border-l-[6px] border-r-[6px] border-t-[6px] border-transparent border-t-gray-900"></div>
-                        </div>
-                      </div>
-                    )}
-
                     {/* Bar Container */}
                     <div className="relative w-full flex-1 flex items-end justify-center mb-1">
                       <div
                         className={`w-full rounded-t-xl transition-all duration-700 ease-out cursor-pointer group-hover:scale-105 group-hover:shadow-2xl relative overflow-hidden ${getBarGradient()}`}
-                        style={{ 
+                        style={{
                           height: `${Math.max(height, value > 0 ? 3 : 0)}%`,
                           minHeight: value > 0 ? '12px' : '0px',
                           animation: `slideUp 0.6s ease-out ${index * 0.1}s both`,
@@ -251,7 +237,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
                       >
                         {/* Shine Effect */}
                         <div className="absolute inset-0 bg-gradient-to-b from-white/30 via-transparent to-transparent pointer-events-none"></div>
-                        
+
                         {/* Value Display on Bar (always visible if > 0) */}
                         {value > 0 && height >= 15 && (
                           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
@@ -297,17 +283,17 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
           <div className="mt-4 pt-4 border-t border-gray-200">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className={`w-4 h-4 rounded-lg shadow-sm ${chartType === 'revenue' 
-                  ? 'bg-gradient-to-br from-blue-500 to-blue-600' 
+                <div className={`w-4 h-4 rounded-lg shadow-sm ${chartType === 'revenue'
+                  ? 'bg-gradient-to-br from-blue-500 to-blue-600'
                   : 'bg-gradient-to-br from-purple-500 to-purple-600'
-                }`}></div>
+                  }`}></div>
                 <span className="text-sm font-semibold text-gray-700">
                   {chartType === 'revenue' ? 'Doanh Thu (VNĐ)' : 'Số Đơn Hàng'}
                 </span>
               </div>
               <div className="text-xs text-gray-500">
                 Tổng: <span className="font-bold text-gray-700">
-                  {chartType === 'revenue' 
+                  {chartType === 'revenue'
                     ? formatPrice(chartData.reduce((sum, d) => sum + d.revenue, 0))
                     : chartData.reduce((sum, d) => sum + d.orders, 0).toLocaleString() + ' đơn'
                   }
