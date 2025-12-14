@@ -18,9 +18,29 @@ import { DashboardStats, Product } from "@/types/Admin";
 import { formatDate, formatPrice } from '../../utils/helpers';
 import Image from "next/image";
 
+interface OrdersByStatus {
+  CANCELLED: number;
+  DELIVERED: number;
+  COMPLETED: number;
+  CONFIRMED: number;
+  RETURNED: number;
+  PROCESSING: number;
+  PENDING: number;
+  SHIPPING: number;
+}
+
+interface InventorySummary {
+  totalProducts: number;
+  lowStock: number;
+  outOfStock: number;
+  lowStockThreshold: number;
+}
+
 interface DashboardOverviewProps {
   stats: DashboardStats;
   products: Product[];
+  ordersByStatus?: OrdersByStatus;
+  inventorySummary?: InventorySummary;
 }
 
 // Mock data cho biểu đồ doanh thu
@@ -33,19 +53,29 @@ const mockChartData = [
   { month: "Tháng 6", revenue: 320000000, orders: 112 },
 ];
 
-// Mock data cho biểu đồ đơn hàng theo trạng thái
-const mockOrderStatusData = [
-  { status: "Chờ xử lý", count: 15, color: "bg-yellow-500" },
-  { status: "Đang xử lý", count: 28, color: "bg-blue-500" },
-  { status: "Đang giao hàng", count: 42, color: "bg-purple-500" },
-  { status: "Hoàn thành", count: 156, color: "bg-green-500" },
-  { status: "Đã hủy", count: 8, color: "bg-red-500" },
-];
-
 export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
   stats,
   products,
+  ordersByStatus,
+  inventorySummary,
 }) => {
+  // Map order status data cho biểu đồ
+  const mockOrderStatusData = ordersByStatus ? [
+    { status: "Chờ xử lý", count: ordersByStatus.PENDING || 0, color: "bg-yellow-500" },
+    { status: "Đang xử lý", count: ordersByStatus.PROCESSING || 0, color: "bg-blue-500" },
+    { status: "Đã xác nhận", count: ordersByStatus.CONFIRMED || 0, color: "bg-indigo-500" },
+    { status: "Đang giao", count: ordersByStatus.SHIPPING || 0, color: "bg-purple-500" },
+    { status: "Đã giao", count: ordersByStatus.DELIVERED || 0, color: "bg-teal-500" },
+    { status: "Hoàn thành", count: ordersByStatus.COMPLETED || 0, color: "bg-green-500" },
+    { status: "Đã hủy", count: ordersByStatus.CANCELLED || 0, color: "bg-red-500" },
+    { status: "Trả hàng", count: ordersByStatus.RETURNED || 0, color: "bg-orange-500" },
+  ] : [
+    { status: "Chờ xử lý", count: 15, color: "bg-yellow-500" },
+    { status: "Đang xử lý", count: 28, color: "bg-blue-500" },
+    { status: "Đang giao hàng", count: 42, color: "bg-purple-500" },
+    { status: "Hoàn thành", count: 156, color: "bg-green-500" },
+    { status: "Đã hủy", count: 8, color: "bg-red-500" },
+  ];
   const [chartType, setChartType] = useState<'revenue' | 'orders'>('revenue');
   const maxValue = Math.max(...mockChartData.map(d => chartType === 'revenue' ? d.revenue : d.orders));
 
@@ -256,71 +286,88 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
       </div>
 
       {/* Order Status Chart */}
-      <div className="bg-white p-6 rounded-lg shadow-lg border border-gray-200">
-        <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
-          <BarChart3 size={20} className="text-purple-600" />
+      <div className="bg-white p-8 rounded-lg shadow-lg border border-gray-200">
+        <h3 className="text-xl font-bold text-gray-900 mb-8 flex items-center gap-2">
+          <BarChart3 size={24} className="text-purple-600" />
           Thống Kê Đơn Hàng Theo Trạng Thái
         </h3>
-        
+
         {/* Chart Container */}
-        <div className="h-80 relative">
-          <div className="h-full flex items-end justify-between gap-4 pb-8">
-            {mockOrderStatusData.map((data, index) => {
-              const maxCount = Math.max(...mockOrderStatusData.map(d => d.count));
-              const height = (data.count / maxCount) * 100;
-              
-              return (
-                <div key={index} className="flex-1 flex flex-col items-center group">
-                  {/* Bar */}
-                  <div className="relative w-full flex items-end justify-center mb-2">
-                    <div
-                      className={`w-full rounded-t-lg transition-all duration-500 hover:opacity-90 cursor-pointer ${data.color}`}
-                      style={{ height: `${height}%`, minHeight: '8px' }}
-                    >
-                      {/* Tooltip on hover */}
-                      <div className="absolute -top-10 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10">
-                        <div className="bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap">
-                          {data.count} đơn
-                          <div className="absolute left-1/2 -translate-x-1/2 bottom-0 translate-y-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+        <div className="bg-gray-50 rounded-lg p-6">
+          <div className="h-80 relative">
+            {/* Grid background */}
+            <div className="absolute inset-0 flex flex-col justify-between">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="border-t border-gray-200"></div>
+              ))}
+            </div>
+
+            <div className="h-full flex items-end justify-between gap-6 relative z-10">
+              {mockOrderStatusData.map((data, index) => {
+                const maxCount = Math.max(...mockOrderStatusData.map(d => d.count));
+                const height = maxCount > 0 ? (data.count / maxCount) * 100 : 0;
+
+                return (
+                  <div key={index} className="flex-1 flex flex-col items-center group">
+                    {/* Value Label on top */}
+                    <div className="mb-3 min-h-[28px] flex items-center">
+                      {data.count > 0 && (
+                        <div className="bg-white px-3 py-1 rounded-full shadow-sm border border-gray-200">
+                          <span className="text-base font-bold text-gray-800">{data.count}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Bar Column */}
+                    <div className="relative w-full max-w-[80px] flex items-end justify-center group">
+                      <div
+                        className={`w-full rounded-t-xl transition-all duration-300 cursor-pointer relative overflow-hidden group-hover:scale-105 ${data.color}`}
+                        style={{
+                          height: `${height}%`,
+                          minHeight: data.count > 0 ? '20px' : '2px',
+                          boxShadow: data.count > 0 ? '0 4px 12px rgba(0,0,0,0.15)' : 'none'
+                        }}
+                      >
+                        {/* Glossy effect */}
+                        <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent"></div>
+
+                        {/* Hover Tooltip */}
+                        <div className="absolute -top-16 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none z-30">
+                          <div className="bg-gray-800 text-white px-4 py-2 rounded-lg shadow-xl whitespace-nowrap">
+                            <div className="font-bold text-sm">{data.status}</div>
+                            <div className="text-xs text-gray-300 mt-0.5">{data.count} đơn hàng</div>
+                            <div className="absolute left-1/2 -translate-x-1/2 bottom-0 translate-y-full w-0 h-0 border-l-[6px] border-r-[6px] border-t-[6px] border-transparent border-t-gray-800"></div>
+                          </div>
                         </div>
                       </div>
                     </div>
+
+                    {/* Status Label */}
+                    <div className="mt-4 text-center">
+                      <div className="text-xs font-bold text-gray-700 leading-tight">
+                        {data.status.split(' ').map((word, i) => (
+                          <div key={i}>{word}</div>
+                        ))}
+                      </div>
+                    </div>
                   </div>
-                  
-                  {/* Status Label */}
-                  <div className="text-xs text-gray-600 font-medium text-center mt-2 leading-tight">
-                    {data.status.split(' ').map((word, i) => (
-                      <div key={i}>{word}</div>
-                    ))}
-                  </div>
-                  
-                  {/* Count Label */}
-                  <div className="text-sm font-bold text-gray-900 text-center mt-2">
-                    {data.count}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-          
-          {/* Y-axis labels */}
-          <div className="absolute left-0 top-0 h-full flex flex-col justify-between text-xs text-gray-500 pr-2">
-            <span>{Math.max(...mockOrderStatusData.map(d => d.count))}</span>
-            <span>{Math.floor(Math.max(...mockOrderStatusData.map(d => d.count)) / 2)}</span>
-            <span>0</span>
+                );
+              })}
+            </div>
           </div>
         </div>
-        
+
         {/* Legend */}
-        <div className="mt-6 pt-4 border-t border-gray-200">
-          <div className="flex flex-wrap items-center justify-center gap-4">
-            {mockOrderStatusData.map((data, index) => (
-              <div key={index} className="flex items-center gap-2">
-                <div className={`w-3 h-3 rounded ${data.color}`}></div>
-                <span className="text-xs text-gray-600">{data.status}</span>
+        <div className="mt-6 grid grid-cols-4 gap-3">
+          {mockOrderStatusData.map((data, index) => (
+            <div key={index} className="flex items-center gap-2 p-2 rounded-lg border border-gray-200 bg-white hover:shadow-md transition-shadow">
+              <div className={`w-5 h-5 rounded ${data.color} flex-shrink-0`}></div>
+              <div className="flex-1 min-w-0">
+                <div className="text-xs font-semibold text-gray-700 truncate">{data.status}</div>
+                <div className="text-xs text-gray-500">{data.count} đơn</div>
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
         </div>
       </div>
 
@@ -336,19 +383,19 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
             <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
               <div className="text-sm text-gray-600 mb-1">Tổng sản phẩm</div>
               <div className="text-2xl font-bold text-blue-600">
-                {products.reduce((sum, p) => sum + (p.stock || 0), 0).toLocaleString()}
+                {inventorySummary?.totalProducts?.toLocaleString() || 0}
               </div>
             </div>
             <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
-              <div className="text-sm text-gray-600 mb-1">Sắp hết hàng (&lt; 5)</div>
+              <div className="text-sm text-gray-600 mb-1">Sắp hết hàng</div>
               <div className="text-2xl font-bold text-orange-600">
-                {products.filter((p) => (p.stock || 0) < 5 && (p.stock || 0) > 0).length}
+                {inventorySummary?.lowStock || 0}
               </div>
             </div>
             <div className="bg-red-50 p-4 rounded-lg border border-red-200">
               <div className="text-sm text-gray-600 mb-1">Hết hàng</div>
               <div className="text-2xl font-bold text-red-600">
-                {products.filter((p) => (p.stock || 0) === 0).length}
+                {inventorySummary?.outOfStock || 0}
               </div>
             </div>
           </div>
@@ -362,33 +409,33 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
           </h3>
           <div className="space-y-3">
             {[
-              { 
-                label: "Hôm nay", 
-                value: 24, 
+              {
+                label: "Hôm nay",
+                value: stats.totalOrders,
                 icon: <Calendar size={16} className="text-blue-600" />,
                 color: "text-blue-600"
               },
-              { 
-                label: "Chờ xử lý", 
-                value: 15, 
+              {
+                label: "Chờ xử lý",
+                value: ordersByStatus?.PENDING || 0,
                 icon: <Clock size={16} className="text-yellow-600" />,
                 color: "text-yellow-600"
               },
-              { 
-                label: "Đang xử lý", 
-                value: 28, 
+              {
+                label: "Đang xử lý",
+                value: ordersByStatus?.PROCESSING || 0,
                 icon: <Activity size={16} className="text-blue-600" />,
                 color: "text-blue-600"
               },
-              { 
-                label: "Hoàn thành", 
-                value: 156, 
+              {
+                label: "Hoàn thành",
+                value: ordersByStatus?.COMPLETED || 0,
                 icon: <CheckCircle size={16} className="text-green-600" />,
                 color: "text-green-600"
               },
-              { 
-                label: "Đơn hủy", 
-                value: 8, 
+              {
+                label: "Đơn hủy",
+                value: ordersByStatus?.CANCELLED || 0,
                 icon: <XCircle size={16} className="text-red-600" />,
                 color: "text-red-600"
               },
