@@ -14,20 +14,25 @@ const SKUDetailDialog: React.FC<SKUDetailDialogProps> = ({ sku, isOpen, onClose 
   if (!isOpen) return null;
 
   const renderSpecs = () => {
-    if (!sku.specs || Object.keys(sku.specs).length === 0) {
+    if (!sku.specs || typeof sku.specs !== 'object' || Object.keys(sku.specs).length === 0) {
       return <div className="text-gray-500">Không có thông tin specs</div>;
     }
 
-    return (
-      <div className="grid grid-cols-2 gap-3">
-        {Object.entries(sku.specs).map(([key, value]) => (
-          <div key={key} className="bg-white p-2 rounded border border-gray-200">
-            <div className="text-xs font-medium text-gray-600 capitalize tracking-wide">{key}</div>
-            <div className="text-sm text-gray-900 font-medium mt-0.5">{String(value)}</div>
-          </div>
-        ))}
-      </div>
-    );
+    try {
+      return (
+        <div className="grid grid-cols-2 gap-3">
+          {Object.entries(sku.specs).map(([key, value]) => (
+            <div key={key} className="bg-white p-2 rounded border border-gray-200">
+              <div className="text-xs font-medium text-gray-600 capitalize tracking-wide">{key}</div>
+              <div className="text-sm text-gray-900 font-medium mt-0.5">{String(value || '-')}</div>
+            </div>
+          ))}
+        </div>
+      );
+    } catch (error) {
+      console.error('Error rendering specs:', error);
+      return <div className="text-red-500">Lỗi khi hiển thị thông số kỹ thuật</div>;
+    }
   };
 
   return (

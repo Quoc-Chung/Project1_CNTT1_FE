@@ -54,12 +54,17 @@ const CreateEditSKUDialog: React.FC<CreateEditSKUDialogProps> = ({
         });
 
         // Convert specs object to entries array
-        if (sku.specs) {
-          const entries = Object.entries(sku.specs).map(([key, value]) => ({
-            key,
-            value: String(value),
-          }));
-          setSpecsEntries(entries);
+        if (sku.specs && typeof sku.specs === 'object') {
+          try {
+            const entries = Object.entries(sku.specs).map(([key, value]) => ({
+              key: String(key || ''),
+              value: String(value || ''),
+            }));
+            setSpecsEntries(entries);
+          } catch (error) {
+            console.error('Error converting specs to entries:', error);
+            setSpecsEntries([]);
+          }
         } else {
           setSpecsEntries([]);
         }

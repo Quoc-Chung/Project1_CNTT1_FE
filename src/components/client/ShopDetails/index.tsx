@@ -22,6 +22,8 @@ const ShopDetails = ({ productData }: ShopDetailsProps) => {
   const [skus, setSkus] = useState<SKU[]>([]);
   const [selectedSKU, setSelectedSKU] = useState<SKU | null>(null);
   const [loadingSKUs, setLoadingSKUs] = useState(false);
+  const [imageLoading, setImageLoading] = useState(true);
+  const [imageError, setImageError] = useState(false);
   const isHydrated = useOptimizedHydration(30); // Sử dụng hook tối ưu hóa
   const router = useRouter();
   const dispatch = useAppDispatch();
@@ -285,7 +287,15 @@ const ShopDetails = ({ productData }: ShopDetailsProps) => {
   }, [product?.id]);
 
   const mergedSpecs = useMemo(() => {
-    return getMergedSpecs(detailedSpecs, product?.categoryName);
+    if (!detailedSpecs || typeof detailedSpecs !== 'object') {
+      return {};
+    }
+    try {
+      return getMergedSpecs(detailedSpecs, product?.categoryName) || {};
+    } catch (error) {
+      console.error('Error merging specs:', error);
+      return {};
+    }
   }, [detailedSpecs, product?.categoryName]);
 
   if (!productData || !productData.data) {
@@ -323,6 +333,12 @@ const ShopDetails = ({ productData }: ShopDetailsProps) => {
 
     return url;
   };
+
+  // Reset image loading state when selectedImage or product changes
+  useEffect(() => {
+    setImageLoading(true);
+    setImageError(false);
+  }, [selectedImage, product?.thumbnailUrl]);
 
   const getAllImages = () => {
     const images: string[] = [];
@@ -458,18 +474,31 @@ const ShopDetails = ({ productData }: ShopDetailsProps) => {
                 <div className="lg:max-w-[570px] w-full">
                   {/* Div riêng cho ảnh sản phẩm */}
                   <div className="lg:min-h-[512px] rounded-lg shadow-1 bg-gray-2 p-4 sm:p-7.5 relative flex items-center justify-center mb-5">
-                    <div className="w-full">
+                    <div className="w-full relative">
+                      {imageLoading && !imageError && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-gray-100 rounded-lg z-10">
+                          <div className="w-12 h-12 border-4 border-gray-300 border-t-blue-600 rounded-full animate-spin"></div>
+                        </div>
+                      )}
                       <Image
                         src={selectedImage || getImageUrl(safeProduct.thumbnailUrl)}
                         alt={safeProduct.name}
                         width={570}
                         height={512}
-                        className="object-contain w-full h-full"
+                        className={`object-contain w-full h-full transition-opacity duration-300 ${imageLoading ? 'opacity-0' : 'opacity-100'}`}
                         style={{ width: "auto", height: "auto" }}
                         unoptimized={(selectedImage || safeProduct.thumbnailUrl)?.startsWith('http://') || (selectedImage || safeProduct.thumbnailUrl)?.startsWith('https://')}
+                        onLoad={() => {
+                          setImageLoading(false);
+                          setImageError(false);
+                        }}
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;
-                          target.src = "/images/products/product-1-bg-1.png";
+                          setImageError(true);
+                          setImageLoading(false);
+                          if (target.src !== "/images/products/product-1-bg-1.png") {
+                            target.src = "/images/products/product-1-bg-1.png";
+                          }
                         }}
                         priority
                         sizes="(max-width: 768px) 100vw, 570px"
@@ -565,7 +594,7 @@ const ShopDetails = ({ productData }: ShopDetailsProps) => {
                           </div>
                         ) : (
                           <div className="space-y-2">
-                            {skus.map((sku) => (
+                            {skus && Array.isArray(skus) && skus.length > 0 ? skus.map((sku) => (
                               <button
                                 key={sku.id}
                                 type="button"
@@ -590,11 +619,15 @@ const ShopDetails = ({ productData }: ShopDetailsProps) => {
                                   </span>
                                 </div>
                                 <div className="flex flex-wrap gap-2 text-sm text-gray-600">
-                                  {Object.entries(sku.specs).map(([key, value]) => (
-                                    <span key={key} className="bg-gray-100 px-2 py-1 rounded">
-                                      {key}: {value}
-                                    </span>
-                                  ))}
+                                  {sku.specs && typeof sku.specs === 'object' && Object.keys(sku.specs).length > 0 ? (
+                                    Object.entries(sku.specs).map(([key, value]) => (
+                                      <span key={key} className="bg-gray-100 px-2 py-1 rounded">
+                                        {key}: {value}
+                                      </span>
+                                    ))
+                                  ) : (
+                                    <span className="text-gray-400 italic">Không có thông số</span>
+                                  )}
                                 </div>
                                 <div className="mt-2 flex items-center justify-between text-sm">
                                   <span className={sku.stock > 0 ? 'text-green-600' : 'text-red-600'}>
@@ -605,7 +638,11 @@ const ShopDetails = ({ productData }: ShopDetailsProps) => {
                                   )}
                                 </div>
                               </button>
-                            ))}
+                            )) : (
+                              <div className="text-center py-4 text-gray-500">
+                                Không có SKU nào
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>
@@ -719,19 +756,25 @@ const ShopDetails = ({ productData }: ShopDetailsProps) => {
                         </div>
                         <div className="p-4">
                           <div className="space-y-1.5">
-                            {Object.entries(mergedSpecs).map(([key, value]) => (
-                              <div
-                                key={key}
-                                className="flex items-start gap-4 py-1.5 px-3 rounded-lg transition-all bg-white/60 hover:bg-white/80 border border-amber-200"
-                              >
-                                <span className="font-semibold text-sm whitespace-nowrap flex-shrink-0 w-[180px] text-amber-900">
-                                  {key}:
-                                </span>
-                                <span className="text-sm font-medium flex-1 break-words text-amber-800">
-                                  {value}
-                                </span>
+                            {mergedSpecs && typeof mergedSpecs === 'object' && Object.keys(mergedSpecs).length > 0 ? (
+                              Object.entries(mergedSpecs).map(([key, value]) => (
+                                <div
+                                  key={key}
+                                  className="flex items-start gap-4 py-1.5 px-3 rounded-lg transition-all bg-white/60 hover:bg-white/80 border border-amber-200"
+                                >
+                                  <span className="font-semibold text-sm whitespace-nowrap flex-shrink-0 w-[180px] text-amber-900">
+                                    {key}:
+                                  </span>
+                                  <span className="text-sm font-medium flex-1 break-words text-amber-800">
+                                    {value}
+                                  </span>
+                                </div>
+                              ))
+                            ) : (
+                              <div className="text-center py-4 text-gray-500">
+                                Chưa có thông số kỹ thuật
                               </div>
-                            ))}
+                            )}
                           </div>
                         </div>
                       </div>

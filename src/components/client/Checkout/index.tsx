@@ -80,14 +80,24 @@ const Checkout = () => {
   
   // Fetch product images for selected cart items - chỉ fetch khi items thay đổi (theo ID)
   const itemsToUseIds = useMemo(() => {
-    return itemsToUse.map(item => item.id).sort().join(',');
+    if (!itemsToUse || !Array.isArray(itemsToUse) || itemsToUse.length === 0) {
+      return '';
+    }
+    return itemsToUse.map(item => item?.id || '').filter(id => id !== '').sort().join(',');
   }, [itemsToUse]);
 
   useEffect(() => {
     const fetchAllProductImages = async () => {
+      if (!itemsToUse || !Array.isArray(itemsToUse) || itemsToUse.length === 0) {
+        setProductImages({});
+        setImageLoadingStates({});
+        fetchedImagesRef.current.clear();
+        return;
+      }
+
       const imageMap: { [key: string]: string } = {};
       const loadingMap: { [key: string]: boolean } = {};
-      const currentItemIds = new Set(itemsToUse.map(item => item.id));
+      const currentItemIds = new Set(itemsToUse.map(item => item?.id || '').filter(id => id !== ''));
       
       // Clean up fetchedImagesRef to only include current items
       fetchedImagesRef.current = new Set(
@@ -96,6 +106,8 @@ const Checkout = () => {
       
       // First, set images from item data if available
       itemsToUse.forEach((item) => {
+        if (!item || !item.id) return;
+        
         if (item.productImage || item.thumbnailUrl) {
           const normalized = normalizeImageUrl(item.productImage || item.thumbnailUrl);
           imageMap[item.id] = normalized.url;
@@ -113,7 +125,7 @@ const Checkout = () => {
       setImageLoadingStates(loadingMap);
       
       // Then fetch missing images
-      const itemsToFetch = itemsToUse.filter(item => !imageMap[item.id] && !fetchedImagesRef.current.has(item.id));
+      const itemsToFetch = itemsToUse.filter(item => item && item.id && !imageMap[item.id] && !fetchedImagesRef.current.has(item.id));
       
       if (itemsToFetch.length > 0) {
         const fetchPromises = itemsToFetch.map(async (item) => {

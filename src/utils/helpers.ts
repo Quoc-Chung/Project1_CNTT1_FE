@@ -98,11 +98,12 @@ export const getStockStatus = (stock: number): { color: string, text: string, ba
 /**
  * Normalize image URL and check if it's external
  * @param url - Image URL from API or local path
+ * @param isAvatar - Whether this is an avatar image (uses different fallback)
  * @returns Object with normalized URL and isExternal flag
  */
-export const normalizeImageUrl = (url: string | null | undefined): { url: string; isExternal: boolean } => {
-  // Default fallback image
-  const defaultImage = "/images/products/product-1-1.png";
+export const normalizeImageUrl = (url: string | null | undefined, isAvatar: boolean = false): { url: string; isExternal: boolean } => {
+  // Default fallback image - different for avatar vs product
+  const defaultImage = isAvatar ? "/images/avatars/nologin.png" : "/images/products/product-1-1.png";
   
   if (!url || url.trim() === '') {
     return { url: defaultImage, isExternal: false };
@@ -115,11 +116,12 @@ export const normalizeImageUrl = (url: string | null | undefined): { url: string
     return { url: trimmedUrl, isExternal: true };
   }
 
-  // Check if it's already a local path starting with /
+  // Check if it's a path that might be from API backend (starts with /api/ or /images/ but might need domain)
+  // For now, treat all paths starting with / as local paths
   if (trimmedUrl.startsWith('/')) {
     return { url: trimmedUrl, isExternal: false };
   }
 
-  // If it doesn't start with /, add it
+  // If it doesn't start with /, add it (likely a relative path from API)
   return { url: `/${trimmedUrl}`, isExternal: false };
 };

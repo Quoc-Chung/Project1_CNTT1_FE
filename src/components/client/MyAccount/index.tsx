@@ -10,6 +10,7 @@ import { useSelector } from "react-redux";
 import { logoutAction } from "../../../redux/Client/Auth/Action";
 import { toast } from "react-toastify";
 import { useRouter, useSearchParams } from "next/navigation";
+import { normalizeImageUrl } from "../../../utils/helpers";
 
 const UserDashboard = () => {
   const router = useRouter();
@@ -31,7 +32,8 @@ const UserDashboard = () => {
   
   useEffect(()=>{
      if(user && user.avatarUrl && user.avatarUrl.trim() !== ""){
-       setAvatar(user.avatarUrl)
+       const normalized = normalizeImageUrl(user.avatarUrl, true); // isAvatar = true
+       setAvatar(normalized.url);
      } else {
        setAvatar("/avatar.jpg") 
      }
@@ -109,7 +111,15 @@ const UserDashboard = () => {
                       src={avatar || "/avatar.jpg"}
                       alt="User avatar"
                       fill
-                      className="object-cover z-0" 
+                      className="object-cover z-0"
+                      unoptimized={normalizeImageUrl(avatar, true).isExternal}
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        const fallbackSrc = "/avatar.jpg";
+                        if (!target.src.includes('avatar.jpg')) {
+                          target.src = fallbackSrc;
+                        }
+                      }}
                     />
                     {/* chấm online */}
                  

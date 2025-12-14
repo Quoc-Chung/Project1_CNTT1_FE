@@ -37,10 +37,19 @@ const MyAccount = ({ isOpen, onClose, onAvatarChange, avatar }) => {
           <div className="mb-6 flex flex-col items-center">
             <div className="relative w-24 h-24 rounded-full overflow-hidden ring-4 ring-blue-100 mb-4">
              <Image
-              src="/public/avatar.jpg"
+              src={avatar || "/avatar.jpg"}
               alt="avatar"
               width={100}  
               height={100}
+              className="object-cover"
+              unoptimized={avatar && (avatar.startsWith('http://') || avatar.startsWith('https://'))}
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                const fallbackSrc = "/avatar.jpg";
+                if (!target.src.includes('avatar.jpg')) {
+                  target.src = fallbackSrc;
+                }
+              }}
             />
             </div>
             <label className="cursor-pointer bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all duration-200">

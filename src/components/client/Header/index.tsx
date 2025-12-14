@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { menuData } from "./menuData";
 import Dropdown from "./Dropdown";
@@ -10,6 +10,7 @@ import { RootState, useAppDispatch, persistor } from "../../../redux/store";
 import { logoutAction } from "../../../redux/Client/Auth/Action";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
+import { normalizeImageUrl } from "../../../utils/helpers";
 
 
 const Header = () => {
@@ -17,6 +18,7 @@ const Header = () => {
   const [navigationOpen, setNavigationOpen] = useState(false);
   const [stickyMenu, setStickyMenu] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
+  const hydrationCheckedRef = useRef(false);
   const { openCartModal } = useCartModalContext();
 
 
@@ -31,25 +33,30 @@ const Header = () => {
   }, [cartItems]);
 
   useEffect(() => {
+    // Chỉ check hydration một lần khi component mount
+    if (hydrationCheckedRef.current) return;
+    
     const checkHydration = () => {
       if (typeof window !== 'undefined') {
-        const hasPersistData = localStorage.getItem('persist:auth') || localStorage.getItem('persist:cart');
-
-        if (hasPersistData || token || user) {
-          setIsHydrated(true);
-        } else {
-          setTimeout(() => setIsHydrated(true), 200);
-        }
+        hydrationCheckedRef.current = true;
+        // Set hydrated ngay lập tức để tránh chớp nháy
+        setIsHydrated(true);
       } else {
+        hydrationCheckedRef.current = true;
         setIsHydrated(true);
       }
     };
     
-    // Đợi một chút để đảm bảo PersistGate đã rehydrate
-    const timer = setTimeout(checkHydration, 150);
-    
-    return () => clearTimeout(timer);
-  }, [token, user]);
+    // Set hydrated ngay lập tức trên client side
+    if (typeof window !== 'undefined') {
+      setIsHydrated(true);
+      hydrationCheckedRef.current = true;
+    } else {
+      // Trên server side, set sau một chút
+      const timer = setTimeout(checkHydration, 50);
+      return () => clearTimeout(timer);
+    }
+  }, []); // Empty dependency array - chỉ chạy một lần khi mount
 
   const getFilteredMenuData = () => {
     return menuData.filter(item => {
@@ -185,13 +192,30 @@ const Header = () => {
                   onClick={handleAccountClick}
                   suppressHydrationWarning
                 >
-                  <Image
-                    src={isHydrated ? (user?.avatarUrl ? user.avatarUrl : "/images/avatars/nologin.png") : "/images/avatars/nologin.png"}
-                    alt=""
-                    width={30}
-                    height={30}
-                    className="rounded-full"
-                  />
+                  {(() => {
+                    const normalized = normalizeImageUrl(
+                      isHydrated && user?.avatarUrl ? user.avatarUrl : null,
+                      true // isAvatar = true
+                    );
+                    
+                    return (
+                      <Image
+                        src={normalized.url}
+                        alt="User avatar"
+                        width={30}
+                        height={30}
+                        className="rounded-full transition-opacity duration-200"
+                        unoptimized={normalized.isExternal}
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          const fallbackSrc = "/images/avatars/nologin.png";
+                          if (!target.src.includes('nologin.png')) {
+                            target.src = fallbackSrc;
+                          }
+                        }}
+                      />
+                    );
+                  })()}
 
 
                   <div>
