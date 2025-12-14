@@ -67,3 +67,17 @@ export interface ProductCreateRequest {
   imageUrls: string[];
 }
 
+export interface BestSellerProduct {
+  id: string;
+  name: string;
+  price: number;
+  imageUrl: string;
+  totalSold: number;
+}
+
+export interface BestSellersResponse {
+  status: ApiStatus;
+  data: BestSellerProduct[];
+  extraData: null;
+}
+

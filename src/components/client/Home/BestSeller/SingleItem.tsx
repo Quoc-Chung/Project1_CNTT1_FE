@@ -109,7 +109,21 @@ const SingleItem = ({ item }: { item: Product }) => {
   return (
     <div className="group">
       <div className="relative overflow-hidden rounded-lg bg-[#F6F7FB] min-h-[403px]">
-        <div className="text-center px-4 py-7.5">
+        {/* Ảnh sản phẩm - đưa lên trên cùng */}
+        <div className="flex justify-center items-center pt-7.5 pb-4 px-4">
+          <div className="relative w-full h-[280px] flex items-center justify-center">
+            <Image 
+              src={item.imgs.previews[0]} 
+              alt={item.title} 
+              fill
+              className="object-contain"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            />
+          </div>
+        </div>
+
+        {/* Thông tin sản phẩm - đưa xuống dưới */}
+        <div className="text-center px-4 pb-7.5">
           <div className="flex items-center justify-center gap-2.5 mb-2">
             <div className="flex items-center gap-1">
               {[...Array(5)].map((_, i) => (
@@ -132,10 +146,6 @@ const SingleItem = ({ item }: { item: Product }) => {
               <span className="text-dark-4 line-through">{item.price.toLocaleString('vi-VN')}₫</span>
             )}
           </span>
-        </div>
-
-        <div className="flex justify-center items-center">
-          <Image src={item.imgs.previews[0]} alt="" width={280} height={280} style={{ width: "auto", height: "auto" }} />
         </div>
 
         <div className="absolute right-0 bottom-0 translate-x-full u-w-full flex flex-col gap-2 p-5.5 ease-linear duration-300 group-hover:translate-x-0">
