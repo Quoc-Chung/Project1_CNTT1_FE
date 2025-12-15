@@ -1,10 +1,53 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { VoucherService, VoucherResponse } from "@/services/VoucherService";
-import { formatDate, formatPrice } from "@/utils/helpers";
+import { formatDate, formatPrice, normalizeImageUrl } from "@/utils/helpers";
 import Image from "next/image";
 import Link from "next/link";
 import { Ticket, Calendar, Percent } from "lucide-react";
+
+// Component để hiển thị banner image của voucher
+const VoucherBanner = ({ bannerImageUrl, voucherName }: { bannerImageUrl: string | null; voucherName: string }) => {
+  const [imageError, setImageError] = useState(false);
+  const [imageLoading, setImageLoading] = useState(true);
+  const { url: bannerUrl, isExternal } = normalizeImageUrl(bannerImageUrl || null, false);
+
+  if (!bannerImageUrl || imageError) {
+    return (
+      <div className="relative h-40 w-full overflow-hidden bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-500 flex items-center justify-center">
+        <div className="text-white text-center p-4">
+          <Ticket className="w-12 h-12 mx-auto mb-2 opacity-80" />
+          <p className="text-sm font-semibold">{voucherName}</p>
+        </div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative h-40 w-full overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-50">
+      {imageLoading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+          <div className="w-8 h-8 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin"></div>
+        </div>
+      )}
+      <Image
+        src={bannerUrl}
+        alt={voucherName}
+        fill
+        className={`object-cover group-hover:scale-110 transition-transform duration-500 ${imageLoading ? 'opacity-0' : 'opacity-100'}`}
+        sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+        unoptimized={isExternal}
+        onLoad={() => setImageLoading(false)}
+        onError={() => {
+          setImageError(true);
+          setImageLoading(false);
+        }}
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+    </div>
+  );
+};
 
 const Vouchers = () => {
   const [allVouchers, setAllVouchers] = useState<VoucherResponse[]>([]);
@@ -17,7 +60,7 @@ const Vouchers = () => {
         setLoading(true);
         // Load tất cả voucher từ API (không có filter)
         const data = await VoucherService.getAllVouchers();
-        
+
         // Debug: Log tất cả voucher để kiểm tra
         console.log("All vouchers from API:", data);
         console.log("Total vouchers:", data.length);
@@ -30,12 +73,12 @@ const Vouchers = () => {
           active: data.filter(v => v.isActive === true).length,
           inactive: data.filter(v => v.isActive === false).length,
         });
-        
+
         setAllVouchers(data);
-        
+
         // Hiển thị TẤT CẢ voucher (không lọc gì cả)
         setDisplayedVouchers(data);
-        
+
         console.log("Displayed vouchers:", data.length);
       } catch (error: any) {
         console.error("Error fetching vouchers:", error);
@@ -101,18 +144,10 @@ const Vouchers = () => {
               className="group relative bg-white rounded-xl shadow-lg border-2 border-gray-200 hover:border-blue-500 hover:shadow-xl transition-all duration-300 overflow-hidden"
             >
               {/* Banner Image */}
-              {voucher.bannerImageUrl && (
-                <div className="relative h-32 w-full overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-50">
-                  <Image
-                    src={voucher.bannerImageUrl}
-                    alt={voucher.name}
-                    fill
-                    className="object-cover group-hover:scale-110 transition-transform duration-500"
-                    sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
-                </div>
-              )}
+              <VoucherBanner
+                bannerImageUrl={voucher.bannerImageUrl}
+                voucherName={voucher.name}
+              />
 
               {/* Content */}
               <div className="p-5">
@@ -127,13 +162,12 @@ const Vouchers = () => {
                       <p className="text-xl font-black text-red-600">{formatDiscount(voucher)}</p>
                     </div>
                   </div>
-                  <div className={`px-3 py-1 rounded-full text-xs font-bold ${
-                    voucher.status === 'ACTIVE' && voucher.isActive 
-                      ? 'bg-green-100 text-green-800' 
-                      : voucher.status === 'SCHEDULED'
+                  <div className={`px-3 py-1 rounded-full text-xs font-bold ${voucher.status === 'ACTIVE' && voucher.isActive
+                    ? 'bg-green-100 text-green-800'
+                    : voucher.status === 'SCHEDULED'
                       ? 'bg-blue-100 text-blue-800'
                       : 'bg-red-100 text-red-800'
-                  }`}>
+                    }`}>
                     {voucher.status === 'ACTIVE' && voucher.isActive ? 'ACTIVE' : voucher.status}
                   </div>
                 </div>
@@ -186,10 +220,10 @@ const Vouchers = () => {
 
               {/* Arrow Indicator */}
               <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0 transition-all duration-300">
-                <svg 
-                  className="w-5 h-5 text-blue-600" 
-                  fill="none" 
-                  stroke="currentColor" 
+                <svg
+                  className="w-5 h-5 text-blue-600"
+                  fill="none"
+                  stroke="currentColor"
                   viewBox="0 0 24 24"
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
