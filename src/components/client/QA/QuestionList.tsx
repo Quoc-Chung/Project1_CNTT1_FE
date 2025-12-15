@@ -74,7 +74,7 @@ const QuestionList = () => {
       if (response.status === "SUCCESS" && response.data) {
         const newQuestions = response.data.content || [];
         const totalPages = response.data.totalPages || 0;
-        
+
         // Luôn set questions và totalPages nếu có response
         setQuestions(newQuestions);
         setTotalPages(totalPages);
@@ -226,33 +226,30 @@ const QuestionList = () => {
           <span className="text-sm text-gray-600">Lọc:</span>
           <button
             onClick={() => setSelectedCategory(null)}
-            className={`px-3 py-1 rounded-full text-sm transition-colors ${
-              selectedCategory === null
+            className={`px-3 py-1 rounded-full text-sm transition-colors ${selectedCategory === null
                 ? "bg-blue text-white"
                 : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-            }`}
+              }`}
           >
             Tất cả
           </button>
           <button
             onClick={() => setSelectedCategory(1)}
-            className={`px-3 py-1 rounded-full text-sm transition-colors ${
-              selectedCategory === 1
+            className={`px-3 py-1 rounded-full text-sm transition-colors ${selectedCategory === 1
                 ? "bg-blue text-white"
                 : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-            }`}
+              }`}
           >
             💻 Laptop
           </button>
           <button
             onClick={() => setSelectedCategory(2)}
-            className={`px-3 py-1 rounded-full text-sm transition-colors ${
-              selectedCategory === 2
+            className={`px-3 py-1 rounded-full text-sm transition-colors ${selectedCategory === 2
                 ? "bg-blue text-white"
                 : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-            }`}
+              }`}
           >
-            📱 Điện thoại
+            🎮 PC Gaming
           </button>
         </div>
 

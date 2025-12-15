@@ -111,11 +111,10 @@ const CreateQuestion = () => {
             required
           >
             <option value={1}>💻 Laptop</option>
-            <option value={2}>📱 Điện thoại</option>
-            <option value={3}>🖥️ PC & Máy tính bàn</option>
-            <option value={4}>⌨️ Phụ kiện</option>
-            <option value={5}>🎮 Gaming</option>
-            <option value={6}>❓ Khác</option>
+            <option value={2}>🖥️ PC & Máy tính bàn</option>
+            <option value={3}>⌨️ Phụ kiện</option>
+            <option value={4}>🎮 Gaming</option>
+            <option value={5}>❓ Khác</option>
           </select>
         </div>
 
