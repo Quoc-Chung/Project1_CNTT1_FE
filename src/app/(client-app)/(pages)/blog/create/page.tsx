@@ -5,7 +5,7 @@ import CreateBlog from "@/components/client/Blog/CreateBlog";
 
 const CreateBlogPage = () => {
   useEffect(() => {
-    document.title = "Tạo Blog | NextCommerce";
+    document.title = "Tạo Blog | Proshop";
   }, []);
 
   return <CreateBlog />;

@@ -5,7 +5,7 @@ import EditBlog from "../../../../../../components/admin/EditBlog";
 
 const EditBlogPage = () => {
   useEffect(() => {
-    document.title = "NextCommerce | Chỉnh sửa blog";
+    document.title = "Proshop | Chỉnh sửa blog";
   }, []);
 
   return <EditBlog />;

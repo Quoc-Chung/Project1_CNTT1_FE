@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { Eye, CheckCircle, XCircle } from "lucide-react";
 import { Order } from "@/types/Admin";
-import { formatPrice, formatDate, getStatusBadge }  from '../../utils/helpers';
+import { formatPrice, formatDate, getStatusBadge } from '../../utils/helpers';
 import { OrderService, AdminOrderResponse } from '@/services/OrderService';
 import { OrderDetailDialog } from './OrderDetailDialog';
 import { UpdateOrderStatusDialog } from './UpdateOrderStatusDialog';
@@ -16,6 +16,12 @@ interface OrderManagementProps {
 export const OrderManagement: React.FC<OrderManagementProps> = ({ orders: initialOrders }) => {
   const [orders, setOrders] = useState<Order[]>(initialOrders || []);
   const [loading, setLoading] = useState(!initialOrders);
+  const [orderStats, setOrderStats] = useState({
+    total: 0,
+    totalRevenue: 0,
+    todayOrders: 0,
+    todayRevenue: 0,
+  });
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -30,38 +36,72 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ orders: initia
 
   // Fetch orders from API if not provided
   useEffect(() => {
-    if (!initialOrders) {
-      const fetchOrders = async () => {
-        try {
-          setLoading(true);
-          const apiOrders = await OrderService.getAllOrdersForAdmin();
-          
-          // Map API response to Order format
-          const mappedOrders: Order[] = apiOrders.map((apiOrder: AdminOrderResponse) => ({
-            id: apiOrder.orderId,
-            customerId: String(apiOrder.userId),
-            customerName: `User ${apiOrder.userId}`, // Có thể fetch thêm thông tin user sau
-            products: [], // API không trả về products, có thể fetch chi tiết sau
-            totalAmount: apiOrder.totalAmount,
-            status: mapStatusToOrderStatus(apiOrder.status),
-            orderDate: apiOrder.createdAt,
-            paymentMethod: 'cash', // Default, có thể fetch từ API sau
-            shippingAddress: apiOrder.shippingAddress,
-            apiStatus: apiOrder.status.toUpperCase(), // Đảm bảo status luôn uppercase và lưu status gốc từ API
-          } as Order & { apiStatus: string }));
-          
-          setOrders(mappedOrders);
-        } catch (error: any) {
-          console.error('Error fetching orders:', error);
-          toast.error(error.message || 'Không thể tải danh sách đơn hàng');
-        } finally {
-          setLoading(false);
-        }
-      };
-      
-      fetchOrders();
-    }
-  }, [initialOrders]);
+    const fetchOrders = async () => {
+      try {
+        setLoading(true);
+        const apiOrders = await OrderService.getAllOrdersForAdmin();
+
+        // Map API response to Order format
+        const mappedOrders: Order[] = apiOrders.map((apiOrder: AdminOrderResponse) => ({
+          id: apiOrder.orderId,
+          customerId: String(apiOrder.userId),
+          customerName: `User ${apiOrder.userId}`, // Có thể fetch thêm thông tin user sau
+          products: [], // API không trả về products, có thể fetch chi tiết sau
+          totalAmount: apiOrder.totalAmount,
+          status: mapStatusToOrderStatus(apiOrder.status),
+          orderDate: apiOrder.createdAt,
+          paymentMethod: 'cash', // Default, có thể fetch từ API sau
+          shippingAddress: apiOrder.shippingAddress,
+          apiStatus: apiOrder.status.toUpperCase(), // Đảm bảo status luôn uppercase và lưu status gốc từ API
+        } as Order & { apiStatus: string }));
+
+        setOrders(mappedOrders);
+
+        // Tính toán thống kê đơn hàng
+        // So sánh ngày theo timezone Việt Nam (GMT+7)
+        const now = new Date();
+        // Format ngày hiện tại theo timezone Việt Nam: YYYY-MM-DD
+        const todayStr = now.toLocaleDateString('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }); // en-CA gives YYYY-MM-DD format
+
+        const todayOrders = mappedOrders.filter(order => {
+          if (!order.orderDate) return false;
+          const orderDate = new Date(order.orderDate);
+          // Format ngày đơn hàng theo timezone Việt Nam: YYYY-MM-DD
+          const orderDateStr = orderDate.toLocaleDateString('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' });
+
+          // So sánh chuỗi ngày
+          return orderDateStr === todayStr;
+        });
+
+        const completedOrders = mappedOrders.filter(order => {
+          const status = (order as any).apiStatus || order.status.toUpperCase();
+          return status === 'COMPLETED' || status === 'DELIVERED';
+        });
+
+        const totalRevenue = completedOrders.reduce((sum, order) => sum + (order.totalAmount || 0), 0);
+        const todayRevenue = todayOrders
+          .filter(order => {
+            const status = (order as any).apiStatus || order.status.toUpperCase();
+            return status === 'COMPLETED' || status === 'DELIVERED';
+          })
+          .reduce((sum, order) => sum + (order.totalAmount || 0), 0);
+
+        setOrderStats({
+          total: mappedOrders.length,
+          totalRevenue: totalRevenue,
+          todayOrders: todayOrders.length,
+          todayRevenue: todayRevenue,
+        });
+      } catch (error: any) {
+        console.error('Error fetching orders:', error);
+        toast.error(error.message || 'Không thể tải danh sách đơn hàng');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrders();
+  }, []);
 
   // Map API status to Order status format
   const mapStatusToOrderStatus = (status: string): Order['status'] => {
@@ -113,29 +153,64 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ orders: initia
 
   // Handle order updated (refresh list)
   const handleOrderUpdated = async () => {
-    if (!initialOrders) {
-      try {
-        // Đợi một chút để đảm bảo API đã cập nhật xong
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        const apiOrders = await OrderService.getAllOrdersForAdmin();
-        const mappedOrders: Order[] = apiOrders.map((apiOrder: AdminOrderResponse) => ({
-          id: apiOrder.orderId,
-          customerId: String(apiOrder.userId),
-          customerName: `User ${apiOrder.userId}`,
-          products: [],
-          totalAmount: apiOrder.totalAmount,
-          status: mapStatusToOrderStatus(apiOrder.status),
-          orderDate: apiOrder.createdAt,
-          paymentMethod: 'cash',
-          shippingAddress: apiOrder.shippingAddress,
-          apiStatus: apiOrder.status.toUpperCase(), // Đảm bảo status luôn uppercase và lưu status gốc từ API
-        } as Order & { apiStatus: string }));
-        setOrders(mappedOrders);
-      } catch (error: any) {
-        console.error('Error refreshing orders:', error);
-        toast.error('Không thể làm mới danh sách đơn hàng');
-      }
+    try {
+      // Đợi một chút để đảm bảo API đã cập nhật xong
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      const apiOrders = await OrderService.getAllOrdersForAdmin();
+      const mappedOrders: Order[] = apiOrders.map((apiOrder: AdminOrderResponse) => ({
+        id: apiOrder.orderId,
+        customerId: String(apiOrder.userId),
+        customerName: `User ${apiOrder.userId}`,
+        products: [],
+        totalAmount: apiOrder.totalAmount,
+        status: mapStatusToOrderStatus(apiOrder.status),
+        orderDate: apiOrder.createdAt,
+        paymentMethod: 'cash',
+        shippingAddress: apiOrder.shippingAddress,
+        apiStatus: apiOrder.status.toUpperCase(), // Đảm bảo status luôn uppercase và lưu status gốc từ API
+      } as Order & { apiStatus: string }));
+
+      setOrders(mappedOrders);
+
+      // Cập nhật lại thống kê
+      // So sánh ngày theo timezone Việt Nam (GMT+7)
+      const now = new Date();
+      // Format ngày hiện tại theo timezone Việt Nam: YYYY-MM-DD
+      const todayStr = now.toLocaleDateString('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }); // en-CA gives YYYY-MM-DD format
+
+      const todayOrders = mappedOrders.filter(order => {
+        if (!order.orderDate) return false;
+        const orderDate = new Date(order.orderDate);
+        // Format ngày đơn hàng theo timezone Việt Nam: YYYY-MM-DD
+        const orderDateStr = orderDate.toLocaleDateString('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' });
+
+        // So sánh chuỗi ngày
+        return orderDateStr === todayStr;
+      });
+
+      const completedOrders = mappedOrders.filter(order => {
+        const status = (order as any).apiStatus || order.status.toUpperCase();
+        return status === 'COMPLETED' || status === 'DELIVERED';
+      });
+
+      const totalRevenue = completedOrders.reduce((sum, order) => sum + (order.totalAmount || 0), 0);
+      const todayRevenue = todayOrders
+        .filter(order => {
+          const status = (order as any).apiStatus || order.status.toUpperCase();
+          return status === 'COMPLETED' || status === 'DELIVERED';
+        })
+        .reduce((sum, order) => sum + (order.totalAmount || 0), 0);
+
+      setOrderStats({
+        total: mappedOrders.length,
+        totalRevenue: totalRevenue,
+        todayOrders: todayOrders.length,
+        todayRevenue: todayRevenue,
+      });
+    } catch (error: any) {
+      console.error('Error refreshing orders:', error);
+      toast.error('Không thể làm mới danh sách đơn hàng');
     }
   };
 
@@ -148,11 +223,10 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ orders: initia
       <button
         key={i + 1}
         onClick={() => setCurrentPage(i + 1)}
-        className={`px-2.5 py-1.5 min-w-[36px] rounded-lg text-sm font-semibold transition-all duration-200 ${
-          currentPage === i + 1
-            ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/50 scale-105"
-            : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 hover:border-gray-400 hover:shadow-md"
-        }`}
+        className={`px-2.5 py-1.5 min-w-[36px] rounded-lg text-sm font-semibold transition-all duration-200 ${currentPage === i + 1
+          ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/50 scale-105"
+          : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 hover:border-gray-400 hover:shadow-md"
+          }`}
       >
         {i + 1}
       </button>
@@ -189,6 +263,62 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ orders: initia
             <option value="CANCELLED">Đã hủy</option>
             <option value="RETURNED">Đã trả hàng</option>
           </select>
+        </div>
+      </div>
+
+      {/* Thống kê tổng quan */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-gradient-to-br from-blue-500 to-blue-600 p-6 rounded-lg shadow-lg text-white">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-blue-100 text-sm font-medium mb-1">Tổng đơn hàng</p>
+              <p className="text-3xl font-bold">{orderStats.total}</p>
+            </div>
+            <div className="bg-white/20 rounded-full p-3">
+              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+              </svg>
+            </div>
+          </div>
+        </div>
+        <div className="bg-gradient-to-br from-green-500 to-green-600 p-6 rounded-lg shadow-lg text-white">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-green-100 text-sm font-medium mb-1">Tổng doanh thu</p>
+              <p className="text-2xl font-bold">{formatPrice(orderStats.totalRevenue)}</p>
+            </div>
+            <div className="bg-white/20 rounded-full p-3">
+              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+          </div>
+        </div>
+        <div className="bg-gradient-to-br from-purple-500 to-purple-600 p-6 rounded-lg shadow-lg text-white">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-purple-100 text-sm font-medium mb-1">Đơn hôm nay</p>
+              <p className="text-3xl font-bold">{orderStats.todayOrders}</p>
+            </div>
+            <div className="bg-white/20 rounded-full p-3">
+              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </div>
+          </div>
+        </div>
+        <div className="bg-gradient-to-br from-orange-500 to-orange-600 p-6 rounded-lg shadow-lg text-white">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-orange-100 text-sm font-medium mb-1">Doanh thu hôm nay</p>
+              <p className="text-2xl font-bold">{formatPrice(orderStats.todayRevenue)}</p>
+            </div>
+            <div className="bg-white/20 rounded-full p-3">
+              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+              </svg>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -278,10 +408,10 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ orders: initia
                       const apiStatus = (order as any).apiStatus ? String((order as any).apiStatus).toUpperCase() : order.status.toUpperCase();
                       const finalStatuses = ['DELIVERED', 'COMPLETED', 'CANCELLED', 'RETURNED'];
                       const canEdit = !finalStatuses.includes(apiStatus);
-                      
+
                       return (
                         <div className="flex items-center justify-center space-x-2">
-                          <button 
+                          <button
                             onClick={() => handleViewOrderDetail(order.id)}
                             className="px-2 py-1.5 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-md transition-colors flex items-center space-x-1 border border-blue-200"
                             title="Xem chi tiết"
@@ -291,7 +421,7 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ orders: initia
                           </button>
                           {/* Chỉ hiển thị nút Duyệt khi đơn hàng chưa ở trạng thái cuối cùng */}
                           {canEdit && (
-                            <button 
+                            <button
                               onClick={() => handleApproveOrder(order.id, apiStatus)}
                               className="px-2 py-1.5 text-xs text-green-600 hover:text-green-700 hover:bg-green-50 rounded-md transition-colors flex items-center space-x-1 border border-green-200 font-medium"
                               title="Duyệt đơn"
@@ -302,7 +432,7 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ orders: initia
                           )}
                           {/* Chỉ hiển thị nút Từ chối khi đơn hàng chưa ở trạng thái cuối cùng */}
                           {canEdit && (
-                            <button 
+                            <button
                               onClick={() => handleCancelOrder(order.id)}
                               className="px-2 py-1.5 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors flex items-center space-x-1 border border-red-200 font-medium"
                               title="Từ chối đơn hàng"

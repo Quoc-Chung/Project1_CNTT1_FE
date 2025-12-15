@@ -14,7 +14,7 @@ const SocialMediaPage: React.FC = () => {
   const [isCreatingPost, setIsCreatingPost] = useState(false);
 
   useEffect(() => {
-    document.title = "Mạng xã hội | NextCommerce";
+    document.title = "Mạng xã hội | Proshop";
     loadPosts();
   }, []);
 
@@ -45,12 +45,12 @@ const SocialMediaPage: React.FC = () => {
   const handleReaction = async (postId: string, type: 'like' | 'love' | 'haha' | 'sad' | 'angry') => {
     try {
       await socialMediaAPI.toggleReaction({ type, postId });
-      
+
       // Update local state
       setPosts(prev => prev.map(post => {
         if (post.id === postId) {
           const existingReaction = post.reactions.find(r => r.user.id === '1'); // Current user ID
-          
+
           if (existingReaction) {
             // Remove existing reaction
             return {
@@ -83,7 +83,7 @@ const SocialMediaPage: React.FC = () => {
   const handleComment = async (postId: string, content: string) => {
     try {
       await socialMediaAPI.createComment({ content, postId });
-      
+
       // Reload posts to get updated comments
       await loadPosts();
     } catch (error) {
@@ -120,10 +120,10 @@ const SocialMediaPage: React.FC = () => {
                 <button className="hover:text-blue-600 transition-colors">Tin nhắn</button>
               </div>
             </div>
-            
+
             <div className="flex items-center space-x-4">
               <NotificationBell onNotificationClick={handleNotificationClick} />
-              
+
               {/* User Avatar */}
               <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
                 U

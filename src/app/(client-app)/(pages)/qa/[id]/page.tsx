@@ -12,7 +12,7 @@ interface QuestionDetailPageProps {
 export async function generateMetadata({ params }: QuestionDetailPageProps): Promise<Metadata> {
   const { id } = await params;
   return {
-    title: `Câu hỏi #${id} | NextCommerce`,
+    title: `Câu hỏi #${id} | Proshop`,
     description: "Chi tiết câu hỏi và câu trả lời",
   };
 }

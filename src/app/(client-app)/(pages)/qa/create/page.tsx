@@ -4,7 +4,7 @@ import CreateQuestion from "@/components/client/QA/CreateQuestion";
 import Breadcrumb from "@/components/client/Common/Breadcrumb";
 
 export const metadata: Metadata = {
-  title: "Đặt câu hỏi | NextCommerce",
+  title: "Đặt câu hỏi | Proshop",
   description: "Đặt câu hỏi cho cộng đồng",
 };
 

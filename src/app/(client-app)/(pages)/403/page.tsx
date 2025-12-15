@@ -12,7 +12,7 @@ export default function ForbiddenPage() {
   useEffect(() => {
     setIsHydrated(true);
     // Set page title
-    document.title = "Truy cập bị từ chối | NextCommerce";
+    document.title = "Truy cập bị từ chối | Proshop";
   }, []);
 
   return (
@@ -42,11 +42,11 @@ export default function ForbiddenPage() {
 
         {/* Description */}
         <p className="text-gray-600 mb-6">
-          Xin lỗi, bạn không có quyền truy cập vào trang này. 
+          Xin lỗi, bạn không có quyền truy cập vào trang này.
           {!isHydrated ? ' Vui lòng đăng nhập để tiếp tục.' :
-           !isLogin ? ' Vui lòng đăng nhập để tiếp tục.' : 
-           !roleNames.includes('Administrator') ? ' Chỉ quản trị viên mới có thể truy cập.' : 
-           ' Vui lòng liên hệ quản trị viên để được hỗ trợ.'}
+            !isLogin ? ' Vui lòng đăng nhập để tiếp tục.' :
+              !roleNames.includes('Administrator') ? ' Chỉ quản trị viên mới có thể truy cập.' :
+                ' Vui lòng liên hệ quản trị viên để được hỗ trợ.'}
         </p>
 
         {/* User info */}
@@ -82,7 +82,7 @@ export default function ForbiddenPage() {
               Về trang chủ
             </Link>
           )}
-          
+
           <Link
             href="/contact"
             className="w-full bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors duration-200 inline-block"

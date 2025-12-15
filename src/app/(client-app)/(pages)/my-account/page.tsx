@@ -5,8 +5,8 @@ import { Metadata } from "next";
 import UserDashboard from "../../../../components/client/MyAccount";
 
 export const metadata: Metadata = {
-  title: "Tài khoản của tôi | NextCommerce",
-  description: "Trang tài khoản cá nhân NextCommerce",
+  title: "Tài khoản của tôi | Proshop",
+  description: "Trang tài khoản cá nhân Proshop",
 };
 
 const MyAccountPage = () => {

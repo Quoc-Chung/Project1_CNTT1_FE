@@ -13,7 +13,7 @@ const GoogleCallbackPage = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    document.title = "Đăng nhập Google | NextCommerce";
+    document.title = "Đăng nhập Google | Proshop";
     const processCallback = async () => {
       try {
         // Lấy các tham số từ URL callback
@@ -49,12 +49,12 @@ const GoogleCallbackPage = () => {
             callbackData,
             (response) => {
               console.log("Google login success - Full response:", response);
-              
+
               // Kiểm tra role để quyết định redirect
               const userRoleNames = response?.data?.roleNames || response?.roleNames || [];
               console.log('User roleNames:', userRoleNames);
               console.log('Is array?', Array.isArray(userRoleNames));
-              
+
               if (Array.isArray(userRoleNames) && userRoleNames.length > 0 && userRoleNames.includes('Administrator')) {
                 console.log('✓ User has Administrator role, redirecting to /admin-app');
                 setTimeout(() => {
@@ -78,7 +78,7 @@ const GoogleCallbackPage = () => {
               console.error("Google login error:", error);
               setError(error);
               setIsProcessing(false);
-              
+
               // Redirect về trang đăng nhập sau 3 giây
               setTimeout(() => {
                 router.push("/signin");
@@ -90,7 +90,7 @@ const GoogleCallbackPage = () => {
         console.error("Callback processing error:", err);
         setError(err instanceof Error ? err.message : "Lỗi không xác định");
         setIsProcessing(false);
-        
+
         setTimeout(() => {
           router.push("/signin");
         }, 3000);

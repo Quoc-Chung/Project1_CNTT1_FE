@@ -2,8 +2,8 @@ import { Metadata } from "next";
 import { OrderManagement } from "../../../../components/server/OrderManagement";
 
 export const metadata: Metadata = {
-  title: "NextCommerce | Quản lý đơn hàng",
-  description: "Quản lý đơn hàng khách hàng NextCommerce",
+  title: "Proshop | Quản lý đơn hàng",
+  description: "Quản lý đơn hàng khách hàng Proshop",
 };
 
 export default function OrdersPage() {

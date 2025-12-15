@@ -12,7 +12,7 @@ const OAuth2Callback = () => {
     const dispatch = useAppDispatch();
 
     useEffect(() => {
-        document.title = "Đăng nhập Google | NextCommerce";
+        document.title = "Đăng nhập Google | Proshop";
         const data = searchParams.get("data");
         if (data) {
             try {
@@ -25,12 +25,12 @@ const OAuth2Callback = () => {
                 dispatch(
                     loginWithGoogleCallback(loginResponse, (res) => {
                         console.log("OAuth2 callback - Full response:", res);
-                        
+
                         // Kiểm tra role để quyết định redirect
                         const userRoleNames = res?.data?.roleNames || res?.roleNames || [];
                         console.log('User roleNames:', userRoleNames);
                         console.log('Is array?', Array.isArray(userRoleNames));
-                        
+
                         if (Array.isArray(userRoleNames) && userRoleNames.length > 0 && userRoleNames.includes('Administrator')) {
                             console.log('✓ User has Administrator role, redirecting to /admin-app');
                             setTimeout(() => {

@@ -7,7 +7,7 @@ export default function ProductDetailPage() {
   const router = useRouter();
 
   useEffect(() => {
-    document.title = "Chi tiết sản phẩm | NextCommerce";
+    document.title = "Chi tiết sản phẩm | Proshop";
     router.replace("/admin-app/products/management");
   }, [router]);
 

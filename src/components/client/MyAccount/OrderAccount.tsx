@@ -11,12 +11,12 @@ const OrderAccount = () => {
   const dispatch = useAppDispatch();
   const { orders, loading, error } = useAppSelector((state) => state.order);
   const { token } = useAppSelector((state) => state.auth);
-  
+
   // State để lưu chi tiết đơn hàng đã fetch
   const [orderDetails, setOrderDetails] = useState<{ [key: string]: OrderResponse }>({});
   // Ref để track các order đang được fetch để tránh fetch nhiều lần
   const fetchingOrders = React.useRef<Set<string>>(new Set());
-  
+
   // State cho dialog đánh giá
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
   const [selectedProductId, setSelectedProductId] = useState<string>("");
@@ -41,7 +41,7 @@ const OrderAccount = () => {
 
   const orderIds = useMemo(() => orders.map(o => o.orderId).join(','), [orders]);
   const orderDetailsKeys = useMemo(() => Object.keys(orderDetails).join(','), [orderDetails]);
-  
+
   const ordersToFetch = useMemo(() => {
     return orders.filter(
       (order) =>
@@ -58,7 +58,7 @@ const OrderAccount = () => {
     // Chỉ fetch các order mới, không fetch lại các order đã có
     ordersToFetch.forEach((order) => {
       fetchingOrders.current.add(order.orderId);
-      
+
       dispatch(
         getOrderByIdAction(
           order.orderId,
@@ -86,32 +86,47 @@ const OrderAccount = () => {
     return price.toLocaleString('vi-VN') + ' VNĐ';
   };
 
-  // Hàm format ngày tháng
+  // Hàm format ngày tháng (theo timezone Việt Nam)
   const formatDate = (dateString: string) => {
+    if (!dateString) return '';
     const date = new Date(dateString);
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
+    if (isNaN(date.getTime())) return dateString;
+
+    // Format theo timezone Việt Nam (Asia/Ho_Chi_Minh)
+    const formatter = new Intl.DateTimeFormat('vi-VN', {
+      timeZone: 'Asia/Ho_Chi_Minh',
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+    return formatter.format(date);
   };
 
-  // Hàm format giờ
+  // Hàm format giờ (theo timezone Việt Nam)
   const formatTime = (dateString: string) => {
+    if (!dateString) return '';
     const date = new Date(dateString);
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    return `${hours}:${minutes}`;
+    if (isNaN(date.getTime())) return '';
+
+    // Format theo timezone Việt Nam (Asia/Ho_Chi_Minh)
+    const formatter = new Intl.DateTimeFormat('vi-VN', {
+      timeZone: 'Asia/Ho_Chi_Minh',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    });
+    return formatter.format(date);
   };
 
   // Hàm lấy màu sắc và icon cho trạng thái đơn hàng
   const getStatusConfig = (status: string) => {
     const upperStatus = status.toUpperCase();
-    switch(upperStatus) {
+    switch (upperStatus) {
       case "DELIVERED":
       case "COMPLETED":
-        return { 
-          bg: "bg-gradient-to-r from-green-500 to-emerald-600", 
-          text: "text-white", 
+        return {
+          bg: "bg-gradient-to-r from-green-500 to-emerald-600",
+          text: "text-white",
           dot: "bg-green-500",
           icon: (
             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -122,9 +137,9 @@ const OrderAccount = () => {
         };
       case "PROCESSING":
       case "CONFIRMED":
-        return { 
-          bg: "bg-gradient-to-r from-yellow-500 to-orange-500", 
-          text: "text-white", 
+        return {
+          bg: "bg-gradient-to-r from-yellow-500 to-orange-500",
+          text: "text-white",
           dot: "bg-yellow-500",
           icon: (
             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -134,9 +149,9 @@ const OrderAccount = () => {
           label: "Đang xử lý"
         };
       case "SHIPPED":
-        return { 
-          bg: "bg-gradient-to-r from-blue-500 to-cyan-500", 
-          text: "text-white", 
+        return {
+          bg: "bg-gradient-to-r from-blue-500 to-cyan-500",
+          text: "text-white",
           dot: "bg-blue-500",
           icon: (
             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -147,9 +162,9 @@ const OrderAccount = () => {
           label: "Đã gửi hàng"
         };
       case "PENDING":
-        return { 
-          bg: "bg-gradient-to-r from-orange-500 to-red-500", 
-          text: "text-white", 
+        return {
+          bg: "bg-gradient-to-r from-orange-500 to-red-500",
+          text: "text-white",
           dot: "bg-orange-500",
           icon: (
             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -160,9 +175,9 @@ const OrderAccount = () => {
         };
       case "CANCELLED":
       case "CANCELED":
-        return { 
-          bg: "bg-gradient-to-r from-red-500 to-pink-500", 
-          text: "text-white", 
+        return {
+          bg: "bg-gradient-to-r from-red-500 to-pink-500",
+          text: "text-white",
           dot: "bg-red-500",
           icon: (
             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -172,9 +187,9 @@ const OrderAccount = () => {
           label: "Đã hủy"
         };
       default:
-        return { 
-          bg: "bg-gradient-to-r from-gray-500 to-gray-600", 
-          text: "text-white", 
+        return {
+          bg: "bg-gradient-to-r from-gray-500 to-gray-600",
+          text: "text-white",
           dot: "bg-gray-500",
           icon: null,
           label: status
@@ -238,8 +253,8 @@ const OrderAccount = () => {
         <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1.5">Lịch sử đơn hàng</h2>
         <p className="text-xs text-gray-600">Xem và theo dõi tất cả đơn hàng của bạn</p>
       </div>
-      
-      <div 
+
+      <div
         className="max-h-[calc(100vh-250px)] overflow-y-auto pr-2 space-y-4 order-list-scroll"
         style={{
           scrollbarWidth: 'thin',
@@ -250,7 +265,7 @@ const OrderAccount = () => {
           const orderWithDetails = getOrderWithDetails(order);
           const statusConfig = getStatusConfig(order.status);
           const orderItems = orderWithDetails.items || [];
-          
+
           return (
             <div key={order.orderId} className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200 transition-all duration-300 hover:shadow-lg hover:border-blue-300">
               {/* Header với thông tin đơn hàng */}
@@ -269,13 +284,7 @@ const OrderAccount = () => {
                         <svg className="w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
-                        <span className="font-medium">Ngày đặt: {formatDate(order.createdAt)}</span>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <svg className="w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <span className="font-medium">Giờ: {formatTime(order.createdAt)}</span>
+                        <span className="font-medium">Ngày đặt: {formatDate(order.createdAt)} {formatTime(order.createdAt)}</span>
                       </div>
                     </div>
                     {order.shippingAddress && (
@@ -290,7 +299,7 @@ const OrderAccount = () => {
                   </div>
                 </div>
               </div>
-              
+
               {/* Danh sách sản phẩm */}
               <div className="p-4">
                 <div className="flex items-center gap-2 mb-3">
@@ -301,20 +310,20 @@ const OrderAccount = () => {
                     Sản phẩm ({orderItems.length > 0 ? orderItems.length : 'Đang tải...'})
                   </h4>
                 </div>
-                
+
                 {orderItems.length > 0 ? (
                   <div className="space-y-2">
                     {orderItems.map((item, index) => (
                       <div key={index} className="flex items-center gap-3 p-3 bg-gradient-to-r from-gray-50 to-white rounded-lg border border-gray-200 hover:border-blue-300 transition-all duration-200 hover:shadow-sm">
-                      <div className="flex-shrink-0">
+                        <div className="flex-shrink-0">
                           <div className="relative w-16 h-16 rounded-lg overflow-hidden border border-gray-200 bg-gray-100 flex items-center justify-center">
                             <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                             </svg>
+                          </div>
                         </div>
-                      </div>
-                      
-                      <div className="flex-grow min-w-0">
+
+                        <div className="flex-grow min-w-0">
                           <h5 className="font-semibold text-xs text-gray-900 mb-0.5 truncate">{item.productName}</h5>
                           <div className="flex items-center gap-3 text-xs text-gray-600">
                             <span>Giá: <span className="text-blue-600 font-semibold">{formatPrice(item.productPrice)}</span></span>
@@ -323,36 +332,36 @@ const OrderAccount = () => {
                           <p className="text-blue-600 font-semibold text-xs mt-0.5">
                             Tổng: {formatPrice(item.subtotal)}
                           </p>
-                      </div>
-                      
-                      {/* Nút đánh giá - chỉ hiển thị khi đơn hàng đã giao */}
-                      {(order.status.toUpperCase() === "DELIVERED" || order.status.toUpperCase() === "COMPLETED") && (
-                        <div className="flex-shrink-0">
-                          <button
-                            onClick={() => {
-                              setSelectedProductId(item.productId);
-                              setSelectedProductName(item.productName);
-                              setReviewDialogOpen(true);
-                            }}
-                            className="px-3 py-1.5 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-1.5 shadow-sm"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                            </svg>
-                            Đánh giá
-                          </button>
                         </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
+
+                        {/* Nút đánh giá - chỉ hiển thị khi đơn hàng đã giao */}
+                        {(order.status.toUpperCase() === "DELIVERED" || order.status.toUpperCase() === "COMPLETED") && (
+                          <div className="flex-shrink-0">
+                            <button
+                              onClick={() => {
+                                setSelectedProductId(item.productId);
+                                setSelectedProductName(item.productName);
+                                setReviewDialogOpen(true);
+                              }}
+                              className="px-3 py-1.5 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-1.5 shadow-sm"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                              </svg>
+                              Đánh giá
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 ) : (
                   <div className="flex justify-center items-center py-6">
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
                   </div>
                 )}
               </div>
-              
+
               {/* Footer với tổng tiền */}
               <div className="px-4 py-3 bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 border-t border-blue-200">
                 <div className="flex justify-between items-center">
@@ -369,7 +378,7 @@ const OrderAccount = () => {
           );
         })}
       </div>
-      
+
       {/* Review Dialog */}
       <ReviewDialog
         isOpen={reviewDialogOpen}

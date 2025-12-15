@@ -5,7 +5,7 @@ import ProductManagement from "../../../../../components/server/ProductManagemen
 
 const ProductPage = () => {
   useEffect(() => {
-    document.title = "NextCommerce | Quản lý sản phẩm";
+    document.title = "Proshop | Quản lý sản phẩm";
   }, []);
 
   return <ProductManagement />;

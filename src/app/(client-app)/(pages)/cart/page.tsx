@@ -5,8 +5,8 @@ import ProtectedRoute from "../../../../components/client/Auth/ProtectedRoute";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Giỏ hàng | NextCommerce",
-  description: "Trang giỏ hàng NextCommerce",
+  title: "Giỏ hàng | Proshop",
+  description: "Trang giỏ hàng Proshop",
 };
 
 const CartPage = () => {

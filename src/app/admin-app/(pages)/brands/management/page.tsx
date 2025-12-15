@@ -5,7 +5,7 @@ import BrandManagement from "../../../../../components/admin/BrandManagement";
 
 const BrandManagementPage = () => {
   useEffect(() => {
-    document.title = "NextCommerce | Quản lý thương hiệu";
+    document.title = "Proshop | Quản lý thương hiệu";
   }, []);
 
   return <BrandManagement />;

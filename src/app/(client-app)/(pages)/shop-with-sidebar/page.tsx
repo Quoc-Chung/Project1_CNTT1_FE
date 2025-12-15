@@ -3,8 +3,8 @@ import ShopWithSidebar from "@/components/client/ShopWithSidebar";
 
 import { Metadata } from "next";
 export const metadata: Metadata = {
-  title: "Cửa hàng | NextCommerce",
-  description: "Trang cửa hàng NextCommerce - Xem tất cả sản phẩm",
+  title: "Cửa hàng | Proshop",
+  description: "Trang cửa hàng Proshop - Xem tất cả sản phẩm",
 };
 
 const ShopWithSidebarPage = () => {

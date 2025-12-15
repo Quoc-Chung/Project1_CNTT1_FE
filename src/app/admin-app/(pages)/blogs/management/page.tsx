@@ -5,7 +5,7 @@ import BlogManagement from "../../../../../components/admin/BlogManagement";
 
 const BlogManagementPage = () => {
   useEffect(() => {
-    document.title = "NextCommerce | Quản lý blog";
+    document.title = "Proshop | Quản lý blog";
   }, []);
 
   return <BlogManagement />;

@@ -5,7 +5,7 @@ import CreateProduct from "../../../../../components/admin/CreateProduct";
 
 const CreateProductPage = () => {
   useEffect(() => {
-    document.title = "NextCommerce | Tạo sản phẩm mới";
+    document.title = "Proshop | Tạo sản phẩm mới";
   }, []);
 
   return <CreateProduct />;

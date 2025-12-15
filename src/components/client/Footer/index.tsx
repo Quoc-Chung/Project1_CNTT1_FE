@@ -240,12 +240,12 @@ const Footer = () => {
 
             <ul className="flex flex-col gap-3">
               <li>
-                <Link className="ease-out duration-200 hover:text-blue" href="#">
+                <Link className="ease-out duration-200 hover:text-blue" href="/privacy-policy">
                   Chính sách bảo mật
                 </Link>
               </li>
               <li>
-                <Link className="ease-out duration-200 hover:text-blue" href="#">
+                <Link className="ease-out duration-200 hover:text-blue" href="/terms-of-service">
                   Điều khoản sử dụng
                 </Link>
               </li>

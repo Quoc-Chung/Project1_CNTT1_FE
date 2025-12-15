@@ -2,9 +2,9 @@
  * Format price to Vietnamese currency format
  */
 export const formatPrice = (price: number): string => {
-  return new Intl.NumberFormat('vi-VN', { 
-    style: 'currency', 
-    currency: 'VND' 
+  return new Intl.NumberFormat('vi-VN', {
+    style: 'currency',
+    currency: 'VND'
   }).format(price);
 };
 
@@ -12,7 +12,50 @@ export const formatPrice = (price: number): string => {
  * Format date to Vietnamese date format
  */
 export const formatDate = (dateString: string): string => {
-  return new Date(dateString).toLocaleDateString('vi-VN');
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  // Kiểm tra nếu date không hợp lệ
+  if (isNaN(date.getTime())) return dateString;
+
+  // Format: dd/mm/yyyy HH:mm
+  return date.toLocaleString('vi-VN', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: 'Asia/Ho_Chi_Minh'
+  });
+};
+
+/**
+ * Format date only (without time) to Vietnamese date format
+ */
+export const formatDateOnly = (dateString: string): string => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  // Kiểm tra nếu date không hợp lệ
+  if (isNaN(date.getTime())) return dateString;
+
+  return date.toLocaleDateString('vi-VN', {
+    timeZone: 'Asia/Ho_Chi_Minh'
+  });
+};
+
+/**
+ * Format time only to Vietnamese time format
+ */
+export const formatTime = (dateString: string): string => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  // Kiểm tra nếu date không hợp lệ
+  if (isNaN(date.getTime())) return '';
+
+  return date.toLocaleTimeString('vi-VN', {
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: 'Asia/Ho_Chi_Minh'
+  });
 };
 
 /**
@@ -31,7 +74,7 @@ export const formatDate = (dateString: string): string => {
  */
 export const getStatusBadge = (status: string): { color: string, text: string } => {
   const normalizedStatus = status.toUpperCase();
-  
+
   const statusMap: { [key: string]: { color: string, text: string } } = {
     // API Statuses (uppercase) - Mapping chính xác 100%
     'COMPLETED': { color: 'bg-green-100 text-green-800', text: 'Đã hoàn thành' },
@@ -42,7 +85,7 @@ export const getStatusBadge = (status: string): { color: string, text: string } 
     'DELIVERED': { color: 'bg-green-100 text-green-800', text: 'Đã giao hàng' },
     'CANCELLED': { color: 'bg-red-100 text-red-800', text: 'Đã hủy' },
     'RETURNED': { color: 'bg-orange-100 text-orange-800', text: 'Đã trả hàng' },
-    
+
     // Legacy lowercase statuses (for backward compatibility)
     'pending': { color: 'bg-yellow-100 text-yellow-800', text: 'Chờ xử lý' },
     'processing': { color: 'bg-blue-100 text-blue-800', text: 'Đang xử lý' },
@@ -54,7 +97,7 @@ export const getStatusBadge = (status: string): { color: string, text: string } 
     'cancelled': { color: 'bg-red-100 text-red-800', text: 'Đã hủy' },
     'returned': { color: 'bg-orange-100 text-orange-800', text: 'Đã trả hàng' }
   };
-  
+
   return statusMap[normalizedStatus] || statusMap[status.toLowerCase()] || { color: 'bg-gray-100 text-gray-800', text: status };
 };
 
@@ -118,7 +161,7 @@ export const getStockStatus = (stock: number): { color: string, text: string, ba
 export const normalizeImageUrl = (url: string | null | undefined, isAvatar: boolean = false): { url: string; isExternal: boolean } => {
   // Default fallback image - different for avatar vs product
   const defaultImage = isAvatar ? "/images/avatars/nologin.png" : "/images/products/product-1-1.png";
-  
+
   if (!url || url.trim() === '') {
     return { url: defaultImage, isExternal: false };
   }

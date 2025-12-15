@@ -10,7 +10,7 @@ interface BlogDetailPageProps {
 export async function generateMetadata({ params }: BlogDetailPageProps): Promise<Metadata> {
   const { id } = await params;
   return {
-    title: "Chi tiết Blog | NextCommerce",
+    title: "Chi tiết Blog | Proshop",
     description: "Đọc bài viết chi tiết về công nghệ và sản phẩm máy tính",
   };
 }

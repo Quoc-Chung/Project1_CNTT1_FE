@@ -5,7 +5,7 @@ import CategoryManagement from "../../../../../components/admin/CategoryManageme
 
 const CategoryManagementPage = () => {
   useEffect(() => {
-    document.title = "NextCommerce | Quản lý danh mục";
+    document.title = "Proshop | Quản lý danh mục";
   }, []);
 
   return <CategoryManagement />;
