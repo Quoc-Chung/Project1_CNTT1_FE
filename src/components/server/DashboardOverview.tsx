@@ -1,5 +1,6 @@
 "use client"
 import React, { useState, useMemo } from "react";
+import Link from "next/link";
 import {
   Calendar,
   TrendingUp,
@@ -13,6 +14,11 @@ import {
   CheckCircle,
   Clock,
   FileText,
+  Tag,
+  Folder,
+  Ticket,
+  Percent,
+  ArrowRight,
 } from "lucide-react";
 import { DashboardStats, Product } from "@/types/Admin";
 import { formatDate, formatPrice } from '../../utils/helpers';
@@ -107,6 +113,46 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
         <div className="flex items-center space-x-2 text-xs text-gray-500">
           <Calendar size={14} />
           <span>Cập nhật: {formatDate(new Date().toISOString())}</span>
+        </div>
+      </div>
+
+      {/* Quick Links - Quản lý nhanh */}
+      <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6">
+        <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+          <BarChart3 size={20} className="text-blue-600" />
+          Quản Lý Nhanh
+        </h3>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          {[
+            { href: "/admin-app/products/management", icon: Package, label: "Sản Phẩm", color: "from-blue-500 to-blue-600" },
+            { href: "/admin-app/orders", icon: ShoppingCart, label: "Đơn Hàng", color: "from-green-500 to-green-600" },
+            { href: "/admin-app/customers/management", icon: Users, label: "Khách Hàng", color: "from-purple-500 to-purple-600" },
+            { href: "/admin-app/brands/management", icon: Tag, label: "Thương Hiệu", color: "from-orange-500 to-orange-600" },
+            { href: "/admin-app/categories/management", icon: Folder, label: "Danh Mục", color: "from-pink-500 to-pink-600" },
+            { href: "/admin-app/inventorys/management", icon: Package, label: "Kho Hàng", color: "from-indigo-500 to-indigo-600" },
+            { href: "/admin-app/vouchers", icon: Ticket, label: "Voucher", color: "from-yellow-500 to-yellow-600" },
+            { href: "/admin-app/sales", icon: Percent, label: "Sale", color: "from-red-500 to-red-600" },
+            { href: "/admin-app/blogs/management", icon: FileText, label: "Blog", color: "from-teal-500 to-teal-600" },
+            { href: "/admin-app/dashboard", icon: BarChart3, label: "Dashboard", color: "from-cyan-500 to-cyan-600" },
+          ].map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="group relative bg-white rounded-lg border-2 border-gray-200 hover:border-blue-500 p-4 transition-all duration-300 hover:shadow-lg hover:scale-105"
+            >
+              <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${item.color} flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300`}>
+                <item.icon size={24} className="text-white" />
+              </div>
+              <h4 className="text-sm font-semibold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors">
+                {item.label}
+              </h4>
+              <div className="flex items-center text-xs text-gray-500 group-hover:text-blue-600 transition-colors">
+                <span>Xem chi tiết</span>
+                <ArrowRight size={12} className="ml-1 group-hover:translate-x-1 transition-transform" />
+              </div>
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-500/0 to-purple-500/0 group-hover:from-blue-500/5 group-hover:to-purple-500/5 rounded-lg transition-all duration-300 pointer-events-none"></div>
+            </Link>
+          ))}
         </div>
       </div>
 

@@ -26,7 +26,7 @@ const ShopWithSidebar = () => {
   const [productStyle, setProductStyle] = useState<"grid" | "list">("grid");
   const [productSidebar, setProductSidebar] = useState(false);
   const [stickyMenu, setStickyMenu] = useState(false);
-  
+
   // API states
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -35,7 +35,7 @@ const ShopWithSidebar = () => {
   const [totalElements, setTotalElements] = useState(0);
   const [hasNext, setHasNext] = useState(false);
   const [hasPrevious, setHasPrevious] = useState(false);
-  
+
   // Lấy dữ liệu từ Redux
   const { categories: reduxCategories, loading: categoriesLoading } = useAppSelector((state) => state.category);
   const { brands: reduxBrands, loading: brandsLoading } = useAppSelector((state) => state.brand);
@@ -58,7 +58,7 @@ const ShopWithSidebar = () => {
       id: brand.id,
     }));
   }, [reduxBrands]);
-  
+
   // Search and Filter states
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]); // Multiple categories (IDs)
@@ -67,35 +67,35 @@ const ShopWithSidebar = () => {
     min: null,
     max: null,
   });
-  
+
   // Cache for products
   const [productsCache, setProductsCache] = useState<{ [key: string]: Product[] }>({});
 
   // Build search API URL with filters (mapped to new API endpoint)
-  const buildSearchUrl = useCallback((page: number = 1, size: number = 6) => {
+  const buildSearchUrl = useCallback((page: number = 1, size: number = 20) => {
     const params = new URLSearchParams();
     params.append('page', String(page - 1));
     params.append('size', String(size));
-    
+
     // name parameter (search term) - only add if has value
     if (searchTerm && searchTerm.trim()) {
       params.append('name', searchTerm.trim());
     }
-    
+
     // categories parameter - multiple values using same key (IDs)
     selectedCategories.forEach(categoryId => {
       if (categoryId) {
         params.append('categories', categoryId);
       }
     });
-    
+
     // brands parameter - multiple values using same key (IDs)
     selectedBrands.forEach(brandId => {
       if (brandId) {
         params.append('brands', brandId);
       }
     });
-    
+
     // Price range - only add if set
     if (priceRange.min !== null && priceRange.min !== undefined) {
       params.append('minPrice', String(priceRange.min));
@@ -103,14 +103,14 @@ const ShopWithSidebar = () => {
     if (priceRange.max !== null && priceRange.max !== undefined) {
       params.append('maxPrice', String(priceRange.max));
     }
-    
+
     return `${BASE_API_PRODUCT_URL}/api/product/search?${params.toString()}`;
   }, [searchTerm, selectedCategories, selectedBrands, priceRange]);
 
   // Fetch products from API with search and filters
   const fetchProducts = useCallback(async (page: number = 1) => {
     const cacheKey = `${page}-${searchTerm}-${selectedCategories.join(',')}-${selectedBrands.join(',')}-${priceRange.min}-${priceRange.max}`;
-    
+
     console.log("🔍 Fetching products - Filters:", {
       page,
       searchTerm,
@@ -119,7 +119,7 @@ const ShopWithSidebar = () => {
       priceRange,
       cacheKey
     });
-    
+
     // Check cache first
     if (productsCache[cacheKey]) {
       console.log("📦 Using cached products for key:", cacheKey);
@@ -130,14 +130,14 @@ const ShopWithSidebar = () => {
 
     try {
       setLoading(true);
-      
-      const url = buildSearchUrl(page, 6);
-      
+
+      const url = buildSearchUrl(page, 20);
+
       console.log("🔍 Fetching products from:", url);
       console.log("🔍 Selected categories:", selectedCategories);
       console.log("🔍 Selected brands:", selectedBrands);
       console.log("🔍 URL params:", new URL(url).searchParams.toString());
-      
+
       const response = await fetch(url, {
         method: 'GET',
         headers: {
@@ -145,7 +145,7 @@ const ShopWithSidebar = () => {
         },
         credentials: 'include',
       });
-      
+
       if (!response.ok) {
         const errorText = await response.text().catch(() => 'Unknown error');
         console.error("❌ API Error Response:", {
@@ -156,22 +156,22 @@ const ShopWithSidebar = () => {
         });
         throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
       }
-    
+
       const data: ProductsResponse = await response.json();
-      
+
       if (data.status.code === "200") {
         const productsList = data.data.content || [];
         console.log("✅ Products found:", productsList.length);
         console.log("✅ Filter applied - Selected categories:", selectedCategories);
         console.log("✅ Filter applied - Selected brands:", selectedBrands);
-        
+
         setProducts(productsList);
         setCurrentPage(data.data.current_page !== undefined ? data.data.current_page + 1 : page);
         setTotalPages(data.data.total_pages || 1);
         setTotalElements(data.data.total_elements || 0);
         setHasNext(data.data.has_next || false);
         setHasPrevious(data.data.has_previous || false);
-        
+
         // Cache the products with filter key
         setProductsCache(prev => ({
           ...prev,
@@ -184,10 +184,10 @@ const ShopWithSidebar = () => {
     } catch (error) {
       console.error("❌ Error fetching products:", error);
       setProducts([]);
-      } finally {
-        setLoading(false);
-      }
-    }, [buildSearchUrl, productsCache, searchTerm, selectedCategories, selectedBrands, priceRange]);
+    } finally {
+      setLoading(false);
+    }
+  }, [buildSearchUrl, productsCache, searchTerm, selectedCategories, selectedBrands, priceRange]);
 
   // Prefetch next page
   const prefetchNextPage = useCallback(async (currentPage: number) => {
@@ -196,10 +196,10 @@ const ShopWithSidebar = () => {
       const cacheKey = `${nextPage}-${searchTerm}-${selectedCategories.join(',')}-${selectedBrands.join(',')}-${priceRange.min}-${priceRange.max}`;
       if (!productsCache[cacheKey]) {
         try {
-          const url = buildSearchUrl(nextPage, 6); // 6 products per page
+          const url = buildSearchUrl(nextPage, 20); // 20 products per page
           const response = await fetch(url);
           const data: ProductsResponse = await response.json();
-          
+
           if (data.status.code === "200") {
             setProductsCache(prev => ({
               ...prev,
@@ -231,14 +231,14 @@ const ShopWithSidebar = () => {
       try {
         const params = new URLSearchParams();
         params.append('page', '0');
-        params.append('size', '6'); // 6 products per page
+        params.append('size', '20'); // 20 products per page
 
-        
+
         const url = `${BASE_API_PRODUCT_URL}/api/product/search?${params.toString()}`;
         console.log("🔍 Initial fetch from:", url);
-        
+
         setLoading(true);
-        
+
         // Fetch với error handling tốt hơn
         const response = await fetch(url, {
           method: 'GET',
@@ -247,7 +247,7 @@ const ShopWithSidebar = () => {
           },
           credentials: 'include',
         });
-        
+
         if (!response.ok) {
           const errorText = await response.text().catch(() => 'Unknown error');
           console.error("❌ API Error Response:", {
@@ -263,14 +263,14 @@ const ShopWithSidebar = () => {
           setIsInitialLoad(false);
           return;
         }
-        
+
         const data: ProductsResponse = await response.json();
         console.log("📦 Initial products response:", data);
-        
+
         if (data.status && data.status.code === "200" && data.data) {
           const productsList = data.data.content || [];
           console.log("✅ Initial products found:", productsList.length);
-          
+
           setProducts(productsList);
           setCurrentPage(data.data.current_page !== undefined ? data.data.current_page + 1 : 1);
           setTotalPages(data.data.total_pages || 1);
@@ -295,7 +295,7 @@ const ShopWithSidebar = () => {
         setIsInitialLoad(false);
       }
     };
-    
+
     // Đợi một chút để đảm bảo Redux đã hydrate xong
     setTimeout(() => {
       initializeData();
@@ -304,15 +304,15 @@ const ShopWithSidebar = () => {
   }, []); // Only run on mount 
 
   useEffect(() => {
-    if (isInitialLoad || !hasMounted) return; 
-    
+    if (isInitialLoad || !hasMounted) return;
+
     console.log("🔄 Filter changed, fetching products with:", {
       selectedCategories,
       selectedBrands,
       searchTerm,
       priceRange
     });
-    
+
     // Clear cache when filters change to force fresh fetch
     setProductsCache({});
     setCurrentPage(1);
@@ -376,20 +376,18 @@ const ShopWithSidebar = () => {
           <div className="flex gap-7.5">
             {/* <!-- Sidebar Start --> */}
             <div
-              className={`sidebar-content fixed xl:z-1 z-9999 left-0 top-0 xl:translate-x-0 xl:static max-w-[310px] xl:max-w-[270px] w-full ease-out duration-200 ${
-                productSidebar
+              className={`sidebar-content fixed xl:z-1 z-9999 left-0 top-0 xl:translate-x-0 xl:static max-w-[310px] xl:max-w-[270px] w-full ease-out duration-200 ${productSidebar
                   ? "translate-x-0 bg-white p-5 h-screen overflow-y-auto"
                   : "-translate-x-full"
-              }`}
+                }`}
             >
               <button
                 onClick={() => setProductSidebar(!productSidebar)}
                 aria-label="button for product sidebar toggle"
-                className={`xl:hidden absolute -right-12.5 sm:-right-8 flex items-center justify-center w-8 h-8 rounded-md bg-white shadow-1 ${
-                  stickyMenu
+                className={`xl:hidden absolute -right-12.5 sm:-right-8 flex items-center justify-center w-8 h-8 rounded-md bg-white shadow-1 ${stickyMenu
                     ? "lg:top-20 sm:top-34.5 top-35"
                     : "lg:top-24 sm:top-39 top-37"
-                }`}
+                  }`}
               >
                 <svg
                   className="fill-current"
@@ -420,7 +418,7 @@ const ShopWithSidebar = () => {
                   <div className="bg-white shadow-1 rounded-lg py-4 px-5">
                     <div className="flex items-center justify-between">
                       <p>Filters:</p>
-                      <button 
+                      <button
                         onClick={() => {
                           setSearchTerm("");
                           setSelectedCategories([]);
@@ -435,22 +433,22 @@ const ShopWithSidebar = () => {
                   </div>
 
                   {/* <!-- category box --> */}
-                  <CategoryDropdown 
-                    categories={categories} 
+                  <CategoryDropdown
+                    categories={categories}
                     loading={categoriesLoading}
                     selectedCategories={selectedCategories}
                     onCategoryChange={(categoryIds: string[]) => setSelectedCategories(categoryIds)}
                   />
 
                   {/* <!-- brand box (using GenderDropdown component) --> */}
-                  <GenderDropdown 
-                    genders={brands} 
+                  <GenderDropdown
+                    genders={brands}
                     loading={brandsLoading}
                     selectedBrands={selectedBrands}
                     onBrandChange={(brandIds: string[]) => setSelectedBrands(brandIds)}
                   />
                   {/* // <!-- price range box --> */}
-                  <PriceDropdown 
+                  <PriceDropdown
                     priceRange={priceRange}
                     onPriceChange={(min: number | null, max: number | null) => setPriceRange({ min, max })}
                   />
@@ -527,11 +525,10 @@ const ShopWithSidebar = () => {
                     <button
                       onClick={() => setProductStyle("grid")}
                       aria-label="button for product grid tab"
-                      className={`${
-                        productStyle === "grid"
+                      className={`${productStyle === "grid"
                           ? "bg-blue border-blue text-white"
                           : "text-dark bg-gray-1 border-gray-3"
-                      } flex items-center justify-center w-10.5 h-9 rounded-[5px] border ease-out duration-200 hover:bg-blue hover:border-blue hover:text-white`}
+                        } flex items-center justify-center w-10.5 h-9 rounded-[5px] border ease-out duration-200 hover:bg-blue hover:border-blue hover:text-white`}
                     >
                       <svg
                         className="fill-current"
@@ -571,11 +568,10 @@ const ShopWithSidebar = () => {
                     <button
                       onClick={() => setProductStyle("list")}
                       aria-label="button for product list tab"
-                      className={`${
-                        productStyle === "list"
+                      className={`${productStyle === "list"
                           ? "bg-blue border-blue text-white"
                           : "text-dark bg-gray-1 border-gray-3"
-                      } flex items-center justify-center w-10.5 h-9 rounded-[5px] border ease-out duration-200 hover:bg-blue hover:border-blue hover:text-white`}
+                        } flex items-center justify-center w-10.5 h-9 rounded-[5px] border ease-out duration-200 hover:bg-blue hover:border-blue hover:text-white`}
                     >
                       <svg
                         className="fill-current"
@@ -645,7 +641,7 @@ const ShopWithSidebar = () => {
                     <ProductGrid products={products} productStyle={productStyle} />
                   )}
                 </div>
-                
+
                 {/* Pagination - Fixed at bottom */}
                 <div className="mt-8 h-[120px] flex items-center justify-center flex-shrink-0">
                   <Pagination

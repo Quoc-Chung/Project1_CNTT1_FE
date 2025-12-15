@@ -78,7 +78,7 @@ const ProductManagement: React.FC = () => {
   const [totalElements, setTotalElements] = useState<number>(0);
   const [hasNext, setHasNext] = useState<boolean>(false);
   const [hasPrevious, setHasPrevious] = useState<boolean>(false);
-  const itemsPerPage = 6;
+  const itemsPerPage = 20;
 
   const [priceRange, setPriceRange] = useState<{ min: string; max: string }>({
     min: "",

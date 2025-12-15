@@ -1,6 +1,6 @@
 "use client"
-import React, { useState, useEffect } from "react";
-import { Eye, CheckCircle, XCircle } from "lucide-react";
+import React, { useState, useEffect, useMemo } from "react";
+import { Eye, CheckCircle, XCircle, ArrowUpDown, Filter } from "lucide-react";
 import { Order } from "@/types/Admin";
 import { formatPrice, formatDate, getStatusBadge } from '../../utils/helpers';
 import { OrderService, AdminOrderResponse } from '@/services/OrderService';
@@ -28,11 +28,44 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ orders: initia
   const [isUpdateStatusDialogOpen, setIsUpdateStatusDialogOpen] = useState(false);
   const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
   const [selectedOrderStatus, setSelectedOrderStatus] = useState<string>("");
-  const ordersPerPage = 5;
+  const [statusFilter, setStatusFilter] = useState<string>("ALL"); // Filter theo trạng thái
+  const [sortBy, setSortBy] = useState<string>("date_desc"); // Sắp xếp: date_desc, date_asc, amount_desc, amount_asc
+  const ordersPerPage = 20;
 
-  const totalPages = Math.ceil(orders.length / ordersPerPage);
+  // Filter và sort orders
+  const filteredAndSortedOrders = useMemo(() => {
+    let filtered = orders;
+
+    // Filter theo trạng thái
+    if (statusFilter !== "ALL") {
+      filtered = filtered.filter(order => {
+        const apiStatus = (order as any).apiStatus || order.status.toUpperCase();
+        return apiStatus === statusFilter;
+      });
+    }
+
+    // Sort orders
+    const sorted = [...filtered].sort((a, b) => {
+      switch (sortBy) {
+        case "date_desc":
+          return new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime();
+        case "date_asc":
+          return new Date(a.orderDate).getTime() - new Date(b.orderDate).getTime();
+        case "amount_desc":
+          return (b.totalAmount || 0) - (a.totalAmount || 0);
+        case "amount_asc":
+          return (a.totalAmount || 0) - (b.totalAmount || 0);
+        default:
+          return 0;
+      }
+    });
+
+    return sorted;
+  }, [orders, statusFilter, sortBy]);
+
+  const totalPages = Math.ceil(filteredAndSortedOrders.length / ordersPerPage);
   const startIndex = (currentPage - 1) * ordersPerPage;
-  const currentOrders = orders.slice(startIndex, startIndex + ordersPerPage);
+  const currentOrders = filteredAndSortedOrders.slice(startIndex, startIndex + ordersPerPage);
 
   // Fetch orders from API if not provided
   useEffect(() => {
@@ -215,6 +248,11 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ orders: initia
   };
 
   useEffect(() => {
+    // Reset về trang 1 khi filter hoặc sort thay đổi
+    setCurrentPage(1);
+  }, [statusFilter, sortBy]);
+
+  useEffect(() => {
     if (currentPage > totalPages) setCurrentPage(totalPages || 1);
   }, [currentPage, totalPages]);
 
@@ -249,20 +287,43 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ orders: initia
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h2 className="text-2xl font-bold text-gray-900">Quản Lý Đơn Hàng</h2>
-        <div className="flex space-x-3">
-          <select className="px-2 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm">
-            <option value="">Tất cả trạng thái</option>
-            <option value="PENDING">Chờ xử lý</option>
-            <option value="PROCESSING">Đang xử lý</option>
-            <option value="CONFIRMED">Đã xác nhận</option>
-            <option value="SHIPPING">Đang giao hàng</option>
-            <option value="DELIVERED">Đã giao hàng</option>
-            <option value="COMPLETED">Đã hoàn thành</option>
-            <option value="CANCELLED">Đã hủy</option>
-            <option value="RETURNED">Đã trả hàng</option>
-          </select>
+        <div className="flex flex-wrap gap-3">
+          {/* Filter theo trạng thái */}
+          <div className="flex items-center gap-2">
+            <Filter className="w-4 h-4 text-gray-600" />
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-white shadow-sm hover:border-gray-400 transition-colors"
+            >
+              <option value="ALL">Tất cả trạng thái</option>
+              <option value="PENDING">Chờ xử lý</option>
+              <option value="PROCESSING">Đang xử lý</option>
+              <option value="CONFIRMED">Đã xác nhận</option>
+              <option value="SHIPPING">Đang giao hàng</option>
+              <option value="DELIVERED">Đã giao hàng</option>
+              <option value="COMPLETED">Đã hoàn thành</option>
+              <option value="CANCELLED">Đã hủy</option>
+              <option value="RETURNED">Đã trả hàng</option>
+            </select>
+          </div>
+
+          {/* Sắp xếp */}
+          <div className="flex items-center gap-2">
+            <ArrowUpDown className="w-4 h-4 text-gray-600" />
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-white shadow-sm hover:border-gray-400 transition-colors"
+            >
+              <option value="date_desc">Ngày đặt: Mới nhất</option>
+              <option value="date_asc">Ngày đặt: Cũ nhất</option>
+              <option value="amount_desc">Tổng tiền: Cao → Thấp</option>
+              <option value="amount_asc">Tổng tiền: Thấp → Cao</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -463,7 +524,11 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ orders: initia
           <p className="text-sm font-medium text-gray-700">
             <span className="font-semibold text-gray-900">Trang {currentPage}/{totalPages || 1}</span>
             <span className="mx-2 text-gray-400">•</span>
-            <span>Tổng {orders.length} đơn hàng</span>
+            <span>
+              Hiển thị {currentOrders.length > 0 ? startIndex + 1 : 0}-{Math.min(startIndex + ordersPerPage, filteredAndSortedOrders.length)}
+              {' '}trong tổng {filteredAndSortedOrders.length} đơn hàng
+              {statusFilter !== "ALL" && ` (Đã lọc: ${statusFilter})`}
+            </span>
           </p>
           <div className="flex items-center space-x-2">
             <button
