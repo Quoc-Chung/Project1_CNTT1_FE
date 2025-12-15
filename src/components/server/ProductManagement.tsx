@@ -10,11 +10,17 @@ import {
 import { Product as AdminProduct, ProductDetail, SortConfig } from "@/types/Admin";
 import { Product } from "@/types/Admin/ProductAPI";
 import { ProductService } from "@/services/ProductService";
+import { CategoryService } from "@/services/CategoryService";
+import { BrandService } from "@/services/BrandService";
+import { Category } from "@/types/Client/Category/Category";
+import { Brand } from "@/types/Admin/BrandAPI";
 import { formatPrice } from '../../utils/helpers';
 import Image from "next/image";
 import { ProductDetails } from "./ProductDetails"; 
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
+
+const API_BASE_URL = "http://103.90.225.90:8080/services/product-service/api";
 
 // Component riêng để xử lý image với error handling
 const ProductImageCell: React.FC<{ product: Product }> = ({ product }) => {
@@ -65,11 +71,19 @@ const ProductImageCell: React.FC<{ product: Product }> = ({ product }) => {
 };
 
 const ProductManagement: React.FC = () => {
-  const [products, setProducts] = useState<Product[]>([]);
+  const [allProducts, setAllProducts] = useState<Product[]>([]); // Lưu tất cả products để filter
+  const [products, setProducts] = useState<Product[]>([]); // Products hiển thị sau khi filter
   const [loading, setLoading] = useState<boolean>(true);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [selectedBrand, setSelectedBrand] = useState<string>("");
+  
+  // Dropdown data
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [brands, setBrands] = useState<Brand[]>([]);
+  const [loadingCategories, setLoadingCategories] = useState<boolean>(false);
+  const [loadingBrands, setLoadingBrands] = useState<boolean>(false);
+  
   const router = useRouter();
 
   // Phân trang từ API
@@ -91,17 +105,81 @@ const ProductManagement: React.FC = () => {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [loadingDetail, setLoadingDetail] = useState<boolean>(false);
 
+  // Load categories
+  const loadCategories = async () => {
+    try {
+      setLoadingCategories(true);
+      const data = await CategoryService.getAllCategories();
+      setCategories(data);
+    } catch (error) {
+      console.error("Error loading categories:", error);
+      toast.error("Không thể tải danh mục!", {
+        position: "top-right",
+        autoClose: 2000,
+      });
+    } finally {
+      setLoadingCategories(false);
+    }
+  };
 
-  const loadProducts = async () => {
+  // Load brands
+  const loadBrands = async () => {
+    try {
+      setLoadingBrands(true);
+      const data = await BrandService.getAllBrands();
+      setBrands(data);
+    } catch (error) {
+      console.error("Error loading brands:", error);
+      toast.error("Không thể tải thương hiệu!", {
+        position: "top-right",
+        autoClose: 2000,
+      });
+    } finally {
+      setLoadingBrands(false);
+    }
+  };
+
+  // Load tất cả products một lần (không filter)
+  const loadAllProducts = async () => {
     try {
       setLoading(true);
-      const result = await ProductService.getAllProducts(currentPage, itemsPerPage);
-      setProducts(result.products);
-      setTotalPages(result.totalPages);
-      setTotalElements(result.totalElements);
-      setHasNext(result.hasNext);
-      setHasPrevious(result.hasPrevious);
+      const allProductsList: Product[] = [];
+      let currentPageLoad = 0;
+      let hasMore = true;
+
+      // Load tất cả pages
+      while (hasMore) {
+        const url = `${API_BASE_URL}/product?page=${currentPageLoad}&size=100`;
+        const response = await fetch(url, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (data.status.code !== "200") {
+          throw new Error(data.status.message || "Failed to fetch products");
+        }
+
+        allProductsList.push(...data.data.content);
+        
+        hasMore = data.data.has_next;
+        currentPageLoad++;
+        
+        // Giới hạn tối đa 10 pages để tránh load quá nhiều
+        if (currentPageLoad >= 10) break;
+      }
+
+      setAllProducts(allProductsList);
+      console.log('✅ Loaded all products:', allProductsList.length);
     } catch (error) {
+      console.error('❌ Error loading all products:', error);
       toast.error("Không thể tải danh sách sản phẩm!", {
         position: "top-right",
         autoClose: 3000,
@@ -111,37 +189,73 @@ const ProductManagement: React.FC = () => {
     }
   };
 
+  // Filter và phân trang products
   useEffect(() => {
-    loadProducts();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPage]);
+    if (allProducts.length === 0) return;
 
-  const handleSearch = async () => {
-    if (searchTerm.trim() === "") {
-      loadProducts();
-      return;
-    }
+    let filtered = [...allProducts];
 
-    try {
-      setLoading(true);
-      const result = await ProductService.searchProducts(
-        searchTerm,
-        currentPage,
-        itemsPerPage
+    // Filter theo search term (nếu có)
+    if (searchTerm.trim()) {
+      const searchLower = searchTerm.toLowerCase().trim();
+      filtered = filtered.filter((product: Product) =>
+        product.name.toLowerCase().includes(searchLower) ||
+        product.brandName?.toLowerCase().includes(searchLower) ||
+        product.categoryName?.toLowerCase().includes(searchLower) ||
+        product.description?.toLowerCase().includes(searchLower)
       );
-      setProducts(result.products);
-      setTotalPages(result.totalPages);
-      setTotalElements(result.totalElements);
-      setHasNext(result.hasNext);
-      setHasPrevious(result.hasPrevious);
-    } catch (error) {
-      toast.error("Không thể tìm kiếm sản phẩm!", {
-        position: "top-right",
-        autoClose: 3000,
-      });
-    } finally {
-      setLoading(false);
+      console.log('✅ Filtered by search:', searchTerm, '→', filtered.length, 'products');
     }
+
+    // Filter theo category
+    if (selectedCategory) {
+      const category = categories.find(cat => cat.id === selectedCategory);
+      const categoryName = category ? category.name : selectedCategory;
+      filtered = filtered.filter((product: Product) => 
+        product.categoryName === categoryName
+      );
+      console.log('✅ Filtered by category:', categoryName, '→', filtered.length, 'products');
+    }
+    
+    // Filter theo brand
+    if (selectedBrand) {
+      const brand = brands.find(b => b.id === selectedBrand);
+      const brandName = brand ? brand.name : selectedBrand;
+      filtered = filtered.filter((product: Product) => 
+        product.brandName === brandName
+      );
+      console.log('✅ Filtered by brand:', brandName, '→', filtered.length, 'products');
+    }
+
+    // Phân trang
+    const startIndex = currentPage * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const paginatedProducts = filtered.slice(startIndex, endIndex);
+    
+    setProducts(paginatedProducts);
+    setTotalPages(Math.ceil(filtered.length / itemsPerPage) || 1);
+    setTotalElements(filtered.length);
+    setHasNext(endIndex < filtered.length);
+    setHasPrevious(currentPage > 0);
+    
+    console.log('📦 Final result:', {
+      total: filtered.length,
+      showing: paginatedProducts.length,
+      page: currentPage + 1,
+      totalPages: Math.ceil(filtered.length / itemsPerPage) || 1
+    });
+  }, [allProducts, selectedCategory, selectedBrand, currentPage, categories, brands, itemsPerPage, searchTerm]);
+
+  useEffect(() => {
+    loadCategories();
+    loadBrands();
+    loadAllProducts();
+  }, []);
+
+  const handleSearch = () => {
+    // Reset về trang đầu khi search
+    setCurrentPage(0);
+    // Filter sẽ được xử lý tự động qua useEffect với searchTerm
   };
 
   const handleSearchKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -150,16 +264,13 @@ const ProductManagement: React.FC = () => {
     }
   };
 
-  // Client-side filtering (category, brand, price)
+  // Client-side filtering (price only, category and brand are filtered by API)
   const filteredProducts = products.filter((product) => {
-    const matchesCategory =
-      !selectedCategory || product.categoryName === selectedCategory;
-    const matchesBrand = !selectedBrand || product.brandName === selectedBrand;
     const matchesPrice =
       (!priceRange.min || product.price >= parseInt(priceRange.min)) &&
       (!priceRange.max || product.price <= parseInt(priceRange.max));
 
-    return matchesCategory && matchesBrand && matchesPrice;
+    return matchesPrice;
   });
 
   // --- Sắp xếp ---
@@ -195,7 +306,7 @@ const ProductManagement: React.FC = () => {
     setPriceRange({ min: "", max: "" });
     setSortConfig({ field: "", direction: "asc" });
     setCurrentPage(0);
-    loadProducts();
+    // Filter sẽ được xử lý tự động qua useEffect
   };
 
   // --- Hàm chuyển sang Product Detail ---
@@ -345,23 +456,37 @@ const ProductManagement: React.FC = () => {
           </button>
 
           <select
-            className="px-2 py-1.5 border border-gray-400 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm text-gray-800"
+            className="px-2 py-1.5 border border-gray-400 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm text-gray-800 disabled:bg-gray-100 disabled:cursor-not-allowed"
             value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
+            onChange={(e) => {
+              setSelectedCategory(e.target.value);
+              setCurrentPage(0); // Reset về trang đầu khi filter
+            }}
+            disabled={loadingCategories}
           >
             <option value="">Tất cả danh mục</option>
-            <option value="Laptop cao cấp">Laptop cao cấp</option>
-            <option value="Laptop văn phòng">Laptop văn phòng</option>
+            {categories.map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.name}
+              </option>
+            ))}
           </select>
 
           <select
-            className="px-2 py-1.5 border border-gray-400 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm text-gray-800"
+            className="px-2 py-1.5 border border-gray-400 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm text-gray-800 disabled:bg-gray-100 disabled:cursor-not-allowed"
             value={selectedBrand}
-            onChange={(e) => setSelectedBrand(e.target.value)}
+            onChange={(e) => {
+              setSelectedBrand(e.target.value);
+              setCurrentPage(0); // Reset về trang đầu khi filter
+            }}
+            disabled={loadingBrands}
           >
             <option value="">Tất cả thương hiệu</option>
-            <option value="Apple">Apple</option>
-            <option value="Dell">Dell</option>
+            {brands.map((brand) => (
+              <option key={brand.id} value={brand.id}>
+                {brand.name}
+              </option>
+            ))}
           </select>
 
           <div className="flex space-x-2">
